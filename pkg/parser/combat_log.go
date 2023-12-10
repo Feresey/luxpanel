@@ -21,7 +21,7 @@ const (
 )
 
 type CombatLogLine interface {
-	CombatLogLineType() CombatLogLineType
+	Type() CombatLogLineType
 	Unmarshal(raw []byte, now time.Time) error
 }
 
@@ -215,7 +215,7 @@ type CombatLogLineConnectToGameSession struct {
 	SessionID int
 }
 
-func (c *CombatLogLineConnectToGameSession) CombatLogLineType() CombatLogLineType {
+func (c *CombatLogLineConnectToGameSession) Type() CombatLogLineType {
 	return CombatLogLineTypeConnectToGameSession
 }
 
@@ -242,7 +242,7 @@ type CombatLogLineStartGameplay struct {
 	MapName  string
 }
 
-func (c *CombatLogLineStartGameplay) CombatLogLineType() CombatLogLineType {
+func (c *CombatLogLineStartGameplay) Type() CombatLogLineType {
 	return CombatLogLineTypeStartGameplay
 }
 
@@ -297,7 +297,7 @@ type CombatLogLineDamage struct {
 	IsFriendlyFire  bool
 }
 
-func (c CombatLogLineDamage) CombatLogLineType() CombatLogLineType {
+func (c CombatLogLineDamage) Type() CombatLogLineType {
 	return CombatLogLineTypeDamage
 }
 
@@ -362,7 +362,7 @@ type CombatLogLineHeal struct {
 	Reason  string
 }
 
-func (c CombatLogLineHeal) CombatLogLineType() CombatLogLineType {
+func (c CombatLogLineHeal) Type() CombatLogLineType {
 	return CombatLogLineTypeHeal
 }
 
@@ -402,7 +402,7 @@ type CombatLogLineKill struct {
 	Weapon         string
 }
 
-func (c CombatLogLineKill) CombatLogLineType() CombatLogLineType {
+func (c CombatLogLineKill) Type() CombatLogLineType {
 	return CombatLogLineTypeKill
 }
 
@@ -443,7 +443,7 @@ type CombatLogLineGameFinished struct {
 	GameDuration     time.Duration
 }
 
-func (c CombatLogLineGameFinished) CombatLogLineType() CombatLogLineType {
+func (c CombatLogLineGameFinished) Type() CombatLogLineType {
 	return CombatLogLineTypeGameplayFinished
 }
 

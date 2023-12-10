@@ -6,12 +6,17 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type Parser struct {
-	nowDate   time.Time
-	combatLog *bufio.Reader
-	gameLog   *bufio.Reader
+	nowDate           time.Time
+	combatLog         *bufio.Reader
+	nextGameCombatLog *CombatLogLineConnectToGameSession
+	gameLog           *bufio.Reader
+	nextGameGameLog   *GameLogLineConnected
+	lg                *zap.SugaredLogger
 }
 
 func New(combatLog io.Reader, gameLog io.Reader, nowDate time.Time) *Parser {
@@ -23,42 +28,123 @@ func New(combatLog io.Reader, gameLog io.Reader, nowDate time.Time) *Parser {
 }
 
 type CombatLogData struct {
-	connect *CombatLogLineConnectToGameSession
-	start   *CombatLogLineStartGameplay
-	damage  []CombatLogLineDamage
-	heal    []CombatLogLineHeal
-	kill    []CombatLogLineKill
+	Connect  *CombatLogLineConnectToGameSession
+	Start    *CombatLogLineStartGameplay
+	Damage   []CombatLogLineDamage
+	Heal     []CombatLogLineHeal
+	Kill     []CombatLogLineKill
+	Finished *CombatLogLineGameFinished
 }
 
-type GameLogLevel struct {
-	combat CombatLogData
+type GameLogData struct {
+	Connected     *GameLogLineConnected
+	AddedPlayers  []GameLogLineAddPlayer
+	LeavedPlayers []GameLogLinePlayerLeave
+	Finished      *GameLogLineFinished
 }
 
-func (p *Parser) ParseLevel() (level *GameLogLevel, err error) {
-	for {
-		rawLine, isPrefix, err := p.combatLog.ReadLine()
-		if err != nil {
-			return nil, fmt.Errorf("read combat log: %w", err)
-		}
-		if isPrefix {
-			return nil, fmt.Errorf("very long line detected")
-		}
+type Level struct {
+	Game   GameLogData
+	Combat CombatLogData
+}
 
-		combatLogLine, err := ParseCombatLogLine(rawLine, p.nowDate)
-		if err != nil {
-			if errors.Is(err, ErrUndefinedLineType) {
-				// TODO может лучше есть идея?
-				continue
+func (p *Parser) ParseLevel() (level *Level, err error) {
+	level = &Level{}
+	for level.Combat.Finished == nil || level.Game.Finished == nil {
+		if level.Game.Finished == nil {
+			if err := p.loadCombatLogLine(level); err != nil && !errors.Is(err, ErrUndefinedLineType) {
+				return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
 			}
-			return nil, err
 		}
 
-		switch combatLogLine.(type) {
-		case *CombatLogLineConnectToGameSession:
-		case *CombatLogLineStartGameplay:
-		case *CombatLogLineDamage:
-		case *CombatLogLineHeal:
-		case *CombatLogLineKill:
+		if level.Game.Finished == nil {
+			if err := p.loadGameLogLine(level); err != nil && !errors.Is(err, ErrUndefinedLineType) {
+				return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
+			}
 		}
 	}
+
+	return level, nil
+}
+
+func (p *Parser) loadCombatLogLine(level *Level) error {
+	if p.nextGameCombatLog == nil {
+		level.Combat.Connect = p.nextGameCombatLog
+		p.nextGameCombatLog = nil
+		return nil
+	}
+
+	rawLine, isPrefix, err := p.combatLog.ReadLine()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		return fmt.Errorf("read log: %w", err)
+	}
+	if isPrefix {
+		return fmt.Errorf("very long line detected")
+	}
+
+	combatLogLine, err := ParseCombatLogLine(rawLine, p.nowDate)
+	if err != nil {
+		return err
+	}
+
+	switch line := combatLogLine.(type) {
+	case *CombatLogLineConnectToGameSession:
+		level.Combat.Connect = line
+	case *CombatLogLineStartGameplay:
+		level.Combat.Start = line
+	case *CombatLogLineDamage:
+		level.Combat.Damage = append(level.Combat.Damage, *line)
+	case *CombatLogLineHeal:
+		level.Combat.Heal = append(level.Combat.Heal, *line)
+	case *CombatLogLineKill:
+		level.Combat.Kill = append(level.Combat.Kill, *line)
+	case *CombatLogLineGameFinished:
+		level.Combat.Finished = line
+	default:
+		return fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
+	}
+
+	return nil
+}
+
+func (p *Parser) loadGameLogLine(level *Level) error {
+	if p.nextGameGameLog == nil {
+		level.Game.Connected = p.nextGameGameLog
+		p.nextGameGameLog = nil
+		return nil
+	}
+
+	rawLine, isPrefix, err := p.gameLog.ReadLine()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil
+		}
+		return fmt.Errorf("read log: %w", err)
+	}
+	if isPrefix {
+		return fmt.Errorf("very long line detected")
+	}
+
+	gameLogLine, err := ParseGameLogLine(rawLine, p.nowDate)
+	if err != nil {
+		return ErrUndefinedLineType
+	}
+
+	switch line := gameLogLine.(type) {
+	case *GameLogLineConnected:
+		level.Game.Connected = line
+	case *GameLogLineAddPlayer:
+		level.Game.AddedPlayers = append(level.Game.AddedPlayers, *line)
+	case *GameLogLineFinished:
+		level.Game.Finished = line
+	case *GameLogLinePlayerLeave:
+		level.Game.LeavedPlayers = append(level.Game.LeavedPlayers, *line)
+	default:
+		return fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
+	}
+
+	return nil
 }
