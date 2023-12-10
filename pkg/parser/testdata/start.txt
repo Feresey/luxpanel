@@ -1,0 +1,12 @@
+19:33:00.763  CMBT   | ======= Start gameplay 'BombTheBase' map 's1340_thar_aliendebris13', local client team 2 =======
+19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======
+19:54:44.490  CMBT   | ======= Start gameplay 'BombTheBase' map 's1338_pandora_anomaly', local client team 2 =======
+20:08:22.356  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's8256_thar_barrierdebris', local client team 1 =======
+20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======
+20:33:36.980  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_northmsite', local client team 2 =======
+20:48:30.219  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1338_pandora_anomaly', local client team 2 =======
+21:08:47.934  CMBT   | ======= Start gameplay 'ClanShip' map 'dreadnoughtbattle_map_02', local client team 1 =======
+21:21:18.792  CMBT   | ======= Start gameplay 'ClanShip' map 'dreadnoughtbattle_map_01', local client team 1 =======
+21:32:12.602  CMBT   | ======= Start gameplay 'ClanShip' map 'dreadnoughtbattle_map_01', local client team 2 =======
+21:39:40.399  CMBT   | ======= Start gameplay 'ClanShip' map 'dreadnoughtbattle_map_04', local client team 2 =======
+21:46:44.398  CMBT   | ======= Start gameplay 'ClanShip' map 'dreadnoughtbattle_map_02', local client team 1 =======
