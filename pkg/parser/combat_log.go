@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-type CombatLineType int
+type CombatLogLineType int
 
 const (
-	CombatLineTypeConnectToGameSession CombatLineType = iota
-	CombatLineTypeStartGameplay
-	CombatLineTypeDamage
-	CombatLineTypeHeal
-	CombatLineTypeKill
-	CombatLineTypeGameplayFinished
+	CombatLogLineTypeConnectToGameSession CombatLogLineType = iota
+	CombatLogLineTypeStartGameplay
+	CombatLogLineTypeDamage
+	CombatLogLineTypeHeal
+	CombatLogLineTypeKill
+	CombatLogLineTypeGameplayFinished
 )
 
-type CombatLine interface {
-	CombatLineType() CombatLineType
+type CombatLogLine interface {
+	CombatLogLineType() CombatLogLineType
 	Unmarshal(raw []byte, now time.Time) error
 }
 
@@ -168,12 +168,35 @@ const (
 	killLineTotal
 )
 
+const (
+	winnerTeam     = `(\d+)\((.*)\)\.`
+	finishReason   = `Finish reason: '(.*)'\.`
+	actualGameTime = `Actual game time ` + floatLine + ` sec`
+	// 19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec
+	// 20:18:37.406  CMBT   | Gameplay finished. Winner team: 1(ALL_ENEMY_VITALPOINTS_DEAD). Finish reason: 'All beacons captured'. Actual game time 591.1 sec
+	// 20:30:08.030  CMBT   | Gameplay finished. Winner team: 2(ALL_ENEMY_SHIPS_KILLED). Finish reason: 'All SpaceShips destroyed'. Actual game time 521.4 sec
+	// 20:45:59.862  CMBT   | Gameplay finished. Winner team: 1(MORE_ALIVE_VITALPOINTS_LEFT). Finish reason: 'Timeout'. Actual game time 720.0 sec
+	gameFinishedLine      = cmbtLinePrefix + `Gameplay finished\. Winner team: ` + winnerTeam + `\s+` + finishReason + `\s+` + actualGameTime + cmbtLineSuffix
+	gameFinishedLineShort = cmbtLinePrefix + `Gameplay finished`
+)
+
+const (
+	gameFinishedLineTime = iota + 1
+	gameFinishedLineWinnerTeamID
+	gameFinishedLineWinnerTeamReason
+	gameFinishedLineFinishReason
+	gameFinishedLineActualGameTime
+	gameFinishedLineTotal
+)
+
 var combatRe = struct {
 	connectToGameSession,
 	startGame,
 	damage, damageShort,
 	heal, healShort,
-	kill, killShort *regexp.Regexp
+	kill, killShort,
+	gameFinished, gameFinishedShort,
+	_ *regexp.Regexp
 }{
 	connectToGameSession: regexp.MustCompile(connectToGameSessionLine),
 	startGame:            regexp.MustCompile(startGameplayLine),
@@ -183,18 +206,20 @@ var combatRe = struct {
 	healShort:            regexp.MustCompile(healLineShort),
 	kill:                 regexp.MustCompile(killLine),
 	killShort:            regexp.MustCompile(killLineShort),
+	gameFinished:         regexp.MustCompile(gameFinishedLine),
+	gameFinishedShort:    regexp.MustCompile(gameFinishedLineShort),
 }
 
-type CombatLineConnectToGameSession struct {
+type CombatLogLineConnectToGameSession struct {
 	Time      time.Time
 	SessionID int
 }
 
-func (c *CombatLineConnectToGameSession) CombatLineType() CombatLineType {
-	return CombatLineTypeConnectToGameSession
+func (c *CombatLogLineConnectToGameSession) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeConnectToGameSession
 }
 
-func (c *CombatLineConnectToGameSession) Unmarshal(raw []byte, now time.Time) (err error) {
+func (c *CombatLogLineConnectToGameSession) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.connectToGameSession.FindStringSubmatch(string(raw))
 	if len(res) != connectToGameSessionLineTotal {
 		return fmt.Errorf("wrong format: %s", raw)
@@ -211,17 +236,17 @@ func (c *CombatLineConnectToGameSession) Unmarshal(raw []byte, now time.Time) (e
 	return nil
 }
 
-type CombatLineStartGameplay struct {
+type CombatLogLineStartGameplay struct {
 	Time     time.Time
 	GameMode string
 	MapName  string
 }
 
-func (c *CombatLineStartGameplay) CombatLineType() CombatLineType {
-	return CombatLineTypeStartGameplay
+func (c *CombatLogLineStartGameplay) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeStartGameplay
 }
 
-func (c *CombatLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err error) {
+func (c *CombatLogLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.startGame.FindStringSubmatch(string(raw))
 	if len(res) != startGameplayTotal {
 		return fmt.Errorf("wrong format: %s", raw)
@@ -261,7 +286,7 @@ const (
 	DamageModule          = "MODULE"
 )
 
-type CombatLineDamage struct {
+type CombatLogLineDamage struct {
 	Time            time.Time
 	Players         CombatPlayers
 	DamageTotal     float32
@@ -272,11 +297,11 @@ type CombatLineDamage struct {
 	IsFriendlyFire  bool
 }
 
-func (c CombatLineDamage) CombatLineType() CombatLineType {
-	return CombatLineTypeDamage
+func (c CombatLogLineDamage) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeDamage
 }
 
-func (c *CombatLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
+func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.damage.FindStringSubmatch(string(raw))
 	if len(res) != damageLineTotal {
 		return fmt.Errorf("wrong format: %s", raw)
@@ -330,18 +355,18 @@ func (c *CombatLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	return nil
 }
 
-type CombatLineHeal struct {
+type CombatLogLineHeal struct {
 	Time    time.Time
 	Players CombatPlayers
 	Heal    float32
 	Reason  string
 }
 
-func (c CombatLineHeal) CombatLineType() CombatLineType {
-	return CombatLineTypeHeal
+func (c CombatLogLineHeal) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeHeal
 }
 
-func (c *CombatLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
+func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.heal.FindStringSubmatch(string(raw))
 	if len(res) != healLineTotal {
 		return fmt.Errorf("wrong format: %s", raw)
@@ -369,7 +394,7 @@ func (c *CombatLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 	return nil
 }
 
-type CombatLineKill struct {
+type CombatLogLineKill struct {
 	Time           time.Time
 	Players        CombatPlayers
 	KilledShip     string
@@ -377,11 +402,11 @@ type CombatLineKill struct {
 	Weapon         string
 }
 
-func (c CombatLineKill) CombatLineType() CombatLineType {
-	return CombatLineTypeKill
+func (c CombatLogLineKill) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeKill
 }
 
-func (c *CombatLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
+func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.kill.FindStringSubmatch(string(raw))
 	if len(res) != killLineTotal {
 		return fmt.Errorf("wrong format: %s", raw)
@@ -410,20 +435,58 @@ func (c *CombatLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 	return nil
 }
 
+type CombatLogLineGameFinished struct {
+	Time             time.Time
+	WinnerTeamID     int
+	WinnerTeamReason string
+	FinishReason     string
+	GameDuration     time.Duration
+}
+
+func (c CombatLogLineGameFinished) CombatLogLineType() CombatLogLineType {
+	return CombatLogLineTypeGameplayFinished
+}
+
+func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err error) {
+	res := combatRe.gameFinished.FindStringSubmatch(string(raw))
+	if len(res) != gameFinishedLineTotal {
+		return fmt.Errorf("wrong format: %s", raw)
+	}
+	c.FinishReason = res[gameFinishedLineFinishReason]
+	c.WinnerTeamReason = res[gameFinishedLineWinnerTeamReason]
+
+	c.Time, err = ParseField(res[gameFinishedLineTime], "time", parseLogTime(now))
+	if err != nil {
+		return err
+	}
+	c.WinnerTeamID, err = ParseField(res[gameFinishedLineWinnerTeamID], "winner_team_id", strconv.Atoi)
+	if err != nil {
+		return err
+	}
+	c.GameDuration, err = ParseField(res[gameFinishedLineActualGameTime]+"s", "game_duration", time.ParseDuration)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var ErrUndefinedLineType = errors.New("undefined line type")
 
-func ParseCombatLogLine(raw []byte, nowTime time.Time) (line CombatLine, err error) {
+func ParseCombatLogLine(raw []byte, nowTime time.Time) (line CombatLogLine, err error) {
 	switch {
 	case combatRe.connectToGameSession.Match(raw):
-		line = &CombatLineConnectToGameSession{}
+		line = &CombatLogLineConnectToGameSession{}
 	case combatRe.startGame.Match(raw):
-		line = &CombatLineStartGameplay{}
+		line = &CombatLogLineStartGameplay{}
 	case combatRe.damageShort.Match(raw):
-		line = &CombatLineDamage{}
+		line = &CombatLogLineDamage{}
 	case combatRe.healShort.Match(raw):
-		line = &CombatLineHeal{}
+		line = &CombatLogLineHeal{}
 	case combatRe.killShort.Match(raw):
-		line = &CombatLineKill{}
+		line = &CombatLogLineKill{}
+	case combatRe.gameFinishedShort.Match(raw):
+		line = &CombatLogLineGameFinished{}
 	default:
 		return nil, ErrUndefinedLineType
 	}

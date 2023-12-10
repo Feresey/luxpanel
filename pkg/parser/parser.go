@@ -23,11 +23,11 @@ func New(combatLog io.Reader, gameLog io.Reader, nowDate time.Time) *Parser {
 }
 
 type CombatLogData struct {
-	connect *CombatLineConnectToGameSession
-	start   *CombatLineStartGameplay
-	damage  []CombatLineDamage
-	heal    []CombatLineHeal
-	kill    []CombatLineKill
+	connect *CombatLogLineConnectToGameSession
+	start   *CombatLogLineStartGameplay
+	damage  []CombatLogLineDamage
+	heal    []CombatLogLineHeal
+	kill    []CombatLogLineKill
 }
 
 type GameLogLevel struct {
@@ -44,7 +44,7 @@ func (p *Parser) ParseLevel() (level *GameLogLevel, err error) {
 			return nil, fmt.Errorf("very long line detected")
 		}
 
-		combatLine, err := ParseCombatLogLine(rawLine, p.nowDate)
+		combatLogLine, err := ParseCombatLogLine(rawLine, p.nowDate)
 		if err != nil {
 			if errors.Is(err, ErrUndefinedLineType) {
 				// TODO может лучше есть идея?
@@ -53,12 +53,12 @@ func (p *Parser) ParseLevel() (level *GameLogLevel, err error) {
 			return nil, err
 		}
 
-		switch combatLine.(type) {
-		case *CombatLineConnectToGameSession:
-		case *CombatLineStartGameplay:
-		case *CombatLineDamage:
-		case *CombatLineHeal:
-		case *CombatLineKill:
+		switch combatLogLine.(type) {
+		case *CombatLogLineConnectToGameSession:
+		case *CombatLogLineStartGameplay:
+		case *CombatLogLineDamage:
+		case *CombatLogLineHeal:
+		case *CombatLogLineKill:
 		}
 	}
 }
