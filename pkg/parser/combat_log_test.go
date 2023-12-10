@@ -11,17 +11,17 @@ import (
 )
 
 var (
-	//go:embed testdata/connect.txt
+	//go:embed testdata/combat/connect.txt
 	connectRaw string
-	//go:embed testdata/start.txt
+	//go:embed testdata/combat/start.txt
 	startRaw string
-	//go:embed testdata/damage.txt
+	//go:embed testdata/combat/damage.txt
 	damageRaw string
-	//go:embed testdata/heal.txt
+	//go:embed testdata/combat/heal.txt
 	healRaw string
-	//go:embed testdata/kill.txt
+	//go:embed testdata/combat/kill.txt
 	killRaw string
-	//go:embed testdata/finished.txt
+	//go:embed testdata/combat/finished.txt
 	finishedRaw string
 )
 

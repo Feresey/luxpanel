@@ -473,7 +473,7 @@ func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err er
 
 var ErrUndefinedLineType = errors.New("undefined line type")
 
-func ParseCombatLogLine(raw []byte, nowTime time.Time) (line CombatLogLine, err error) {
+func ParseCombatLogLine(raw []byte, now time.Time) (line CombatLogLine, err error) {
 	switch {
 	case combatRe.connectToGameSession.Match(raw):
 		line = &CombatLogLineConnectToGameSession{}
@@ -491,7 +491,7 @@ func ParseCombatLogLine(raw []byte, nowTime time.Time) (line CombatLogLine, err 
 		return nil, ErrUndefinedLineType
 	}
 
-	if err := line.Unmarshal(raw, nowTime); err != nil {
+	if err := line.Unmarshal(raw, now); err != nil {
 		return nil, err
 	}
 
