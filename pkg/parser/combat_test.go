@@ -375,12 +375,28 @@ func TestKillUnmarshal(t *testing.T) {
 				Time: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Feresey",
-					InitiatorID: 204,
+					InitiatorID: 766,
 					Recipient:   "",
 					RecipientID: 1154,
 				},
 				KilledShip: "Alien_Destroyer_Life_02_T5",
 				Weapon:     "Weapon_PlasmaWebLaser_T5_Epic",
+			},
+		},
+		{
+			name: "friendly fire",
+			raw:  `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
+			want: CombatLineKill{
+				Time: time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
+				Players: CombatPlayers{
+					Initiator:   "Therm0Nuclear",
+					InitiatorID: 39068,
+					Recipient:   "",
+					RecipientID: 39068,
+				},
+				KilledShip:     "HealBot_Armor(Therm0Nuclear)",
+				Weapon:         "(suicide)",
+				IsFriendlyFire: true,
 			},
 		},
 		{
