@@ -354,7 +354,7 @@ func TestKillUnmarshal(t *testing.T) {
 		wantError bool
 	}{
 		{
-			name: "ok",
+			name: "player",
 			raw:  `19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
 			want: CombatLineKill{
 				Time: time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
@@ -366,6 +366,21 @@ func TestKillUnmarshal(t *testing.T) {
 				},
 				KilledShip: "Ship_Race3_M_T2_Pirate",
 				Weapon:     "Weapon_Plasmagun_Heavy_T5_Pirate",
+			},
+		},
+		{
+			name: "not player",
+			raw:  `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
+			want: CombatLineKill{
+				Time: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
+				Players: CombatPlayers{
+					Initiator:   "Feresey",
+					InitiatorID: 204,
+					Recipient:   "",
+					RecipientID: 1154,
+				},
+				KilledShip: "Alien_Destroyer_Life_02_T5",
+				Weapon:     "Weapon_PlasmaWebLaser_T5_Epic",
 			},
 		},
 		{
