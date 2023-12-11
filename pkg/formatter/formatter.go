@@ -99,9 +99,10 @@ func (f Formatter) Format(out *xlsx.File) error {
 		finishTime = f.level.Game.Finished.Time
 	}
 
-	sheet, err := out.AddSheet(formatSheetName(f.level.Combat.Start.GameMode, startTime, finishTime))
+	sheetName := formatSheetName(f.level.Combat.Start.GameMode, startTime, finishTime)
+	sheet, err := out.AddSheet(sheetName)
 	if err != nil {
-		return fmt.Errorf("xlxs.AddSheet: %w", err)
+		return fmt.Errorf("xlxs.AddSheet(%s): %w", sheetName, err)
 	}
 
 	f.addHeaderRow(sheet)
@@ -292,7 +293,7 @@ func intVal(val int) string {
 }
 
 func timeVal(val time.Time) string {
-	return val.Format(time.TimeOnly)
+	return floatVal(float32(xlsx.TimeToExcelTime(val, false)))
 }
 
 type CellWithIndex struct {
@@ -309,6 +310,10 @@ func (f *Formatter) addRow(sheet *xlsx.Sheet, data []CellWithIndex) {
 	}
 }
 
+const (
+	timeOnly = "15-04-05"
+)
+
 func formatSheetName(gameMode string, start, end time.Time) string {
-	return fmt.Sprintf("%s %s %s-%s", start.Format(time.DateOnly), gameMode, start.Format(time.TimeOnly), end.Format(time.TimeOnly))
+	return fmt.Sprintf("%s %s", gameMode, start.Format(timeOnly))
 }

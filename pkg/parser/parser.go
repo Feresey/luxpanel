@@ -6,17 +6,12 @@ import (
 	"fmt"
 	"io"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type Parser struct {
-	nowDate           time.Time
-	combatLog         *bufio.Reader
-	nextGameCombatLog *CombatLogLineConnectToGameSession
-	gameLog           *bufio.Reader
-	nextGameGameLog   *GameLogLineConnected
-	lg                *zap.SugaredLogger
+	nowDate   time.Time
+	combatLog *bufio.Reader
+	gameLog   *bufio.Reader
 }
 
 func New(combatLog io.Reader, gameLog io.Reader, nowDate time.Time) *Parser {
@@ -50,16 +45,32 @@ type Level struct {
 
 func (p *Parser) ParseLevel() (level *Level, err error) {
 	level = &Level{}
-	for level.Combat.Finished == nil || level.Game.Finished == nil {
-		if level.Game.Finished == nil {
-			if err := p.loadCombatLogLine(level); err != nil && !errors.Is(err, ErrUndefinedLineType) {
-				return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
+
+	var combatLogFinished, gameLogFinished bool
+	for !combatLogFinished || !gameLogFinished {
+		if !combatLogFinished {
+			if err := p.loadCombatLogLine(level); err != nil {
+				if errors.Is(err, io.EOF) {
+					combatLogFinished = true
+				} else if !errors.Is(err, ErrUndefinedLineType) {
+					return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
+				}
+			}
+			if level.Combat.Finished != nil {
+				combatLogFinished = true
 			}
 		}
 
-		if level.Game.Finished == nil {
-			if err := p.loadGameLogLine(level); err != nil && !errors.Is(err, ErrUndefinedLineType) {
-				return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
+		if !gameLogFinished {
+			if err := p.loadGameLogLine(level); err != nil {
+				if errors.Is(err, io.EOF) {
+					gameLogFinished = true
+				} else if !errors.Is(err, ErrUndefinedLineType) {
+					return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
+				}
+			}
+			if level.Game.Finished != nil {
+				gameLogFinished = true
 			}
 		}
 	}
@@ -68,17 +79,8 @@ func (p *Parser) ParseLevel() (level *Level, err error) {
 }
 
 func (p *Parser) loadCombatLogLine(level *Level) error {
-	if p.nextGameCombatLog == nil {
-		level.Combat.Connect = p.nextGameCombatLog
-		p.nextGameCombatLog = nil
-		return nil
-	}
-
 	rawLine, isPrefix, err := p.combatLog.ReadLine()
 	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return nil
-		}
 		return fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
@@ -111,17 +113,8 @@ func (p *Parser) loadCombatLogLine(level *Level) error {
 }
 
 func (p *Parser) loadGameLogLine(level *Level) error {
-	if p.nextGameGameLog == nil {
-		level.Game.Connected = p.nextGameGameLog
-		p.nextGameGameLog = nil
-		return nil
-	}
-
 	rawLine, isPrefix, err := p.gameLog.ReadLine()
 	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return nil
-		}
 		return fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {

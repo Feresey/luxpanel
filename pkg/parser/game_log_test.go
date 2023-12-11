@@ -1,7 +1,11 @@
 package parser
 
 import (
+	"bufio"
+	"bytes"
 	_ "embed"
+	"errors"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -295,4 +299,29 @@ func TestLeaveUnmarshal(t *testing.T) {
 			r.NoError(err)
 		}
 	})
+}
+
+//go:embed testdata/parser/game.log
+var gameLog []byte
+
+func TestParseGameLog(t *testing.T) {
+	r := require.New(t)
+
+	now := time.Date(2023, time.November, 11, 22, 55, 47, 688000000, time.Local)
+
+	rd := bufio.NewReader(bytes.NewReader(gameLog))
+	for {
+		rawLine, _, err := rd.ReadLine()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		r.NoError(err)
+
+		line, err := ParseGameLogLine(rawLine, now)
+		if errors.Is(err, ErrUndefinedLineType) {
+			continue
+		}
+		r.NoError(err)
+		_ = line
+	}
 }

@@ -18,7 +18,7 @@ const (
 )
 
 type GameLogLine interface {
-	GameLogLineType() GameLogLineType
+	Type() GameLogLineType
 	Unmarshal(raw []byte, now time.Time) error
 }
 
@@ -94,7 +94,7 @@ type GameLogLineConnected struct {
 	Time time.Time
 }
 
-func (g GameLogLineConnected) GameLogLineType() GameLogLineType {
+func (g GameLogLineConnected) Type() GameLogLineType {
 	return GameLogLineTypeConnected
 }
 
@@ -122,7 +122,7 @@ type GameLogLineAddPlayer struct {
 	GroupID         int
 }
 
-func (g GameLogLineAddPlayer) GameLogLineType() GameLogLineType {
+func (g GameLogLineAddPlayer) Type() GameLogLineType {
 	return GameLogLineTypeAddPlayer
 }
 
@@ -168,7 +168,7 @@ type GameLogLineFinished struct {
 	Time time.Time
 }
 
-func (g GameLogLineFinished) GameLogLineType() GameLogLineType {
+func (g GameLogLineFinished) Type() GameLogLineType {
 	return GameLogLineTypeGameFinished
 }
 
@@ -221,7 +221,7 @@ type GameLogLinePlayerLeave struct {
 	PlayerID int
 }
 
-func (g GameLogLinePlayerLeave) GameLogLineType() GameLogLineType {
+func (g GameLogLinePlayerLeave) Type() GameLogLineType {
 	return GameLogLineTypePlayerLeave
 }
 

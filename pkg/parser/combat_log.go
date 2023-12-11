@@ -33,7 +33,11 @@ func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
 		if err != nil {
 			return t, err
 		}
-		return time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local), nil
+		res := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local)
+		if res.Before(nowTime) {
+			return res.AddDate(0, 0, 1), nil
+		}
+		return res, nil
 	}
 }
 
