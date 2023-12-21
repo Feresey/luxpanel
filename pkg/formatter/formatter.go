@@ -2,7 +2,6 @@ package formatter
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/Feresey/sclogparser/pkg/parser"
@@ -109,6 +108,10 @@ func (f Formatter) Format(out *xlsx.File) error {
 	f.addDamageLogs(sheet)
 	f.addKillLogs(sheet)
 
+	for idx := range f.nameByIndex {
+		sheet.SetColAutoWidth(idx+1, xlsx.DefaultAutoWidth)
+	}
+
 	return nil
 }
 
@@ -148,59 +151,20 @@ func (f *Formatter) addDamageLogs(sheet *xlsx.Sheet) {
 				damageType = string(mod)
 			}
 		}
-		cells := []CellWithIndex{
-			{
-				Index: f.indexByName[columnActionType],
-				Value: "damage",
-			},
-			{
-				Index: f.indexByName[columnTime],
-				Value: timeVal(dmg.Time),
-			},
-			{
-				Index: f.indexByName[columnCollision],
-				Value: boolVal(isCollision),
-			},
-			{
-				Index: f.indexByName[columnCrit],
-				Value: boolVal(isCrit),
-			},
-			{
-				Index: f.indexByName[columnExplosion],
-				Value: boolVal(isExplosion),
-			},
-			{
-				Index: f.indexByName[columnDamage],
-				Value: floatVal(dmg.DamageTotal),
-			},
-			{
-				Index: f.indexByName[columnDamageType],
-				Value: damageType,
-			},
-			{
-				Index: f.indexByName[columnDamageHull],
-				Value: floatVal(dmg.DamageHull),
-			},
-			{
-				Index: f.indexByName[columnDamageShield],
-				Value: floatVal(dmg.DamageShield),
-			},
-			{
-				Index: f.indexByName[columnFirendlyFire],
-				Value: boolVal(dmg.IsFriendlyFire),
-			},
-			{
-				Index: f.indexByName[columnInitiator],
-				Value: dmg.Players.Initiator,
-			},
-			{
-				Index: f.indexByName[columnRecipient],
-				Value: dmg.Players.Recipient,
-			},
-			{
-				Index: f.indexByName[columnReason],
-				Value: dmg.Weapon,
-			},
+		cells := map[int]CellSetter{
+			f.indexByName[columnActionType]:   StringCell("damage"),
+			f.indexByName[columnTime]:         TimeCell(dmg.Time),
+			f.indexByName[columnCollision]:    BoolCell(isCollision),
+			f.indexByName[columnCrit]:         BoolCell(isCrit),
+			f.indexByName[columnExplosion]:    BoolCell(isExplosion),
+			f.indexByName[columnDamage]:       FloatCell(dmg.DamageTotal),
+			f.indexByName[columnDamageType]:   StringCell(damageType),
+			f.indexByName[columnDamageHull]:   FloatCell(dmg.DamageHull),
+			f.indexByName[columnDamageShield]: FloatCell(dmg.DamageShield),
+			f.indexByName[columnFirendlyFire]: BoolCell(dmg.IsFriendlyFire),
+			f.indexByName[columnInitiator]:    StringCell(dmg.Players.Initiator),
+			f.indexByName[columnRecipient]:    StringCell(dmg.Players.Recipient),
+			f.indexByName[columnReason]:       StringCell(dmg.Weapon),
 		}
 
 		f.addRow(sheet, cells)
@@ -209,31 +173,13 @@ func (f *Formatter) addDamageLogs(sheet *xlsx.Sheet) {
 
 func (f *Formatter) addHealLogs(sheet *xlsx.Sheet) {
 	for _, heal := range f.level.Combat.Heal {
-		cells := []CellWithIndex{
-			{
-				Index: f.indexByName[columnActionType],
-				Value: "heal",
-			},
-			{
-				Index: f.indexByName[columnTime],
-				Value: timeVal(heal.Time),
-			},
-			{
-				Index: f.indexByName[columnHeal],
-				Value: floatVal(heal.Heal),
-			},
-			{
-				Index: f.indexByName[columnInitiator],
-				Value: heal.Players.Initiator,
-			},
-			{
-				Index: f.indexByName[columnRecipient],
-				Value: heal.Players.Recipient,
-			},
-			{
-				Index: f.indexByName[columnReason],
-				Value: heal.Reason,
-			},
+		cells := map[int]CellSetter{
+			f.indexByName[columnActionType]: StringCell("heal"),
+			f.indexByName[columnTime]:       TimeCell(heal.Time),
+			f.indexByName[columnHeal]:       FloatCell(heal.Heal),
+			f.indexByName[columnInitiator]:  StringCell(heal.Players.Initiator),
+			f.indexByName[columnRecipient]:  StringCell(heal.Players.Recipient),
+			f.indexByName[columnReason]:     StringCell(heal.Reason),
 		}
 
 		f.addRow(sheet, cells)
@@ -242,35 +188,14 @@ func (f *Formatter) addHealLogs(sheet *xlsx.Sheet) {
 
 func (f *Formatter) addKillLogs(sheet *xlsx.Sheet) {
 	for _, kill := range f.level.Combat.Kill {
-		cells := []CellWithIndex{
-			{
-				Index: f.indexByName[columnActionType],
-				Value: "kill",
-			},
-			{
-				Index: f.indexByName[columnTime],
-				Value: timeVal(kill.Time),
-			},
-			{
-				Index: f.indexByName[columnKilledShip],
-				Value: kill.KilledShip,
-			},
-			{
-				Index: f.indexByName[columnInitiator],
-				Value: kill.Players.Initiator,
-			},
-			{
-				Index: f.indexByName[columnRecipient],
-				Value: kill.Players.Recipient,
-			},
-			{
-				Index: f.indexByName[columnReason],
-				Value: kill.Weapon,
-			},
-			{
-				Index: f.indexByName[columnFirendlyFire],
-				Value: boolVal(kill.IsFriendlyFire),
-			},
+		cells := map[int]CellSetter{
+			f.indexByName[columnActionType]:   StringCell("kill"),
+			f.indexByName[columnTime]:         TimeCell(kill.Time),
+			f.indexByName[columnKilledShip]:   StringCell(kill.KilledShip),
+			f.indexByName[columnInitiator]:    StringCell(kill.Players.Initiator),
+			f.indexByName[columnRecipient]:    StringCell(kill.Players.Recipient),
+			f.indexByName[columnReason]:       StringCell(kill.Weapon),
+			f.indexByName[columnFirendlyFire]: BoolCell(kill.IsFriendlyFire),
 		}
 
 		f.addRow(sheet, cells)
@@ -284,29 +209,41 @@ func boolVal(val bool) string {
 	return "0"
 }
 
-func floatVal(val float32) string {
-	return strconv.FormatFloat(float64(val), 'f', 10, 64)
+type CellSetter interface {
+	SetCell(cell *xlsx.Cell)
 }
 
-func intVal(val int) string {
-	return strconv.Itoa(val)
+type BoolCell bool
+
+func (c BoolCell) SetCell(cell *xlsx.Cell) {
+	cell.SetBool(bool(c))
 }
 
-func timeVal(val time.Time) string {
-	return floatVal(float32(xlsx.TimeToExcelTime(val, false)))
+type StringCell string
+
+func (c StringCell) SetCell(cell *xlsx.Cell) {
+	cell.SetString(string(c))
 }
 
-type CellWithIndex struct {
-	Index int
-	Value string
+type FloatCell float64
+
+func (c FloatCell) SetCell(cell *xlsx.Cell) {
+	cell.SetFloat(float64(c))
 }
 
-func (f *Formatter) addRow(sheet *xlsx.Sheet, data []CellWithIndex) {
+type TimeCell time.Time
+
+func (c TimeCell) SetCell(cell *xlsx.Cell) {
+	cell.SetDateTime(time.Time(c))
+}
+
+func (f *Formatter) addRow(sheet *xlsx.Sheet, data map[int]CellSetter) {
 	row := sheet.AddRow()
 
-	for _, one := range data {
-		cell := row.GetCell(one.Index)
-		cell.Value = one.Value
+	for idx, val := range data {
+		cell := row.GetCell(idx)
+		val.SetCell(cell)
+		cell.GetStyle().Font = *xlsx.NewFont(12, xlsx.TimesNewRoman)
 	}
 }
 

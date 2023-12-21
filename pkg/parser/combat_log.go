@@ -41,12 +41,12 @@ func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
 	}
 }
 
-func parseFloat(s string) (float32, error) {
-	res, err := strconv.ParseFloat(s, 32)
+func parseFloat(s string) (float64, error) {
+	res, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0, err
 	}
-	return float32(res), nil
+	return res, nil
 }
 
 type ParseFieldError struct {
@@ -293,9 +293,9 @@ const (
 type CombatLogLineDamage struct {
 	Time            time.Time
 	Players         CombatPlayers
-	DamageTotal     float32
-	DamageHull      float32
-	DamageShield    float32
+	DamageTotal     float64
+	DamageHull      float64
+	DamageShield    float64
 	Weapon          string
 	DamageModifiers []DamageModifier
 	IsFriendlyFire  bool
@@ -362,7 +362,7 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 type CombatLogLineHeal struct {
 	Time    time.Time
 	Players CombatPlayers
-	Heal    float32
+	Heal    float64
 	Reason  string
 }
 
