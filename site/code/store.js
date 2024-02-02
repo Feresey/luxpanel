@@ -34,23 +34,23 @@ Vue.component('store', {
 	},
 	methods: {
 		alertPlayerError(player, line) {
-			for (let i=0; i<this.ignores.length; i++) {
+			for (let i = 0; i < this.ignores.length; i++) {
 				if (player.indexOf(this.ignores[i]) > -1) {
 					return;
 				}
 			}
-			console.log('player '+player+' not present in game teams ! time code : '+line.substring(0,8));
+			console.log('player ' + player + ' not present in game teams ! time code : ' + line.substring(0, 8));
 		},
 		setIndexes(item, teams, line) {
 			const indexSourceFriendly = teams[0].indexOf(item.source);
-			const indexSourceHostile  = teams[1].indexOf(item.source);
+			const indexSourceHostile = teams[1].indexOf(item.source);
 			const indexTargetFriendly = teams[0].indexOf(item.target);
-			const indexTargetHostile  = teams[1].indexOf(item.target);
+			const indexTargetHostile = teams[1].indexOf(item.target);
 			if (indexSourceFriendly === -1 && indexSourceHostile === -1) {
 				this.alertPlayerError(item.source, line);
 				return false;
 			}
-			if (indexTargetFriendly === -1 && indexTargetHostile === -1 ){
+			if (indexTargetFriendly === -1 && indexTargetHostile === -1) {
 				this.alertPlayerError(item.target, line);
 				return false;
 			}
@@ -84,14 +84,14 @@ Vue.component('store', {
 			if (line.indexOf('ShieldEmitter') > -1 ||   //engi aura
 				line.indexOf('FrigateDrone') > -1 ||    //engi drone
 				line.indexOf('ShieldRay') > -1 ||       //engi station
-				line.indexOf('ShieldRestore') > -1 ){   //self heal
+				line.indexOf('ShieldRestore') > -1) {   //self heal
 				//missing arena bonus
 				return 0;//'shield';
 			} else if (line.indexOf('RemoteRepairDrones') > -1 ||   //engi aura
 				line.indexOf('Nanobots_Cloud') > -1 ||              //engi weapon
 				line.indexOf('RepairRay') > -1 ||                   //engi station
 				line.indexOf('RepairDrones') > -1 ||                //self heal
-				line.indexOf('HealHull') > -1 ){                    //arena bonus
+				line.indexOf('HealHull') > -1) {                    //arena bonus
 				return 1;//'armor';
 			}
 			return -1;//'unknown';
@@ -103,7 +103,7 @@ Vue.component('store', {
 			this.selfs = [];
 			this.heals = [];
 			this.kills = [];
-			for (let l=0; l<logs.length; l++) {
+			for (let l = 0; l < logs.length; l++) {
 				const line = logs[l];
 				if (line.indexOf('| Damage') > -1) {
 					const damage = {
@@ -112,7 +112,7 @@ Vue.component('store', {
 						amount: this.extractNumber(line, 88, 92),
 						weapon: this.extract(line, ') ', ' '),
 						damage: this.getDamage(line),
-						time: this.computeTime(line.substring(0,8)),
+						time: this.computeTime(line.substring(0, 8)),
 						critical: (line.indexOf('|CRIT') > -1)
 					};
 					const valid = this.setIndexes(damage, game.teams, line);
@@ -131,7 +131,7 @@ Vue.component('store', {
 						amount: this.extractNumber(line, 88, 92),
 						weapon: this.extract(line, 96),
 						heal: this.getHeal(line),
-						time: this.computeTime(line.substring(0,8))
+						time: this.computeTime(line.substring(0, 8))
 					};
 					const valid = this.setIndexes(heal, game.teams, line);
 					if (valid) {
@@ -151,7 +151,7 @@ Vue.component('store', {
 						total: 0,
 						participants: [],
 						implications: [],
-						time: this.computeTime(line.substring(0,8))
+						time: this.computeTime(line.substring(0, 8))
 					};
 					const valid = this.setIndexes(kill, game.teams, line);
 					if (valid) {
@@ -164,7 +164,7 @@ Vue.component('store', {
 									amount: parseInt(this.extract(logs[l], 'totalDamage ', ';'))
 								};
 								const indexSourceFriendly = game.teams[0].indexOf(participation.source);
-								const indexSourceHostile  = game.teams[1].indexOf(participation.source);
+								const indexSourceHostile = game.teams[1].indexOf(participation.source);
 								if (indexSourceFriendly === -1 && indexSourceHostile === -1) {
 									this.alertPlayerError(participation.source, line);
 								} else {
@@ -185,7 +185,7 @@ Vue.component('store', {
 							}
 							l--;
 							//finalize kill
-							for (let p=0;p<kill.implications.length;p++) {
+							for (let p = 0; p < kill.implications.length; p++) {
 								kill.implications[p] /= kill.total;
 							}
 							this.kills.push(kill);
@@ -196,7 +196,7 @@ Vue.component('store', {
 			this.openMenu(this.active);
 		},
 		openMenu(type) {
-			console.log('menu '+type+' opened');
+			console.log('menu ' + type + ' opened');
 			this.active = type;
 			this.$root.$emit(type, this.game, this.damages, this.heals, this.kills);
 		}

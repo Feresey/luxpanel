@@ -3,6 +3,7 @@ module github.com/Feresey/sclogparser
 go 1.21.5
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/tealeg/xlsx/v3 v3.3.5
 	go.uber.org/zap v1.26.0

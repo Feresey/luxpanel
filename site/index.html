@@ -1,0 +1,63 @@
+<html lang="en"
+      class="">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="code/lib/vue.js"></script>
+    <link rel="stylesheet"
+          type="text/css"
+          href="style/main.css">
+</head>
+
+<body class="scrollable-content">
+
+    <!--div class="nav-bar"></div-->
+
+    <div id="app">
+
+        <import></import>
+
+        <store></store>
+
+        <display></display>
+
+        <!--div class="cart">
+        <p>Cart({{ cart.length }})</p>
+    </div>
+    <product :premium="premium" @add-to-cart="updateCart"></product-->
+    </div>
+
+    <script src="code/wasm_exec.js"></script>
+    <script>
+        if (WebAssembly) {
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("code/gojs.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+            });
+        } else {
+            console.log("WebAssembly is not supported in your browser")
+        }
+    </script>
+
+    <script src="code/utils.js"></script>
+
+    <script src="code/import.js"></script>
+
+    <script src="code/store.js"></script>
+
+    <script src="code/damage.js"></script>
+    <script src="code/heal.js"></script>
+    <script src="code/kill.js"></script>
+
+    <script src="code/display.js"></script>
+
+    <script src="code/display-pie.js"></script>
+    <script src="code/display-chart.js"></script>
+    <script src="code/display-table.js"></script>
+
+    <script src="code/eta-chart.js"></script>
+
+    <script src="code/app.js"></script>
+</body>
+
+</html>
