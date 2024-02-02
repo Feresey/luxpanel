@@ -1,0 +1,159 @@
+html {
+    background: url('background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    /*height: 100%;*/
+    /*overflow: hidden;*/
+}
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+div {
+    border: none;
+}
+
+p {
+    border: none;
+    margin: 0;
+    color: #EEE;
+}
+
+input {
+    border: none;
+    width: 100%;
+    margin: 0;
+    background-color: #000;
+    color: #EEE;
+}
+
+button {
+    border: none;
+    width: 100%;
+    margin: 0;
+    background: #000;
+    color: #EEE;
+    opacity: 0.8;
+}
+
+button:hover{
+    background: #222;
+}
+
+select {
+    text-align:center;
+    text-align-last:center;
+    background-color: #000;
+    color: #EEE;
+    height: 48px;
+    font-size: 24px;
+    opacity: 0.8;
+}
+
+canvas {
+    opacity: 0.9;
+}
+
+.full {
+    width: 100%;
+    height: 100%;
+}
+
+.chart {
+    width: 46vw;
+    height: 42vw;
+}
+
+.on {
+    border: solid 1px #EEE;
+}
+
+.row {
+    width: 100vw;
+    display: flex;
+    justify-content: space-around;
+}
+
+.half-row {
+    width: 50vw;
+    display: flex;
+    justify-content: space-around;
+}
+
+.wrap {
+    width: 46vw;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.button256 {
+    width: 256px;
+    height: 48px;
+    font-size: 32px;
+    margin: 4px;
+}
+
+.button192 {
+    width: 192px;
+    height: 32px;
+    font-size: 24px;
+    margin: 2px;
+}
+
+.shown {
+    width: 128px;
+    height: 24px;
+    line-height: 24px;
+    color: #000;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 8px;
+    overflow: hidden;
+    border: solid 1px #EEE;
+}
+
+.hidden {
+    opacity: 0.4;
+    border: none;
+}
+
+.import-box {
+    text-align:center;
+    width: 400px;
+    height: 86px;
+    font-size: 24px;
+    padding-top: 4px;
+}
+
+.display-box {
+    margin: 6px 2vw;
+    width: 46vw;
+    height: 46vw;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 600;
+}
+
+.title-box {
+    padding-top: 0;
+    background: #000;
+    opacity: 0.8;
+}
+
+
+/* I hate scroll bars */
+.scrollable-content::-webkit-scrollbar {
+    width:0;
+}
