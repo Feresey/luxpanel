@@ -13,9 +13,9 @@ Vue.component('heal', {
 	data() {
 		return {
 			active: 'heal/player',
-			pies: [[],[]],
-			charts: [[],[]],
-			tables: [[],[]],
+			pies: [[], []],
+			charts: [[], []],
+			tables: [[], []],
 		}
 	},
 	methods: {
@@ -23,20 +23,20 @@ Vue.component('heal', {
 			this.active = 'heal/player';
 			this.initProcess(this, 'Heal', 1, 0);
 			//fill damages
-			for (let h=0; h<this.heals.length; h++) {
+			for (let h = 0; h < this.heals.length; h++) {
 				const item = this.heals[h];
 				this.fillProcess(this, item);
 			}
 			//this.pies[0][0].average = this.pies[0][0].amount / (this.pies[0].length - 1);
 			//this.pies[1][0].average = this.pies[1][0].amount / (this.pies[1].length - 1);
-			this.$root.$emit('display', this.pies, this.charts,	this.tables);
+			this.$root.$emit('display', this.pies, this.charts, this.tables);
 		},
 		lifeHeal() {
 			this.active = 'heal/life';
 			this.initProcess(this, 'Heal', 1, 0);
 			this.initLives(this);
 			//fill damages
-			for (let d=0; d<this.heals.length; d++) {
+			for (let d = 0; d < this.heals.length; d++) {
 				const item = this.heals[d];
 				//negate values
 				while (this.killIndex < this.kills.length && this.kills[this.killIndex].time < item.time) {
@@ -48,14 +48,14 @@ Vue.component('heal', {
 			}
 			//fix total amounts
 			this.fillTotals(this);
-			this.$root.$emit('display', this.pies, this.charts,	this.tables);
+			this.$root.$emit('display', this.pies, this.charts, this.tables);
 		},
 		typeHeal() {
 			this.active = 'heal/type';
 			const types = ['shield', 'armor'];
 			this.initCustom(this, 'Types', types, 0, 1);
 			//fill heals
-			for (let d=0; d<this.heals.length; d++) {
+			for (let d = 0; d < this.heals.length; d++) {
 				const heal = this.heals[d];
 				const item = {
 					player: heal.source,
@@ -68,7 +68,7 @@ Vue.component('heal', {
 					this.fillCustom(this, item, types);
 				}
 			}
-			this.$root.$emit('display', this.pies, this.charts,	this.tables);
+			this.$root.$emit('display', this.pies, this.charts, this.tables);
 		}
 	},
 	computed: {

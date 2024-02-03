@@ -41,9 +41,6 @@ func run() error {
 	r := mux.NewRouter()
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// if r.URL.Path == "/" {
-			// 	r.URL.Path = "/index.html"
-			// }
 			log.Info("request", zap.String("method", r.Method), zap.String("path", r.URL.Path))
 			h.ServeHTTP(w, r)
 		})
