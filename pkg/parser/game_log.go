@@ -7,19 +7,57 @@ import (
 	"time"
 )
 
+//go:generate stringer -type=GameLogLineType
 type GameLogLineType int
 
 const (
 	GameLogLineTypeConnected GameLogLineType = iota
 	GameLogLineTypeAddPlayer
 	GameLogLineTypePlayerLeave
-	// GameLogLineTypeNetStat
+	GameLogLineTypeNetStat
 	GameLogLineTypeGameFinished
 )
 
 type GameLogLine interface {
 	Type() GameLogLineType
 	Unmarshal(raw []byte, now time.Time) error
+}
+
+func ParseGameLogLine(raw []byte, now time.Time) (line GameLogLine, err error) {
+	switch {
+	case gameRe.connected.Match(raw):
+		line = &GameLogLineConnected{}
+	case gameRe.addPlayer.Match(raw):
+		line = &GameLogLineAddPlayer{}
+	case gameRe.playerLeave.Match(raw):
+		line = &GameLogLinePlayerLeave{}
+	case gameRe.finished.Match(raw):
+		line = &GameLogLineFinished{}
+	case gameRe.netStat.Match(raw):
+		line = &GameLogLineConnected{}
+	default:
+		return nil, fmt.Errorf("%w: %s", ErrUndefinedLineType, raw)
+	}
+	if err := line.Unmarshal(raw, now); err != nil {
+		return nil, fmt.Errorf("line matched to regex(%s), but failed to parse: %s: %s", line.Type().String(), raw, err.Error())
+	}
+
+	return line, nil
+}
+
+var gameRe = struct {
+	connected,
+	addPlayer,
+	playerLeave,
+	netStat,
+	finished,
+	_ *regexp.Regexp
+}{
+	connected:   regexp.MustCompile(gameLineConnected),
+	addPlayer:   regexp.MustCompile(gameLineAddPlayer),
+	playerLeave: regexp.MustCompile(gameLinePlayerLeave),
+	netStat:     regexp.MustCompile(gameLineNetStat),
+	finished:    regexp.MustCompile(gameLineFinished),
 }
 
 const (
@@ -55,40 +93,25 @@ const (
 	gameLinePlayerLeaveTotal
 )
 
-// const (
-// 	// 20:30:17.253         | client: avgPing 2.5/1.4; avgPacketLoss 0.0/0.0%; avgSnapshotLoss 0.0/0.2%, MTU 1492
-// 	gameLineNetStat     = gameLinePrefix + `client: avgPing (\d+\.\d+)/(\d+\.\d+); avgPackageLoss (\d+\.\d+)/(\d+\.\d+)%; avgSnapshotLoss (\d+\.\d+)/(\d+\.\d+)%, MTU (\d+)`
-// 	gameLineNetStatTime = iota
-// 	gameLineNetStatPing1
-// 	gameLineNetStatPing2
-// 	gameLineNetStatPacketLoss1
-// 	gameLineNetStatPacketLoss2
-// 	gameLineNetStatSnapshotLoss1
-// 	gameLineNetStatSnapshotLoss2
-// 	gameLineNetStatMTU
-// 	gameLineNetStatTotal
-// )
+const (
+	// 20:30:17.253         | client: avgPing 2.5/1.4; avgPacketLoss 0.0/0.0%; avgSnapshotLoss 0.0/0.2%, MTU 1492
+	gameLineNetStat     = gameLinePrefix + `client: avgPing (\d+\.\d+)/(\d+\.\d+); avgPackageLoss (\d+\.\d+)/(\d+\.\d+)%; avgSnapshotLoss (\d+\.\d+)/(\d+\.\d+)%, MTU (\d+)`
+	gameLineNetStatTime = iota
+	gameLineNetStatPing1
+	gameLineNetStatPing2
+	gameLineNetStatPacketLoss1
+	gameLineNetStatPacketLoss2
+	gameLineNetStatSnapshotLoss1
+	gameLineNetStatSnapshotLoss2
+	gameLineNetStatMTU
+	gameLineNetStatTotal
+)
 
 const (
 	gameLineFinished     = gameLinePrefix + `client: connection closed\. DR_CLIENT_GAME_FINISHED\s*$`
 	gameLineFinishedTime = iota
 	gameLineFinishedTotal
 )
-
-var gameRe = struct {
-	connected,
-	addPlayer,
-	playerLeave,
-	// netStat,
-	finished,
-	_ *regexp.Regexp
-}{
-	connected:   regexp.MustCompile(gameLineConnected),
-	addPlayer:   regexp.MustCompile(gameLineAddPlayer),
-	playerLeave: regexp.MustCompile(gameLinePlayerLeave),
-	// netStat:     regexp.MustCompile(gameLineNetStat),
-	finished: regexp.MustCompile(gameLineFinished),
-}
 
 type GameLogLineConnected struct {
 	Time time.Time
@@ -101,7 +124,7 @@ func (g GameLogLineConnected) Type() GameLogLineType {
 func (g *GameLogLineConnected) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := gameRe.connected.FindStringSubmatch(string(raw))
 	if len(res) != gameLineConnectedTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 
 	g.Time, err = ParseField(res[gameLineConnectedTime], "time", parseLogTime(now))
@@ -129,7 +152,7 @@ func (g GameLogLineAddPlayer) Type() GameLogLineType {
 func (g *GameLogLineAddPlayer) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := gameRe.addPlayer.FindStringSubmatch(string(raw))
 	if len(res) != gameLineAddPlayerTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 
 	g.PlayerName = res[gameLineAddPlayerPlayerName]
@@ -175,7 +198,7 @@ func (g GameLogLineFinished) Type() GameLogLineType {
 func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := gameRe.finished.FindStringSubmatch(string(raw))
 	if len(res) != gameLineFinishedTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 
 	g.Time, err = ParseField(res[gameLineFinishedTime], "time", parseLogTime(now))
@@ -185,36 +208,36 @@ func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 	return nil
 }
 
-// type GameLogLineNetStat struct {
-// 	Time            time.Time
-// 	SessionPlayerID int
-// 	PlayerName      string
-// 	PlayerCorp      string
-// 	Status          int
-// 	TeamID          int
-// 	GroupID         int
-// }
+type GameLogLineNetStat struct {
+	Time            time.Time
+	SessionPlayerID int
+	PlayerName      string
+	PlayerCorp      string
+	Status          int
+	TeamID          int
+	GroupID         int
+}
 
-// func (g GameLogLineNetStat) GameLogLineType() GameLogLineType {
-// 	return GameLogLineTypeNetStat
-// }
+func (g GameLogLineNetStat) Type() GameLogLineType {
+	return GameLogLineTypeNetStat
+}
 
-// func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
-// 	res := gameRe.netStat.FindStringSubmatch(string(raw))
-// 	if len(res) != gameLineNetStatTotal {
-// 		return fmt.Errorf("wrong format: %s", raw)
-// 	}
+func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
+	res := gameRe.netStat.FindStringSubmatch(string(raw))
+	if len(res) != gameLineNetStatTotal {
+		return ErrWrongLineFormat
+	}
 
-// 	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
+	if err != nil {
+		return err
+	}
+	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 type GameLogLinePlayerLeave struct {
 	Time     time.Time
@@ -228,7 +251,7 @@ func (g GameLogLinePlayerLeave) Type() GameLogLineType {
 func (g *GameLogLinePlayerLeave) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := gameRe.playerLeave.FindStringSubmatch(string(raw))
 	if len(res) != gameLinePlayerLeaveTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 
 	g.Time, err = ParseField(res[gameLinePlayerLeaveTime], "time", parseLogTime(now))
@@ -236,26 +259,4 @@ func (g *GameLogLinePlayerLeave) Unmarshal(raw []byte, now time.Time) (err error
 		return err
 	}
 	return nil
-}
-
-func ParseGameLogLine(raw []byte, now time.Time) (line GameLogLine, err error) {
-	switch {
-	case gameRe.connected.Match(raw):
-		line = &GameLogLineConnected{}
-	case gameRe.addPlayer.Match(raw):
-		line = &GameLogLineAddPlayer{}
-	case gameRe.playerLeave.Match(raw):
-		line = &GameLogLinePlayerLeave{}
-	case gameRe.finished.Match(raw):
-		line = &GameLogLineFinished{}
-	// case gameRe.netStat.Match(raw):
-	// 	line = &GameLogLineConnected{}
-	default:
-		return nil, ErrUndefinedLineType
-	}
-	if err := line.Unmarshal(raw, now); err != nil {
-		return nil, err
-	}
-
-	return line, nil
 }

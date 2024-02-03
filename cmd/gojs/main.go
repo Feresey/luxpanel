@@ -1,8 +1,14 @@
+//go:build js
+
 package main
 
 import "syscall/js"
 
-func exportFunc(this js.Value, args []js.Value) any {
+func parseCombatLog(this js.Value, args []js.Value) any {
+	return "hello world"
+}
+
+func parseGameLog(this js.Value, args []js.Value) any {
 	return "hello world"
 }
 

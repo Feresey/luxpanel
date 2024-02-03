@@ -18,9 +18,9 @@ Vue.component('display', {
 		return {
 			tabs: ['pie', 'chart', 'table'],
 			modes: ['pie', 'pie'],
-			pies: [[],[]],
-			charts: [[],[]],
-			tables: [[],[]],
+			pies: [[], []],
+			charts: [[], []],
+			tables: [[], []],
 		}
 	},
 	methods: {
@@ -35,7 +35,7 @@ Vue.component('display', {
 		displayMode(index, mode) {
 			this.modes[index] = mode;
 			//force update
-			this.modes  = [this.modes[0],  this.modes[1]];
+			this.modes = [this.modes[0], this.modes[1]];
 		}
 	},
 	computed: {

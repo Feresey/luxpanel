@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -9,6 +8,7 @@ import (
 	"time"
 )
 
+//go:generate stringer -type=CombatLogLineType
 type CombatLogLineType int
 
 const (
@@ -25,53 +25,50 @@ type CombatLogLine interface {
 	Unmarshal(raw []byte, now time.Time) error
 }
 
-const timeFormat = "15:04:05.000"
-
-func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
-	return func(s string) (time.Time, error) {
-		t, err := time.Parse(timeFormat, s)
-		if err != nil {
-			return t, err
-		}
-		res := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local)
-		if res.Before(nowTime) {
-			return res.AddDate(0, 0, 1), nil
-		}
-		return res, nil
+func ParseCombatLogLine(raw []byte, now time.Time) (line CombatLogLine, err error) {
+	switch {
+	case combatRe.connectToGameSession.Match(raw):
+		line = &CombatLogLineConnectToGameSession{}
+	case combatRe.startGame.Match(raw):
+		line = &CombatLogLineStartGameplay{}
+	case combatRe.damageShort.Match(raw):
+		line = &CombatLogLineDamage{}
+	case combatRe.healShort.Match(raw):
+		line = &CombatLogLineHeal{}
+	case combatRe.killShort.Match(raw):
+		line = &CombatLogLineKill{}
+	case combatRe.gameFinishedShort.Match(raw):
+		line = &CombatLogLineGameFinished{}
+	default:
+		return nil, fmt.Errorf("%w: %s", ErrUndefinedLineType, raw)
 	}
-}
 
-func parseFloat(s string) (float64, error) {
-	res, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return 0, err
+	if err := line.Unmarshal(raw, now); err != nil {
+		return nil, fmt.Errorf("line matched to short regex(%s), but failed to parse: %s: %s", line.Type().String(), raw, err.Error())
 	}
-	return res, nil
+
+	return line, nil
 }
 
-type ParseFieldError struct {
-	Raw       string
-	FieldName string
-	Err       error
-}
-
-func (e ParseFieldError) Unwrap() error {
-	return e.Err
-}
-
-func (p ParseFieldError) Error() string {
-	return fmt.Sprintf("parse %s: (%s) %v", p.FieldName, p.Raw, p.Err)
-}
-
-func ParseField[T any](raw string, fieldName string, convert func(raw string) (res T, err error)) (res T, err error) {
-	if res, err = convert(raw); err != nil {
-		return res, ParseFieldError{
-			Raw:       raw,
-			FieldName: fieldName,
-			Err:       err,
-		}
-	}
-	return res, nil
+var combatRe = struct {
+	connectToGameSession,
+	startGame,
+	damage, damageShort,
+	heal, healShort,
+	kill, killShort,
+	gameFinished, gameFinishedShort,
+	_ *regexp.Regexp
+}{
+	connectToGameSession: regexp.MustCompile(connectToGameSessionLine),
+	startGame:            regexp.MustCompile(startGameplayLine),
+	damage:               regexp.MustCompile(damageLine),
+	damageShort:          regexp.MustCompile(damageLineShort),
+	heal:                 regexp.MustCompile(healLine),
+	healShort:            regexp.MustCompile(healLineShort),
+	kill:                 regexp.MustCompile(killLine),
+	killShort:            regexp.MustCompile(killLineShort),
+	gameFinished:         regexp.MustCompile(gameFinishedLine),
+	gameFinishedShort:    regexp.MustCompile(gameFinishedLineShort),
 }
 
 const (
@@ -79,7 +76,7 @@ const (
 	playerIDLine   = `([a-zA-Z0-9()_/-]+)\|(-?\d+)`
 	floatLine      = `(-?\d+\.\d+)`
 	actionReason   = `([a-zA-Z0-9()_/-]+)?`
-	friendlyFire   = `(\s+(<FriendlyFire>))?`
+	friendlyFire   = `(\s+<FriendlyFire>)?`
 	cmbtLineSuffix = `\s*$`
 )
 
@@ -103,7 +100,7 @@ const (
 	startGameplayLineTime = iota + 1
 	startGameplayLineGameMode
 	startGameplayLineMap
-	_
+	startGameplayLineLocalClientTeam
 	startGameplayTotal
 )
 
@@ -113,7 +110,10 @@ const (
 	// 19:33:24.165  CMBT   | Damage              n/a|-000000001 ->          Feresey|0000000204 558.90 (h:0.00 s:558.90) (crash) TRUE_DAMAGE|COLLISION
 	// 19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>
 	// 19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC
-	damageLine      = cmbtLinePrefix + `Damage\s+` + playerIDLine + `\s+->\s+` + playerIDLine + `\s+` + damageDetailed + `\s` + actionReason + `\s` + damageModifiers + friendlyFire + cmbtLineSuffix
+	damageLine = cmbtLinePrefix + `Damage\s+` +
+		playerIDLine + `\s+->\s+` + playerIDLine + `\s+` +
+		damageDetailed + `\s` + actionReason + `\s` + damageModifiers + friendlyFire +
+		cmbtLineSuffix
 	damageLineShort = cmbtLinePrefix + `Damage`
 )
 
@@ -128,14 +128,16 @@ const (
 	damageLineShieldDamage
 	damageLineWeapon
 	damageLineWeaponModifiers
-	_
 	damageLineFriendlyFire
 	damageLineTotal
 )
 
 const (
 	// 19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic
-	healLine      = cmbtLinePrefix + `Heal\s+` + playerIDLine + `\s+->\s+` + playerIDLine + `\s+` + floatLine + `\s+` + actionReason + cmbtLineSuffix
+	healLine = cmbtLinePrefix + `Heal\s+` +
+		playerIDLine + `\s+->\s+` + playerIDLine + `\s+` +
+		floatLine + `\s+` + actionReason +
+		cmbtLineSuffix
 	healLineShort = cmbtLinePrefix + `Heal`
 )
 
@@ -154,7 +156,10 @@ const (
 	killedPlayer = `(([a-zA-Z0-9()_/-]+)\s+)?([a-zA-Z0-9()_/-]+)\|(-?\d+)`
 	// 19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate
 	// 19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic
-	killLine      = cmbtLinePrefix + `Killed\s+` + killedPlayer + `;\s+killer\s+` + playerIDLine + `\s+` + actionReason + friendlyFire + cmbtLineSuffix
+	killLine = cmbtLinePrefix + `Killed\s+` +
+		killedPlayer + `;\s+killer\s+` + playerIDLine + `\s+` +
+		actionReason + friendlyFire +
+		cmbtLineSuffix
 	killLineShort = cmbtLinePrefix + `Killed`
 )
 
@@ -167,7 +172,6 @@ const (
 	killLineInitiator
 	killLineInitiatorID
 	killLineWeapon
-	_
 	killLineFriendlyFire
 	killLineTotal
 )
@@ -180,7 +184,9 @@ const (
 	// 20:18:37.406  CMBT   | Gameplay finished. Winner team: 1(ALL_ENEMY_VITALPOINTS_DEAD). Finish reason: 'All beacons captured'. Actual game time 591.1 sec
 	// 20:30:08.030  CMBT   | Gameplay finished. Winner team: 2(ALL_ENEMY_SHIPS_KILLED). Finish reason: 'All SpaceShips destroyed'. Actual game time 521.4 sec
 	// 20:45:59.862  CMBT   | Gameplay finished. Winner team: 1(MORE_ALIVE_VITALPOINTS_LEFT). Finish reason: 'Timeout'. Actual game time 720.0 sec
-	gameFinishedLine      = cmbtLinePrefix + `Gameplay finished\. Winner team: ` + winnerTeam + `\s+` + finishReason + `\s+` + actualGameTime + cmbtLineSuffix
+	gameFinishedLine = cmbtLinePrefix + `Gameplay finished\. Winner team: ` +
+		winnerTeam + `\s+` + finishReason + `\s+` + actualGameTime +
+		cmbtLineSuffix
 	gameFinishedLineShort = cmbtLinePrefix + `Gameplay finished`
 )
 
@@ -192,27 +198,6 @@ const (
 	gameFinishedLineActualGameTime
 	gameFinishedLineTotal
 )
-
-var combatRe = struct {
-	connectToGameSession,
-	startGame,
-	damage, damageShort,
-	heal, healShort,
-	kill, killShort,
-	gameFinished, gameFinishedShort,
-	_ *regexp.Regexp
-}{
-	connectToGameSession: regexp.MustCompile(connectToGameSessionLine),
-	startGame:            regexp.MustCompile(startGameplayLine),
-	damage:               regexp.MustCompile(damageLine),
-	damageShort:          regexp.MustCompile(damageLineShort),
-	heal:                 regexp.MustCompile(healLine),
-	healShort:            regexp.MustCompile(healLineShort),
-	kill:                 regexp.MustCompile(killLine),
-	killShort:            regexp.MustCompile(killLineShort),
-	gameFinished:         regexp.MustCompile(gameFinishedLine),
-	gameFinishedShort:    regexp.MustCompile(gameFinishedLineShort),
-}
 
 type CombatLogLineConnectToGameSession struct {
 	Time      time.Time
@@ -226,7 +211,7 @@ func (c *CombatLogLineConnectToGameSession) Type() CombatLogLineType {
 func (c *CombatLogLineConnectToGameSession) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.connectToGameSession.FindStringSubmatch(string(raw))
 	if len(res) != connectToGameSessionLineTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 
 	c.Time, err = ParseField(res[connectToGameSessionLineTime], "time", parseLogTime(now))
@@ -253,7 +238,7 @@ func (c *CombatLogLineStartGameplay) Type() CombatLogLineType {
 func (c *CombatLogLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.startGame.FindStringSubmatch(string(raw))
 	if len(res) != startGameplayTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 	c.GameMode = res[startGameplayLineGameMode]
 	c.MapName = res[startGameplayLineMap]
@@ -275,19 +260,19 @@ type CombatPlayers struct {
 type DamageModifier string
 
 const (
-	DamageTypeEMP         = "EMP"
-	DamageTypeKinetic     = "KINETIC"
-	DamageTypeThermal     = "THERMAL"
-	DamageTypeTrueDamage  = "TRUE_DAMAGE"
-	DamageUnintention     = "UNINTENTION"
-	DamageCrit            = "CRIT"
-	DamageExplosion       = "EXPLOSION"
-	DamageCollision       = "COLLISION"
-	DamageWeaponPrimary   = "PRIMARY_WEAPON"
-	DamageWeaponSecondary = "SECONDARY_WEAPON"
-	DamageIgnoreScale     = "IGNORE_DAMAGE_SCALE"
-	DamageIgoreShield     = "IGNORE_SHIELD"
-	DamageModule          = "MODULE"
+	DamageTypeEMP         DamageModifier = "EMP"
+	DamageTypeKinetic     DamageModifier = "KINETIC"
+	DamageTypeThermal     DamageModifier = "THERMAL"
+	DamageTypeTrueDamage  DamageModifier = "TRUE_DAMAGE"
+	DamageUnintention     DamageModifier = "UNINTENTION"
+	DamageCrit            DamageModifier = "CRIT"
+	DamageExplosion       DamageModifier = "EXPLOSION"
+	DamageCollision       DamageModifier = "COLLISION"
+	DamageWeaponPrimary   DamageModifier = "PRIMARY_WEAPON"
+	DamageWeaponSecondary DamageModifier = "SECONDARY_WEAPON"
+	DamageIgnoreScale     DamageModifier = "IGNORE_DAMAGE_SCALE"
+	DamageIgoreShield     DamageModifier = "IGNORE_SHIELD"
+	DamageModule          DamageModifier = "MODULE"
 )
 
 type CombatLogLineDamage struct {
@@ -308,7 +293,7 @@ func (c CombatLogLineDamage) Type() CombatLogLineType {
 func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.damage.FindStringSubmatch(string(raw))
 	if len(res) != damageLineTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 	c.Players.Initiator = res[damageLineInitiator]
 	c.Players.Recipient = res[damageLineRecipient]
@@ -373,7 +358,7 @@ func (c CombatLogLineHeal) Type() CombatLogLineType {
 func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.heal.FindStringSubmatch(string(raw))
 	if len(res) != healLineTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 	c.Players.Initiator = res[healLineInitiator]
 	c.Players.Recipient = res[healLineRecipient]
@@ -413,7 +398,7 @@ func (c CombatLogLineKill) Type() CombatLogLineType {
 func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.kill.FindStringSubmatch(string(raw))
 	if len(res) != killLineTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 	c.Players.Initiator = res[killLineInitiator]
 	c.Players.Recipient = res[killLineRecipient]
@@ -454,7 +439,7 @@ func (c CombatLogLineGameFinished) Type() CombatLogLineType {
 func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.gameFinished.FindStringSubmatch(string(raw))
 	if len(res) != gameFinishedLineTotal {
-		return fmt.Errorf("wrong format: %s", raw)
+		return ErrWrongLineFormat
 	}
 	c.FinishReason = res[gameFinishedLineFinishReason]
 	c.WinnerTeamReason = res[gameFinishedLineWinnerTeamReason]
@@ -473,31 +458,4 @@ func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err er
 	}
 
 	return nil
-}
-
-var ErrUndefinedLineType = errors.New("undefined line type")
-
-func ParseCombatLogLine(raw []byte, now time.Time) (line CombatLogLine, err error) {
-	switch {
-	case combatRe.connectToGameSession.Match(raw):
-		line = &CombatLogLineConnectToGameSession{}
-	case combatRe.startGame.Match(raw):
-		line = &CombatLogLineStartGameplay{}
-	case combatRe.damageShort.Match(raw):
-		line = &CombatLogLineDamage{}
-	case combatRe.healShort.Match(raw):
-		line = &CombatLogLineHeal{}
-	case combatRe.killShort.Match(raw):
-		line = &CombatLogLineKill{}
-	case combatRe.gameFinishedShort.Match(raw):
-		line = &CombatLogLineGameFinished{}
-	default:
-		return nil, ErrUndefinedLineType
-	}
-
-	if err := line.Unmarshal(raw, now); err != nil {
-		return nil, err
-	}
-
-	return line, nil
 }

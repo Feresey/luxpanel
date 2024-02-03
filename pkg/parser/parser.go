@@ -46,32 +46,31 @@ type Level struct {
 func (p *Parser) ParseLevel() (level *Level, err error) {
 	level = &Level{}
 
-	var combatLogFinished, gameLogFinished bool
-	for !combatLogFinished || !gameLogFinished {
-		if !combatLogFinished {
-			if err := p.loadCombatLogLine(level); err != nil {
-				if errors.Is(err, io.EOF) {
-					combatLogFinished = true
-				} else if !errors.Is(err, ErrUndefinedLineType) {
-					return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
-				}
+	for {
+		if err := p.loadCombatLogLine(level); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
 			}
-			if level.Combat.Finished != nil {
-				combatLogFinished = true
+			if !errors.Is(err, ErrUndefinedLineType) {
+				return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
 			}
 		}
+		if level.Combat.Finished != nil {
+			break
+		}
+	}
 
-		if !gameLogFinished {
-			if err := p.loadGameLogLine(level); err != nil {
-				if errors.Is(err, io.EOF) {
-					gameLogFinished = true
-				} else if !errors.Is(err, ErrUndefinedLineType) {
-					return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
-				}
+	for {
+		if err := p.loadGameLogLine(level); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
 			}
-			if level.Game.Finished != nil {
-				gameLogFinished = true
+			if !errors.Is(err, ErrUndefinedLineType) {
+				return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
 			}
+		}
+		if level.Game.Finished != nil {
+			break
 		}
 	}
 
@@ -84,7 +83,7 @@ func (p *Parser) loadCombatLogLine(level *Level) error {
 		return fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		return fmt.Errorf("very long line detected")
+		return fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
 	combatLogLine, err := ParseCombatLogLine(rawLine, p.nowDate)
@@ -118,12 +117,12 @@ func (p *Parser) loadGameLogLine(level *Level) error {
 		return fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		return fmt.Errorf("very long line detected")
+		return fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
 	gameLogLine, err := ParseGameLogLine(rawLine, p.nowDate)
 	if err != nil {
-		return ErrUndefinedLineType
+		return err
 	}
 
 	switch line := gameLogLine.(type) {
@@ -133,6 +132,7 @@ func (p *Parser) loadGameLogLine(level *Level) error {
 		level.Game.AddedPlayers = append(level.Game.AddedPlayers, *line)
 	case *GameLogLineFinished:
 		level.Game.Finished = line
+	case *GameLogLineNetStat: // Я хз что с этим делать
 	case *GameLogLinePlayerLeave:
 		level.Game.LeavedPlayers = append(level.Game.LeavedPlayers, *line)
 	default:

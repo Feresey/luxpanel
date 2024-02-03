@@ -221,6 +221,27 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "crash",
+			raw:  `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
+			want: &CombatLogLineDamage{
+				Time: time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.Local),
+				Players: CombatPlayers{
+					Initiator:   "Py6Jl",
+					InitiatorID: 395,
+					Recipient:   "Py6Jl",
+					RecipientID: 395,
+				},
+				DamageTotal:    0,
+				DamageHull:     0,
+				DamageShield:   0,
+				Weapon:         "Weapon_OrbGun_T5_Epic",
+				IsFriendlyFire: true,
+				DamageModifiers: []DamageModifier{
+					"EMP", "PRIMARY_WEAPON", "EXPLOSION",
+				},
+			},
+		},
 
 		{
 			name:      "cutted",
