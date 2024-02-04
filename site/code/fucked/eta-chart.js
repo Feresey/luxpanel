@@ -1,300 +1,300 @@
-Vue.component('eta-chart', {
-    'props': {
-        'index': {
-            'type': Number,
-            'required': true
+Vue.component("eta-chart", {
+    props: {
+        index: {
+            type: Number,
+            required: true
         },
-        'curves': {
-            'type': Array,
-            'required': true
+        curves: {
+            type: Array,
+            required: true
         }
     },
-    'template': `<canvas class="full" :ref="'chart-canvas-'+index">Canvas not enabled</canvas>`,
-    'data'() {
+    template: `<canvas class="full" :ref="'chart-canvas-'+index">Canvas not enabled</canvas>`,
+    data() {
         return {
-            'canvas': {
-                'context': null
+            canvas: {
+                context: null
             },
-            'ctx': null,
-            'width': 0,
-            'height': 0,
-            'mouse': {
-                'in': true,
-                'x': 500,
-                'y': 0x64
+            ctx: null,
+            width: 0,
+            height: 0,
+            mouse: {
+                in: true,
+                x: 500,
+                y: 100
             }
         };
     },
-    'methods': {
-        'mouseIn'(_0x231889) {
+    methods: {
+        mouseIn(a) {
             this.mouse.in = true;
-            this.mouse.x = _0x231889.offsetX;
-            this.mouse.y = _0x231889.offsetY;
+            this.mouse.x = a.offsetX;
+            this.mouse.y = a.offsetY;
             this.drawChart();
         },
-        'mouseMove'(_0x424e1b) {
-            this.mouse.x = _0x424e1b.offsetX;
-            this.mouse.y = _0x424e1b.offsetY;
+        mouseMove(c) {
+            this.mouse.x = c.offsetX;
+            this.mouse.y = c.offsetY;
             console.log(this.mouse.x, this.mouse.y);
             this.drawChart();
         },
-        'mouseOut'() {
+        mouseOut() {
             this.mouse.in = true;
             this.drawChart();
         },
-        'getX'(_0x33a02c, _0x55efce, _0x507724, _0x5757de) {
-            return _0x5757de.L + _0x5757de.P + (_0x33a02c - _0x55efce) * _0x507724;
+        getX(d, e, f, g) {
+            return g.L + g.P + (d - e) * f;
         },
-        'getY'(_0x4bed09, _0x46f4d4, _0x2e65a2, _0x81fc2b, _0x42e6ca) {
-            return _0x42e6ca - _0x81fc2b.B - _0x81fc2b.P - (_0x4bed09 - _0x46f4d4) * _0x2e65a2;
+        getY(h, i, j, k, m) {
+            return m - k.B - k.P - (h - i) * j;
         },
-        'getLastIndex'(_0xb2750, _0x2add3e) {
-            let _0x4b4eb7 = -1;
-            for (let _0x57960f = 0; _0x57960f < _0xb2750.step.length; _0x57960f++) {
-                if (_0xb2750.step[_0x57960f] <= _0x2add3e) {
-                    _0x4b4eb7 = _0x57960f;
+        getLastIndex(n, o) {
+            let q = -1;
+            for (let s = 0; s < n.step.length; s++) {
+                if (n.step[s] <= o) {
+                    q = s;
                 } else {
                     break;
                 }
             }
-            return _0x4b4eb7;
+            return q;
         },
-        'drawChart'() {
-            this.ctx.fillStyle = '#000';
+        drawChart() {
+            this.ctx.fillStyle = "#000";
             this.ctx.fillRect(0, 0, this.width, this.height);
-            const _0xc86e64 = this.curves;
-            if (!_0xc86e64 || !_0xc86e64.length) {
+            const curves = this.curves;
+            if (!curves || !curves.length) {
                 return;
             }
-            const _0x1c6e40 = this.width;
-            const _0x31f4ca = this.height;
-            if (_0x1c6e40 === 0 || _0x31f4ca === 0 || _0xc86e64.length === 0) {
+            const width = this.width;
+            const height = this.height;
+            if (width === 0 || height === 0 || curves.length === 0) {
                 return;
             }
-            const _0x3691e3 = {
-                'T': 8,
-                'L': 50,
-                'B': 20,
-                'R': 8,
-                'P': 0x0
+            const z = {
+                T: 8,
+                L: 50,
+                B: 20,
+                R: 8,
+                P: 0
             };
-            let _0xe581dd = -1;
-            let _0x5c7f5e = -1;
-            let _0xd5239c = null;
-            let _0x2c423d = null;
-            let _0x275778 = null;
-            for (let _0x4b0658 = 0; _0x4b0658 < _0xc86e64.length; _0x4b0658++) {
-                const _0x12f69a = _0xc86e64[_0x4b0658];
-                if (_0x12f69a.step.length > 0) {
-                    if (_0xd5239c === null) {
-                        _0xd5239c = _0x12f69a.step[0] > 999999999;
-                        _0x2c423d = _0x12f69a.step[0];
-                        _0x275778 = _0x12f69a.step[_0x12f69a.step.length - 1];
+            let ab = -1;
+            let ac = -1;
+            let ad = null;
+            let ae = null;
+            let af = null;
+            for (let i = 0; i < curves.length; i++) {
+                const curve = curves[i];
+                if (curve.step.length > 0) {
+                    if (ad === null) {
+                        ad = curve.step[0] > 999999999;
+                        ae = curve.step[0];
+                        af = curve.step[curve.step.length - 1];
                     }
-                    const _0x5263d4 = _0x12f69a.step[0];
-                    const _0x5e74e3 = _0x12f69a.step[_0xc86e64[0].step.length - 1];
-                    if (_0x5263d4 <= _0x2c423d && _0x5263d4 !== null) {
-                        _0x2c423d = _0x5263d4;
+                    const ai = curve.step[0];
+                    const aj = curve.step[curves[0].step.length - 1];
+                    if (ai <= ae && ai !== null) {
+                        ae = ai;
                     }
-                    if (_0x5e74e3 > _0x275778 && _0x5e74e3 !== null) {
-                        _0x275778 = _0x5e74e3;
+                    if (aj > af && aj !== null) {
+                        af = aj;
                     }
                 }
-                for (let _0x4b6792 = 0; _0x4b6792 < _0x12f69a.data.length; _0x4b6792++) {
-                    const _0x14c17b = _0x12f69a.data[_0x4b6792];
-                    if (_0xe581dd === -1 || _0x14c17b < _0xe581dd && _0x14c17b !== null) {
-                        _0xe581dd = _0x14c17b;
+                for (let i = 0; i < curve.data.length; i++) {
+                    const cdata = curve.data[i];
+                    if (ab === -1 || cdata < ab && cdata !== null) {
+                        ab = cdata;
                     }
-                    if (_0x5c7f5e === -1 || _0x14c17b > _0x5c7f5e && _0x14c17b !== null) {
-                        _0x5c7f5e = _0x14c17b;
+                    if (ac === -1 || cdata > ac && cdata !== null) {
+                        ac = cdata;
                     }
                 }
             }
             this.ctx.lineWidth = this.width / 200;
-            this.ctx.fillStyle = '#EEE';
-            this.ctx.strokeStyle = '#EEE';
+            this.ctx.fillStyle = "#EEE";
+            this.ctx.strokeStyle = "#EEE";
             this.ctx.beginPath();
-            this.ctx.moveTo(_0x3691e3.L, _0x31f4ca - _0x3691e3.B + 4);
-            this.ctx.lineTo(_0x3691e3.L, _0x3691e3.T);
-            this.ctx.lineTo(_0x3691e3.L + 4, _0x3691e3.T + 4);
-            this.ctx.lineTo(_0x3691e3.L - 4, _0x3691e3.T + 4);
-            this.ctx.lineTo(_0x3691e3.L, _0x3691e3.T);
-            this.ctx.moveTo(_0x3691e3.L - 4, _0x31f4ca - _0x3691e3.B);
-            this.ctx.lineTo(_0x1c6e40 - _0x3691e3.R, _0x31f4ca - _0x3691e3.B);
-            this.ctx.lineTo(_0x1c6e40 - _0x3691e3.R - 4, _0x31f4ca - _0x3691e3.B + 4);
-            this.ctx.lineTo(_0x1c6e40 - _0x3691e3.R - 4, _0x31f4ca - _0x3691e3.B - 4);
-            this.ctx.lineTo(_0x1c6e40 - _0x3691e3.R, _0x31f4ca - _0x3691e3.B);
+            this.ctx.moveTo(z.L, height - z.B + 4);
+            this.ctx.lineTo(z.L, z.T);
+            this.ctx.lineTo(z.L + 4, z.T + 4);
+            this.ctx.lineTo(z.L - 4, z.T + 4);
+            this.ctx.lineTo(z.L, z.T);
+            this.ctx.moveTo(z.L - 4, height - z.B);
+            this.ctx.lineTo(width - z.R, height - z.B);
+            this.ctx.lineTo(width - z.R - 4, height - z.B + 4);
+            this.ctx.lineTo(width - z.R - 4, height - z.B - 4);
+            this.ctx.lineTo(width - z.R, height - z.B);
             this.ctx.stroke();
-            const _0x3b2340 = (_0x31f4ca - _0x3691e3.T - _0x3691e3.B - 2 * _0x3691e3.P) / (_0x5c7f5e - _0xe581dd);
-            const _0x231e95 = (_0x1c6e40 - _0x3691e3.L - _0x3691e3.R - 2 * _0x3691e3.P) / (_0x275778 - _0x2c423d);
-            for (let _0x19f2e5 = 0; _0x19f2e5 < _0xc86e64.length; _0x19f2e5++) {
-                const _0x3a43b6 = _0xc86e64[_0x19f2e5];
-                this.ctx.strokeStyle = _0x3a43b6.color;
+            const am = (height - z.T - z.B - 2 * z.P) / (ac - ab);
+            const an = (width - z.L - z.R - 2 * z.P) / (af - ae);
+            for (let i = 0; i < curves.length; i++) {
+                const ap = curves[i];
+                this.ctx.strokeStyle = ap.color;
                 this.ctx.setLineDash([]);
-                this.ctx.fillStyle = this.ctx.strokeStyle + '08';
+                this.ctx.fillStyle = this.ctx.strokeStyle + "08";
                 this.ctx.beginPath();
-                this.ctx.lineTo(this.getX(_0x2c423d, _0x2c423d, _0x231e95, _0x3691e3), this.getY(_0xe581dd, _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca));
-                for (let _0x1e4186 = 0; _0x1e4186 < _0x3a43b6.data.length; _0x1e4186++) {
-                    if (_0x3a43b6.data[_0x1e4186] !== null) {
-                        this.ctx.lineTo(this.getX(_0x3a43b6.step[_0x1e4186], _0x2c423d, _0x231e95, _0x3691e3), this.getY(_0x3a43b6.data[_0x1e4186], _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca));
+                this.ctx.lineTo(this.getX(ae, ae, an, z), this.getY(ab, ab, am, z, height));
+                for (let aq = 0; aq < ap.data.length; aq++) {
+                    if (ap.data[aq] !== null) {
+                        this.ctx.lineTo(this.getX(ap.step[aq], ae, an, z), this.getY(ap.data[aq], ab, am, z, height));
                     }
                 }
-                this.ctx.lineTo(this.getX(_0x275778, _0x2c423d, _0x231e95, _0x3691e3), this.getY(_0x3a43b6.data[_0x3a43b6.data.length - 1], _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca));
+                this.ctx.lineTo(this.getX(af, ae, an, z), this.getY(ap.data[ap.data.length - 1], ab, am, z, height));
                 this.ctx.stroke();
             }
             this.ctx.setLineDash([]);
-            this.ctx.font = '12px Lato';
-            this.ctx.fillStyle = '#EEE';
-            this.ctx.textBaseline = 'top';
-            this.ctx.textAlign = 'center';
-            for (let _0x4992ec = Math.floor(_0x2c423d / 60) + 1; _0x4992ec < Math.floor(_0x275778 / 60) + 1; _0x4992ec++) {
-                const _0x5c11c2 = _0x4992ec * 60;
-                this.ctx.fillText(_0x4992ec + ' min', this.getX(_0x5c11c2, _0x2c423d, _0x231e95, _0x3691e3), _0x31f4ca - _0x3691e3.B + 8);
-                this.ctx.fillText('|', this.getX(_0x5c11c2, _0x2c423d, _0x231e95, _0x3691e3), _0x31f4ca - _0x3691e3.B - 5);
+            this.ctx.font = "12px Lato";
+            this.ctx.fillStyle = "#EEE";
+            this.ctx.textBaseline = "top";
+            this.ctx.textAlign = "center";
+            for (let ar = Math.floor(ae / 60) + 1; ar < Math.floor(af / 60) + 1; ar++) {
+                const as = ar * 60;
+                this.ctx.fillText(ar + " min", this.getX(as, ae, an, z), height - z.B + 8);
+                this.ctx.fillText("|", this.getX(as, ae, an, z), height - z.B - 5);
             }
-            this.ctx.textBaseline = 'middle';
-            this.ctx.textAlign = 'right';
-            const _0x24dddf = [5, 20, 100, 500, 2000, 10000, 50000, 200000, 1000000];
-            let _0x2dbe2a = 1;
-            for (let _0x23e159 = 0; _0x23e159 < _0x24dddf.length; _0x23e159++) {
-                if (_0x5c7f5e - _0xe581dd > _0x24dddf[_0x23e159] * 4) {
-                    _0x2dbe2a = _0x24dddf[_0x23e159];
+            this.ctx.textBaseline = "middle";
+            this.ctx.textAlign = "right";
+            const at = [5, 20, 100, 500, 2000, 10000, 50000, 200000, 1000000];
+            let au = 1;
+            for (let i = 0; i < at.length; i++) {
+                if (ac - ab > at[i] * 4) {
+                    au = at[i];
                 } else {
                     break;
                 }
             }
-            for (let _0x1b4dde = Math.floor(_0xe581dd / _0x2dbe2a) + 1; _0x1b4dde < Math.floor(_0x5c7f5e / _0x2dbe2a) + 1; _0x1b4dde++) {
-                const _0x217096 = _0x1b4dde * _0x2dbe2a;
-                this.ctx.fillText(this.formatNumber(_0x217096) + ' --', _0x3691e3.L + 4, this.getY(_0x217096, _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca));
+            for (let aw = Math.floor(ab / au) + 1; aw < Math.floor(ac / au) + 1; aw++) {
+                const ax = aw * au;
+                this.ctx.fillText(this.formatNumber(ax) + " --", z.L + 4, this.getY(ax, ab, am, z, height));
             }
             if (this.mouse.in) {
-                let _0x396db7 = 0;
-                let _0x38ddf3 = 0;
-                let _0x49d133 = 0;
-                let _0x3f45c4 = -1;
-                for (let _0xac839d = 0; _0xac839d < _0xc86e64.length; _0xac839d++) {
-                    const _0x2f5ac0 = _0xc86e64[_0xac839d];
-                    for (let _0xd36ad7 = 0; _0xd36ad7 < _0x2f5ac0.step.length; _0xd36ad7++) {
-                        const _0x46a4e1 = Math.abs(this.getX(_0x2f5ac0.step[_0xd36ad7], _0x2c423d, _0x231e95, _0x3691e3) - this.mouse.x);
-                        if (_0x3f45c4 === -1 || _0x46a4e1 < _0x3f45c4) {
-                            _0x3f45c4 = _0x46a4e1;
-                            _0x396db7 = _0x2f5ac0.step[_0xd36ad7];
-                            _0x38ddf3 = _0xd36ad7;
+                let ay = 0;
+                let az = 0;
+                let ba = 0;
+                let bb = -1;
+                for (let i = 0; i < curves.length; i++) {
+                    const curve = curves[i];
+                    for (let j = 0; j < curve.step.length; j++) {
+                        const bf = Math.abs(this.getX(curve.step[j], ae, an, z) - this.mouse.x);
+                        if (bb === -1 || bf < bb) {
+                            bb = bf;
+                            ay = curve.step[j];
+                            az = j;
                         }
                     }
                 }
-                _0x3f45c4 = 999;
-                this.ctx.strokeStyle = '#EEE';
-                for (let _0x55ebc9 = 0; _0x55ebc9 < _0xc86e64.length; _0x55ebc9++) {
-                    const _0x4cabdc = _0xc86e64[_0x55ebc9];
-                    if (_0x4cabdc.step.length > 0) {
-                        const _0x71352e = this.getLastIndex(_0x4cabdc, _0x396db7);
-                        if (_0x71352e > -1) {
-                            const _0x2b8d0d = Math.abs(this.getY(_0x4cabdc.data[_0x71352e], _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca) - this.mouse.y);
-                            if (_0x2b8d0d < _0x3f45c4) {
-                                _0x3f45c4 = _0x2b8d0d;
-                                _0x49d133 = _0x55ebc9;
+                bb = 999;
+                this.ctx.strokeStyle = "#EEE";
+                for (let i = 0; i < curves.length; i++) {
+                    const curve = curves[i];
+                    if (curve.step.length > 0) {
+                        const bi = this.getLastIndex(curve, ay);
+                        if (bi > -1) {
+                            const bj = Math.abs(this.getY(curve.data[bi], ab, am, z, height) - this.mouse.y);
+                            if (bj < bb) {
+                                bb = bj;
+                                ba = i;
                             }
-                            if (_0x4cabdc.data[_0x71352e] !== null) {
+                            if (curve.data[bi] !== null) {
                                 this.ctx.beginPath();
-                                this.ctx.arc(this.getX(_0x4cabdc.step[_0x71352e], _0x2c423d, _0x231e95, _0x3691e3), this.getY(_0x4cabdc.data[_0x71352e], _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca), this.ctx.lineWidth * 1.5, 0, 2 * Math.PI);
+                                this.ctx.arc(this.getX(curve.step[bi], ae, an, z), this.getY(curve.data[bi], ab, am, z, height), this.ctx.lineWidth * 1.5, 0, 2 * Math.PI);
                                 this.ctx.stroke();
                             }
                         }
                     }
                 }
-                const _0x25039d = this.getLastIndex(_0xc86e64[_0x49d133], _0x396db7);
-                if (_0x25039d > -1) {
-                    const _0x14a199 = this.getX(_0xc86e64[_0x49d133].step[_0x25039d], _0x2c423d, _0x231e95, _0x3691e3);
-                    const _0x27c39d = this.getY(_0xc86e64[_0x49d133].data[_0x25039d], _0xe581dd, _0x3b2340, _0x3691e3, _0x31f4ca);
+                const bk = this.getLastIndex(curves[ba], ay);
+                if (bk > -1) {
+                    const bl = this.getX(curves[ba].step[bk], ae, an, z);
+                    const bm = this.getY(curves[ba].data[bk], ab, am, z, height);
                     this.ctx.beginPath();
-                    this.ctx.arc(_0x14a199, _0x27c39d, this.ctx.lineWidth * 2.5, 0, 2 * Math.PI);
+                    this.ctx.arc(bl, bm, this.ctx.lineWidth * 2.5, 0, 2 * Math.PI);
                     this.ctx.stroke();
                     this.ctx.lineWidth = 1;
                     this.ctx.beginPath();
-                    this.ctx.moveTo(_0x3691e3.L, _0x27c39d);
-                    this.ctx.lineTo(_0x1c6e40 - _0x3691e3.R, _0x27c39d);
-                    this.ctx.moveTo(_0x14a199, _0x3691e3.T);
-                    this.ctx.lineTo(_0x14a199, _0x31f4ca - _0x3691e3.B);
+                    this.ctx.moveTo(z.L, bm);
+                    this.ctx.lineTo(width - z.R, bm);
+                    this.ctx.moveTo(bl, z.T);
+                    this.ctx.lineTo(bl, height - z.B);
                     this.ctx.stroke();
                 }
-                const _0x5e34f8 = this.mouse.x < _0x1c6e40 / 2 ? _0x1c6e40 - 280 : _0x3691e3.L;
-                this.ctx.font = '600 28px Arial';
-                this.ctx.textBaseline = 'middle';
-                this.ctx.textAlign = 'center';
-                this.ctx.fillStyle = 'rgba(64, 60, 60, 0.25)';
-                this.ctx.fillRect(_0x5e34f8, 0, 280, _0x31f4ca - _0x3691e3.B);
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                const _0x4015bc = this.formatTime(_0xc86e64[_0x49d133].step[_0x25039d]);
-                this.ctx.fillText(_0x4015bc, 150 + _0x5e34f8, 24);
-                const _0x3c9a61 = [];
-                let _0x31ef7a = '';
-                for (let _0x2a9f73 = 0; _0x2a9f73 < _0xc86e64.length; _0x2a9f73++) {
-                    const _0x5eebcb = this.getLastIndex(_0xc86e64[_0x2a9f73], _0x396db7);
-                    if (_0x5eebcb > -1) {
-                        if (_0x2a9f73 === _0x49d133) {
-                            _0x31ef7a = _0xc86e64[_0x2a9f73].label;
+                const bn = this.mouse.x < width / 2 ? width - 280 : z.L;
+                this.ctx.font = "600 28px Arial";
+                this.ctx.textBaseline = "middle";
+                this.ctx.textAlign = "center";
+                this.ctx.fillStyle = "rgba(64, 60, 60, 0.25)";
+                this.ctx.fillRect(bn, 0, 280, height - z.B);
+                this.ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                const bo = this.formatTime(curves[ba].step[bk]);
+                this.ctx.fillText(bo, 150 + bn, 24);
+                const bp = [];
+                let bq = "";
+                for (let i = 0; i < curves.length; i++) {
+                    const curve = this.getLastIndex(curves[i], ay);
+                    if (curve > -1) {
+                        if (bt === ba) {
+                            bq = curves[i].label;
                         }
-                        _0x3c9a61.push({
-                            'label': _0xc86e64[_0x2a9f73].name,
-                            'color': _0xc86e64[_0x2a9f73].color,
-                            'value': _0xc86e64[_0x2a9f73].data[_0x5eebcb]
+                        bp.push({
+                            label: curves[i].name,
+                            color: curves[i].color,
+                            value: curves[i].data[curve]
                         });
                     }
                 }
-                _0x3c9a61.sort(function (_0xf0f7f7, _0xe0b3e4) {
-                    return _0xf0f7f7.value < _0xe0b3e4.value ? 1 : _0xe0b3e4.value < _0xf0f7f7.value ? -1 : 0;
+                bp.sort(function (a, b) {
+                    return a.value < b.value ? 1 : b.value < a.value ? -1 : 0;
                 });
-                this.ctx.font = '600 18px Arial';
-                for (let _0x57d42d = 0; _0x57d42d < _0x3c9a61.length; _0x57d42d++) {
-                    this.ctx.textAlign = 'left';
-                    this.ctx.fillStyle = _0x3c9a61[_0x57d42d].color;
-                    this.ctx.fillStyle = _0x3c9a61[_0x57d42d].label === _0x31ef7a ? this.ctx.fillStyle + 'DD' : this.ctx.fillStyle + 'AA';
-                    this.ctx.fillText(_0x3c9a61[_0x57d42d].label, _0x5e34f8 + 10, 50 + _0x57d42d * 20);
-                    this.ctx.textAlign = 'right';
-                    if (_0x3c9a61[_0x57d42d].value !== null) {
-                        this.ctx.fillText(this.formatNumber(_0x3c9a61[_0x57d42d].value), _0x5e34f8 + 275, 50 + _0x57d42d * 20);
+                this.ctx.font = "600 18px Arial";
+                for (let i = 0; i < bp.length; i++) {
+                    this.ctx.textAlign = "left";
+                    this.ctx.fillStyle = bp[i].color;
+                    this.ctx.fillStyle = bp[i].label === bq ? this.ctx.fillStyle + "DD" : this.ctx.fillStyle + "AA";
+                    this.ctx.fillText(bp[i].label, bn + 10, 50 + i * 20);
+                    this.ctx.textAlign = "right";
+                    if (bp[i].value !== null) {
+                        this.ctx.fillText(this.formatNumber(bp[i].value), bn + 275, 50 + i * 20);
                     } else {
-                        this.ctx.fillText('error', _0x5e34f8 + 275, 50 + _0x57d42d * 20);
+                        this.ctx.fillText("error", bn + 275, 50 + i * 20);
                     }
                 }
             }
         }
     },
-    'watch': {
-        'curves': function (_0x23a611, _0x3b388b) {
+    watch: {
+        curves: function () {
             this.drawChart();
         }
     },
-    'computed': {},
-    'provide'() {
+    computed: {},
+    provide() {
         return {
-            'provide': this.canvas
+            provide: this.canvas
         };
     },
-    'created'() { },
-    'mounted'() {
-        const _0x1fda97 = this.$refs['chart-canvas-' + this.index];
-        this.canvas.context = _0x1fda97.getContext('2d');
+    created() { },
+    mounted() {
+        const canvas = this.$refs["chart-canvas-" + this.index];
+        this.canvas.context = canvas.getContext("2d");
         this.ctx = this.canvas.context;
-        _0x1fda97.width = _0x1fda97.clientWidth;
-        _0x1fda97.height = _0x1fda97.clientHeight;
-        this.width = _0x1fda97.width;
-        this.height = _0x1fda97.height;
-        _0x1fda97.addEventListener('mouseover', _0x203d17 => {
-            this.mouseIn(_0x203d17);
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        this.width = canvas.width;
+        this.height = canvas.height;
+        canvas.addEventListener("mouseover", ca => {
+            this.mouseIn(ca);
         });
-        _0x1fda97.addEventListener('mousemove', _0x4fe45d => {
-            this.mouseMove(_0x4fe45d);
+        canvas.addEventListener("mousemove", cb => {
+            this.mouseMove(cb);
         });
-        _0x1fda97.addEventListener('mouseout', _0x4c26a8 => {
+        canvas.addEventListener("mouseout", cc => {
             this.mouseOut();
         });
-        window.addEventListener('resize', _0x3fe892 => {
-            _0x1fda97.width = _0x1fda97.clientWidth;
-            _0x1fda97.height = _0x1fda97.clientHeight;
-            this.width = _0x1fda97.width;
-            this.height = _0x1fda97.height;
+        window.addEventListener("resize", cd => {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            this.width = canvas.width;
+            this.height = canvas.height;
             this.drawChart();
         });
         this.drawChart();
