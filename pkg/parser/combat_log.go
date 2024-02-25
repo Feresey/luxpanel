@@ -22,6 +22,7 @@ const (
 
 type CombatLogLine interface {
 	Type() CombatLogLineType
+	Time() time.Time
 	Unmarshal(raw []byte, now time.Time) error
 }
 
@@ -200,12 +201,15 @@ const (
 )
 
 type CombatLogLineConnectToGameSession struct {
-	Time      time.Time
+	LogTime   time.Time
 	SessionID int
 }
 
 func (c *CombatLogLineConnectToGameSession) Type() CombatLogLineType {
 	return CombatLogLineTypeConnectToGameSession
+}
+func (c *CombatLogLineConnectToGameSession) Time() time.Time {
+	return c.LogTime
 }
 
 func (c *CombatLogLineConnectToGameSession) Unmarshal(raw []byte, now time.Time) (err error) {
@@ -214,7 +218,7 @@ func (c *CombatLogLineConnectToGameSession) Unmarshal(raw []byte, now time.Time)
 		return ErrWrongLineFormat
 	}
 
-	c.Time, err = ParseField(res[connectToGameSessionLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[connectToGameSessionLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -226,13 +230,16 @@ func (c *CombatLogLineConnectToGameSession) Unmarshal(raw []byte, now time.Time)
 }
 
 type CombatLogLineStartGameplay struct {
-	Time     time.Time
+	LogTime  time.Time
 	GameMode string
 	MapName  string
 }
 
 func (c *CombatLogLineStartGameplay) Type() CombatLogLineType {
 	return CombatLogLineTypeStartGameplay
+}
+func (c *CombatLogLineStartGameplay) Time() time.Time {
+	return c.LogTime
 }
 
 func (c *CombatLogLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err error) {
@@ -243,7 +250,7 @@ func (c *CombatLogLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err e
 	c.GameMode = res[startGameplayLineGameMode]
 	c.MapName = res[startGameplayLineMap]
 
-	c.Time, err = ParseField(res[startGameplayLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[startGameplayLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -276,7 +283,7 @@ const (
 )
 
 type CombatLogLineDamage struct {
-	Time            time.Time
+	LogTime         time.Time
 	Players         CombatPlayers
 	DamageTotal     float64
 	DamageHull      float64
@@ -289,6 +296,9 @@ type CombatLogLineDamage struct {
 func (c CombatLogLineDamage) Type() CombatLogLineType {
 	return CombatLogLineTypeDamage
 }
+func (c CombatLogLineDamage) Time() time.Time {
+	return c.LogTime
+}
 
 func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := combatRe.damage.FindStringSubmatch(string(raw))
@@ -299,7 +309,7 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	c.Players.Recipient = res[damageLineRecipient]
 	c.Weapon = res[damageLineWeapon]
 
-	c.Time, err = ParseField(res[damageLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[damageLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -345,7 +355,7 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type CombatLogLineHeal struct {
-	Time    time.Time
+	LogTime time.Time
 	Players CombatPlayers
 	Heal    float64
 	Reason  string
@@ -353,6 +363,9 @@ type CombatLogLineHeal struct {
 
 func (c CombatLogLineHeal) Type() CombatLogLineType {
 	return CombatLogLineTypeHeal
+}
+func (c CombatLogLineHeal) Time() time.Time {
+	return c.LogTime
 }
 
 func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
@@ -364,7 +377,7 @@ func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 	c.Players.Recipient = res[healLineRecipient]
 	c.Reason = res[healLineReason]
 
-	c.Time, err = ParseField(res[healLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[healLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -384,7 +397,7 @@ func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type CombatLogLineKill struct {
-	Time           time.Time
+	LogTime        time.Time
 	Players        CombatPlayers
 	KilledShip     string
 	IsFriendlyFire bool
@@ -393,6 +406,9 @@ type CombatLogLineKill struct {
 
 func (c CombatLogLineKill) Type() CombatLogLineType {
 	return CombatLogLineTypeKill
+}
+func (c CombatLogLineKill) Time() time.Time {
+	return c.LogTime
 }
 
 func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
@@ -405,7 +421,7 @@ func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 	c.KilledShip = res[killLineKilledShip]
 	c.Weapon = res[killLineWeapon]
 
-	c.Time, err = ParseField(res[killLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[killLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -425,7 +441,7 @@ func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type CombatLogLineGameFinished struct {
-	Time             time.Time
+	LogTime          time.Time
 	WinnerTeamID     int
 	WinnerTeamReason string
 	FinishReason     string
@@ -434,6 +450,9 @@ type CombatLogLineGameFinished struct {
 
 func (c CombatLogLineGameFinished) Type() CombatLogLineType {
 	return CombatLogLineTypeGameplayFinished
+}
+func (c CombatLogLineGameFinished) Time() time.Time {
+	return c.LogTime
 }
 
 func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err error) {
@@ -444,7 +463,7 @@ func (c *CombatLogLineGameFinished) Unmarshal(raw []byte, now time.Time) (err er
 	c.FinishReason = res[gameFinishedLineFinishReason]
 	c.WinnerTeamReason = res[gameFinishedLineWinnerTeamReason]
 
-	c.Time, err = ParseField(res[gameFinishedLineTime], "time", parseLogTime(now))
+	c.LogTime, err = ParseField(res[gameFinishedLineTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -9,16 +10,16 @@ import (
 )
 
 type Parser struct {
-	nowDate   time.Time
-	combatLog *bufio.Reader
-	gameLog   *bufio.Reader
+	sessionStartTime time.Time
+	combatLog        *bufio.Reader
+	gameLog          *bufio.Reader
 }
 
-func New(combatLog io.Reader, gameLog io.Reader, nowDate time.Time) *Parser {
+func New(combatLog io.Reader, gameLog io.Reader, sessionStartTime time.Time) *Parser {
 	return &Parser{
-		combatLog: bufio.NewReaderSize(combatLog, 10<<20),
-		gameLog:   bufio.NewReaderSize(gameLog, 1<<20),
-		nowDate:   nowDate,
+		combatLog:        bufio.NewReaderSize(combatLog, 10<<20),
+		gameLog:          bufio.NewReaderSize(gameLog, 1<<20),
+		sessionStartTime: sessionStartTime,
 	}
 }
 
@@ -43,52 +44,65 @@ type Level struct {
 	Combat CombatLogData
 }
 
-func (p *Parser) ParseLevel() (level *Level, err error) {
+// ParseLevel читает один уровень из логов
+func (p *Parser) ParseLevel(
+	ctx context.Context,
+	stopLevelAfterTime time.Time,
+) (level *Level, err error) {
 	level = &Level{}
 
+	// TODO add log
 	for {
-		if err := p.loadCombatLogLine(level); err != nil {
+		line, err := p.loadCombatLogLine(level)
+		if err != nil {
 			if errors.Is(err, io.EOF) {
+				// TODO add log
 				break
 			}
 			if !errors.Is(err, ErrUndefinedLineType) {
 				return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
 			}
 		}
-		if level.Combat.Finished != nil {
+		if line.Type() == CombatLogLineTypeGameplayFinished {
+			// TODO add log
 			break
 		}
 	}
 
 	for {
-		if err := p.loadGameLogLine(level); err != nil {
+		line, err := p.loadGameLogLine(level)
+		if err != nil {
 			if errors.Is(err, io.EOF) {
+				// TODO add log
 				break
 			}
 			if !errors.Is(err, ErrUndefinedLineType) {
 				return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
 			}
 		}
-		if level.Game.Finished != nil {
+		if line.Type() == GameLogLineTypeGameFinished {
+			// TODO add log
 			break
 		}
 	}
+	// TODO add log
 
 	return level, nil
 }
 
-func (p *Parser) loadCombatLogLine(level *Level) error {
+func (p *Parser) loadCombatLogLine(level *Level) (logLine CombatLogLine, err error) {
 	rawLine, isPrefix, err := p.combatLog.ReadLine()
 	if err != nil {
-		return fmt.Errorf("read log: %w", err)
+		return nil, fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		return fmt.Errorf("very long line detected: %s", rawLine)
+		// TODO add log
+		return nil, fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
-	combatLogLine, err := ParseCombatLogLine(rawLine, p.nowDate)
+	combatLogLine, err := ParseCombatLogLine(rawLine, p.sessionStartTime)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("ParseCombatLogLine: %w", err)
 	}
 
 	switch line := combatLogLine.(type) {
@@ -105,24 +119,25 @@ func (p *Parser) loadCombatLogLine(level *Level) error {
 	case *CombatLogLineGameFinished:
 		level.Combat.Finished = line
 	default:
-		return fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
+		return nil, fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
 	}
 
-	return nil
+	return combatLogLine, nil
 }
 
-func (p *Parser) loadGameLogLine(level *Level) error {
+func (p *Parser) loadGameLogLine(level *Level) (logLine GameLogLine, err error) {
 	rawLine, isPrefix, err := p.gameLog.ReadLine()
 	if err != nil {
-		return fmt.Errorf("read log: %w", err)
+		return nil, fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		return fmt.Errorf("very long line detected: %s", rawLine)
+		// TODO add log
+		return nil, fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
-	gameLogLine, err := ParseGameLogLine(rawLine, p.nowDate)
+	gameLogLine, err := ParseGameLogLine(rawLine, p.sessionStartTime)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("ParseGameLogLine: %w", err)
 	}
 
 	switch line := gameLogLine.(type) {
@@ -136,8 +151,8 @@ func (p *Parser) loadGameLogLine(level *Level) error {
 	case *GameLogLinePlayerLeave:
 		level.Game.LeavedPlayers = append(level.Game.LeavedPlayers, *line)
 	default:
-		return fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
+		return line, fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
 	}
 
-	return nil
+	return gameLogLine, nil
 }
