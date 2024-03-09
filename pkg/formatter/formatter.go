@@ -88,14 +88,14 @@ func (f Formatter) Format(out *xlsx.File) error {
 		finishTime time.Time
 	)
 
-	startTime = f.level.Game.Connected.Time
-	if startTime.After(f.level.Combat.Connect.Time) {
-		startTime = f.level.Combat.Connect.Time
+	startTime = f.level.Game.Connected.LogTime
+	if startTime.After(f.level.Combat.Connect.LogTime) {
+		startTime = f.level.Combat.Connect.LogTime
 	}
 
-	finishTime = f.level.Game.Connected.Time
-	if finishTime.Before(f.level.Game.Finished.Time) {
-		finishTime = f.level.Game.Finished.Time
+	finishTime = f.level.Game.Connected.LogTime
+	if finishTime.Before(f.level.Game.Finished.LogTime) {
+		finishTime = f.level.Game.Finished.LogTime
 	}
 
 	sheetName := formatSheetName(f.level.Combat.Start.GameMode, startTime, finishTime)
@@ -153,7 +153,7 @@ func (f *Formatter) addDamageLogs(sheet *xlsx.Sheet) {
 		}
 		cells := map[int]CellSetter{
 			f.indexByName[columnActionType]:   StringCell("damage"),
-			f.indexByName[columnTime]:         TimeCell(dmg.Time),
+			f.indexByName[columnTime]:         TimeCell(dmg.LogTime),
 			f.indexByName[columnCollision]:    BoolCell(isCollision),
 			f.indexByName[columnCrit]:         BoolCell(isCrit),
 			f.indexByName[columnExplosion]:    BoolCell(isExplosion),
@@ -175,7 +175,7 @@ func (f *Formatter) addHealLogs(sheet *xlsx.Sheet) {
 	for _, heal := range f.level.Combat.Heal {
 		cells := map[int]CellSetter{
 			f.indexByName[columnActionType]: StringCell("heal"),
-			f.indexByName[columnTime]:       TimeCell(heal.Time),
+			f.indexByName[columnTime]:       TimeCell(heal.LogTime),
 			f.indexByName[columnHeal]:       FloatCell(heal.Heal),
 			f.indexByName[columnInitiator]:  StringCell(heal.Players.Initiator),
 			f.indexByName[columnRecipient]:  StringCell(heal.Players.Recipient),
@@ -190,7 +190,7 @@ func (f *Formatter) addKillLogs(sheet *xlsx.Sheet) {
 	for _, kill := range f.level.Combat.Kill {
 		cells := map[int]CellSetter{
 			f.indexByName[columnActionType]:   StringCell("kill"),
-			f.indexByName[columnTime]:         TimeCell(kill.Time),
+			f.indexByName[columnTime]:         TimeCell(kill.LogTime),
 			f.indexByName[columnKilledShip]:   StringCell(kill.KilledShip),
 			f.indexByName[columnInitiator]:    StringCell(kill.Players.Initiator),
 			f.indexByName[columnRecipient]:    StringCell(kill.Players.Recipient),

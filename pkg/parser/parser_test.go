@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"embed"
 	"testing"
 	"time"
@@ -26,6 +27,7 @@ func BenchmarkParser(b *testing.B) {
 func testParser(tb testing.TB) {
 	tb.Helper()
 	r := require.New(tb)
+	ctx := context.Background()
 
 	combatLog, err := parserFS.Open("testdata/parser/combat.log")
 	r.NoError(err)
@@ -40,7 +42,7 @@ func testParser(tb testing.TB) {
 	var levels int
 
 	for {
-		lvl, err := p.ParseLevel()
+		lvl, err := p.ParseLevel(ctx,now.Add(24*time.Hour))
 		r.NoError(err)
 		if lvl.Combat.Finished == nil || lvl.Game.Finished == nil {
 			break

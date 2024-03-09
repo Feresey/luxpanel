@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -31,6 +32,7 @@ func main() {
 }
 
 func run(inputDir string, outputFile string) (err error) {
+	ctx := context.TODO()
 	_, baseDir := filepath.Split(inputDir)
 
 	sessionStartTime, err := time.Parse("2006.01.02 15.04.05.000", baseDir)
@@ -65,7 +67,7 @@ func run(inputDir string, outputFile string) (err error) {
 	var levelsParsed int
 
 	for {
-		level, err := p.ParseLevel()
+		level, err := p.ParseLevel(ctx, time.Time{})
 		if err != nil {
 			return fmt.Errorf("parser.ParseLevel: %w", err)
 		}

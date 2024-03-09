@@ -41,7 +41,7 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
 			want: &CombatLogLineConnectToGameSession{
-				Time:      time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
+				LogTime:      time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
 				SessionID: 50419619,
 			},
 		},
@@ -110,7 +110,7 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 			name: "pve",
 			raw:  `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
 			want: &CombatLogLineStartGameplay{
-				Time:     time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
+				LogTime:     time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
 				GameMode: "pve_raid_waterharvest_t5",
 				MapName:  "pve_raid_waterharvest",
 			},
@@ -119,7 +119,7 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 			name: "pvp",
 			raw:  `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
 			want: &CombatLogLineStartGameplay{
-				Time:     time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
+				LogTime:     time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
 				GameMode: "CaptureTheBase",
 				MapName:  "s1420_ceres3_asteroidcity",
 			},
@@ -185,7 +185,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel EMP`,
 			want: &CombatLogLineDamage{
-				Time: time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Gladiator",
 					InitiatorID: 3117,
@@ -205,7 +205,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 			name: "no action",
 			raw:  `19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC`,
 			want: &CombatLogLineDamage{
-				Time: time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Megabomb_RW_BlackHole",
 					InitiatorID: 155,
@@ -225,7 +225,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 			name: "crash",
 			raw:  `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
 			want: &CombatLogLineDamage{
-				Time: time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Py6Jl",
 					InitiatorID: 395,
@@ -307,7 +307,7 @@ func TestCombatHealUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic`,
 			want: &CombatLogLineHeal{
-				Time: time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 204,
@@ -376,7 +376,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			name: "player",
 			raw:  `19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
 			want: &CombatLogLineKill{
-				Time: time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 204,
@@ -391,7 +391,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			name: "not player",
 			raw:  `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
 			want: &CombatLogLineKill{
-				Time: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 766,
@@ -406,7 +406,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			name: "friendly fire",
 			raw:  `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
 			want: &CombatLogLineKill{
-				Time: time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
 				Players: CombatPlayers{
 					Initiator:   "Therm0Nuclear",
 					InitiatorID: 39068,
@@ -475,7 +475,7 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
 			want: &CombatLogLineGameFinished{
-				Time:             time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
+				LogTime:             time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
 				WinnerTeamID:     1,
 				WinnerTeamReason: "PVE_MISSION_COMPLETE_ALT_2",
 				FinishReason:     "Mission complete",

@@ -36,7 +36,7 @@ func TestConnectedUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  "21:32:08.064         | client: connected to 185.253.20.243|35008, MTU 1492. setting up session...",
 			want: GameLogLineConnected{
-				Time: time.Date(2023, 1, 0, 21, 32, 8, 64000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 21, 32, 8, 64000000, time.Local),
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestAddPlayerUnmarshal(t *testing.T) {
 			name: "player on group",
 			raw:  "21:32:08.505         | client: ADD_PLAYER 0 (Omega33cz [], 3904235) status 6 team 1 group 5212392",
 			want: GameLogLineAddPlayer{
-				Time:            time.Date(2023, 1, 0, 21, 32, 8, 505000000, time.Local),
+				LogTime:            time.Date(2023, 1, 0, 21, 32, 8, 505000000, time.Local),
 				SessionPlayerID: 0,
 				PlayerName:      "Omega33cz",
 				PlayerCorp:      "",
@@ -109,7 +109,7 @@ func TestAddPlayerUnmarshal(t *testing.T) {
 			name: "player without group",
 			raw:  "19:32:59.001         | client: ADD_PLAYER 0 (Py6Jl [LuX], 2914804) status 6 team 1",
 			want: GameLogLineAddPlayer{
-				Time:            time.Date(2023, 1, 0, 19, 32, 59, 1000000, time.Local),
+				LogTime:            time.Date(2023, 1, 0, 19, 32, 59, 1000000, time.Local),
 				SessionPlayerID: 0,
 				PlayerName:      "Py6Jl",
 				PlayerCorp:      "LuX",
@@ -123,7 +123,7 @@ func TestAddPlayerUnmarshal(t *testing.T) {
 			name: "bot",
 			raw:  "18:10:24.379         | client: ADD_PLAYER 56 (maksprost, 0) status 4 team 1",
 			want: GameLogLineAddPlayer{
-				Time:            time.Date(2023, 1, 0, 18, 10, 24, 379000000, time.Local),
+				LogTime:            time.Date(2023, 1, 0, 18, 10, 24, 379000000, time.Local),
 				SessionPlayerID: 56,
 				PlayerName:      "maksprost",
 				PlayerCorp:      "",
@@ -191,7 +191,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  "21:37:38.024         | client: connection closed. DR_CLIENT_GAME_FINISHED",
 			want: GameLogLineFinished{
-				Time: time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.Local),
 			},
 		},
 		{
@@ -252,7 +252,7 @@ func TestLeaveUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  "21:37:37.915         | client: player 12 leave game",
 			want: GameLogLinePlayerLeave{
-				Time: time.Date(2023, 1, 0, 21, 37, 37, 915000000, time.Local),
+				LogTime: time.Date(2023, 1, 0, 21, 37, 37, 915000000, time.Local),
 			},
 		},
 		{

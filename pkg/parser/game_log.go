@@ -114,7 +114,7 @@ const (
 )
 
 type GameLogLineConnected struct {
-	Time time.Time
+	LogTime time.Time
 }
 
 func (g GameLogLineConnected) Type() GameLogLineType {
@@ -127,7 +127,7 @@ func (g *GameLogLineConnected) Unmarshal(raw []byte, now time.Time) (err error) 
 		return ErrWrongLineFormat
 	}
 
-	g.Time, err = ParseField(res[gameLineConnectedTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineConnectedTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (g *GameLogLineConnected) Unmarshal(raw []byte, now time.Time) (err error) 
 }
 
 type GameLogLineAddPlayer struct {
-	Time            time.Time
+	LogTime            time.Time
 	SessionPlayerID int
 	PlayerName      string
 	PlayerCorp      string
@@ -158,7 +158,7 @@ func (g *GameLogLineAddPlayer) Unmarshal(raw []byte, now time.Time) (err error) 
 	g.PlayerName = res[gameLineAddPlayerPlayerName]
 	g.PlayerCorp = res[gameLineAddPlayerCorp]
 
-	g.Time, err = ParseField(res[gameLineAddPlayerTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineAddPlayerTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (g *GameLogLineAddPlayer) Unmarshal(raw []byte, now time.Time) (err error) 
 }
 
 type GameLogLineFinished struct {
-	Time time.Time
+	LogTime time.Time
 }
 
 func (g GameLogLineFinished) Type() GameLogLineType {
@@ -201,7 +201,7 @@ func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 		return ErrWrongLineFormat
 	}
 
-	g.Time, err = ParseField(res[gameLineFinishedTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineFinishedTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type GameLogLineNetStat struct {
-	Time            time.Time
+	LogTime            time.Time
 	SessionPlayerID int
 	PlayerName      string
 	PlayerCorp      string
@@ -228,11 +228,11 @@ func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
 		return ErrWrongLineFormat
 	}
 
-	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
-	g.Time, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type GameLogLinePlayerLeave struct {
-	Time     time.Time
+	LogTime     time.Time
 	PlayerID int
 }
 
@@ -254,7 +254,7 @@ func (g *GameLogLinePlayerLeave) Unmarshal(raw []byte, now time.Time) (err error
 		return ErrWrongLineFormat
 	}
 
-	g.Time, err = ParseField(res[gameLinePlayerLeaveTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLinePlayerLeaveTime], "time", parseLogTime(now))
 	if err != nil {
 		return err
 	}
