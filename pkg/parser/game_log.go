@@ -135,7 +135,7 @@ func (g *GameLogLineConnected) Unmarshal(raw []byte, now time.Time) (err error) 
 }
 
 type GameLogLineAddPlayer struct {
-	LogTime            time.Time
+	LogTime         time.Time
 	SessionPlayerID int
 	PlayerName      string
 	PlayerCorp      string
@@ -209,7 +209,7 @@ func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type GameLogLineNetStat struct {
-	LogTime            time.Time
+	LogTime         time.Time
 	SessionPlayerID int
 	PlayerName      string
 	PlayerCorp      string
@@ -240,7 +240,7 @@ func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
 }
 
 type GameLogLinePlayerLeave struct {
-	LogTime     time.Time
+	LogTime  time.Time
 	PlayerID int
 }
 

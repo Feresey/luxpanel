@@ -1,107 +1,114 @@
 package main
 
-import (
-	"context"
-	"errors"
-	"flag"
-	"fmt"
-	"os"
-	"path/filepath"
-	"time"
+// import (
+// 	"context"
+// 	"errors"
+// 	"flag"
+// 	"fmt"
+// 	"os"
+// 	"path/filepath"
+// 	"time"
 
-	"github.com/Feresey/sclogparser/pkg/formatter"
-	"github.com/Feresey/sclogparser/pkg/parser"
-	"github.com/tealeg/xlsx/v3"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-)
+// 	"github.com/Feresey/sclogparser/pkg/formatter"
+// 	"github.com/Feresey/sclogparser/pkg/logger"
+// 	"github.com/Feresey/sclogparser/pkg/parser"
+// 	"github.com/tealeg/xlsx/v3"
+// 	"go.uber.org/zap"
+// 	"go.uber.org/zap/zapcore"
+// )
 
 func main() {
-	var (
-		inputDir   string
-		outputFile string
-	)
+	// var (
+	// 	inputDir   string
+	// 	outputFile string
+	// )
 
-	flag.StringVar(&inputDir, "i", "", "input directory")
-	flag.StringVar(&outputFile, "o", "", "output file")
-	flag.Parse()
+	// flag.StringVar(&inputDir, "i", "", "input directory")
+	// flag.StringVar(&outputFile, "o", "", "output file")
+	// flag.Parse()
 
-	if err := run(inputDir, outputFile); err != nil {
-		panic(err)
-	}
+	// if err := run(inputDir, outputFile); err != nil {
+	// 	panic(err)
+	// }
 }
 
-func run(inputDir string, outputFile string) (err error) {
-	ctx := context.TODO()
-	_, baseDir := filepath.Split(inputDir)
+// func run(inputDir string, outputFile string) (err error) {
+// 	ctx := context.TODO()
+// 	_, baseDir := filepath.Split(inputDir)
 
-	sessionStartTime, err := time.Parse("2006.01.02 15.04.05.000", baseDir)
-	if err != nil {
-		return fmt.Errorf("parse base dir time: %w", err)
-	}
+// 	log, close, err := logger.NewFactory(zap.NewDevelopmentConfig())
+// 	if err != nil {
+// 		return fmt.Errorf("create logger: %w", err)
+// 	}
+// 	defer close()
 
-	combatLog, err := os.Open(filepath.Join(inputDir, "combat.log"))
-	if err != nil {
-		return fmt.Errorf("os.Open(combat.log): %w", err)
-	}
-	defer combatLog.Close()
+// 	sessionStartTime, err := time.Parse("2006.01.02 15.04.05.000", baseDir)
+// 	if err != nil {
+// 		return fmt.Errorf("parse base dir time: %w", err)
+// 	}
 
-	gameLog, err := os.Open(filepath.Join(inputDir, "game.log"))
-	if err != nil {
-		return fmt.Errorf("os.Open(game.log): %w", err)
-	}
-	defer gameLog.Close()
+// 	combatLog, err := os.Open(filepath.Join(inputDir, "combat.log"))
+// 	if err != nil {
+// 		return fmt.Errorf("os.Open(combat.log): %w", err)
+// 	}
+// 	defer combatLog.Close()
 
-	out := xlsx.NewFile()
+// 	gameLog, err := os.Open(filepath.Join(inputDir, "game.log"))
+// 	if err != nil {
+// 		return fmt.Errorf("os.Open(game.log): %w", err)
+// 	}
+// 	defer gameLog.Close()
 
-	p := parser.New(combatLog, gameLog, sessionStartTime)
+// 	out := xlsx.NewFile()
 
-	lc := zap.NewDevelopmentConfig()
-	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	lg, err := lc.Build()
-	if err != nil {
-		return fmt.Errorf("log.Build: %w", err)
-	}
-	defer lg.Sync()
+// 	p := parser.New(log, combatLog, gameLog, sessionStartTime)
 
-	var levelsParsed int
+// 	lc := zap.NewDevelopmentConfig()
+// 	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+// 	lg, err := lc.Build()
+// 	if err != nil {
+// 		return fmt.Errorf("log.Build: %w", err)
+// 	}
+// 	defer lg.Sync()
 
-	for {
-		level, err := p.ParseLevel(ctx, time.Time{})
-		if err != nil {
-			return fmt.Errorf("parser.ParseLevel: %w", err)
-		}
-		if level.Combat.Finished == nil || level.Game.Finished == nil {
-			lg.Info("level is not finished")
-			break
-		}
+// 	var levelsParsed int
 
-		format := formatter.New(level)
+// 	for {
+// 		level, err := p.ParseLevel(ctx, time.Time{})
+// 		if err != nil {
+// 			return fmt.Errorf("parser.ParseLevel: %w", err)
+// 		}
+// 		if level.Combat.Finished == nil || level.Game.Finished == nil {
+// 			lg.Info("level is not finished")
+// 			break
+// 		}
 
-		if err := format.Format(out); err != nil {
-			return fmt.Errorf("formatter.Format: %w", err)
-		}
-		levelsParsed++
-	}
+// 		format := formatter.New(level)
 
-	if levelsParsed == 0 {
-		lg.Warn("no levels parsed")
-		return nil
-	}
+// 		if err := format.Format(out); err != nil {
+// 			return fmt.Errorf("formatter.Format: %w", err)
+// 		}
+// 		levelsParsed++
+// 	}
 
-	outFile, err := os.Create(outputFile)
-	if err != nil {
-		return fmt.Errorf("os.Create(%s): %w", outputFile, err)
-	}
-	defer func() {
-		if closeErr := outFile.Close(); closeErr != nil {
-			err = errors.Join(err, closeErr)
-		}
-	}()
+// 	if levelsParsed == 0 {
+// 		lg.Warn("no levels parsed")
+// 		return nil
+// 	}
 
-	if err := out.Write(outFile); err != nil {
-		return fmt.Errorf("out.Write: %w", err)
-	}
+// 	outFile, err := os.Create(outputFile)
+// 	if err != nil {
+// 		return fmt.Errorf("os.Create(%s): %w", outputFile, err)
+// 	}
+// 	defer func() {
+// 		if closeErr := outFile.Close(); closeErr != nil {
+// 			err = errors.Join(err, closeErr)
+// 		}
+// 	}()
 
-	return nil
-}
+// 	if err := out.Write(outFile); err != nil {
+// 		return fmt.Errorf("out.Write: %w", err)
+// 	}
+
+// 	return nil
+// }

@@ -1,16 +1,13 @@
-package parser
+package parser_test
 
 import (
-	"bufio"
-	"bytes"
 	_ "embed"
-	"errors"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/Feresey/sclogparser/pkg/parser"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,14 +31,14 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineConnectToGameSession
+		want      *parser.CombatLogLineConnectToGameSession
 		wantError bool
 	}{
 		{
 			name: "ok",
 			raw:  "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
-			want: &CombatLogLineConnectToGameSession{
-				LogTime:      time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
+			want: &parser.CombatLogLineConnectToGameSession{
+				LogTime:   time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
 				SessionID: 50419619,
 			},
 		},
@@ -73,7 +70,7 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -92,7 +89,7 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			_, err := ParseCombatLogLine([]byte(line), now)
+			_, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 		}
 	})
@@ -103,14 +100,14 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineStartGameplay
+		want      *parser.CombatLogLineStartGameplay
 		wantError bool
 	}{
 		{
 			name: "pve",
 			raw:  `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
-			want: &CombatLogLineStartGameplay{
-				LogTime:     time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
+			want: &parser.CombatLogLineStartGameplay{
+				LogTime:  time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
 				GameMode: "pve_raid_waterharvest_t5",
 				MapName:  "pve_raid_waterharvest",
 			},
@@ -118,8 +115,8 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 		{
 			name: "pvp",
 			raw:  `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
-			want: &CombatLogLineStartGameplay{
-				LogTime:     time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
+			want: &parser.CombatLogLineStartGameplay{
+				LogTime:  time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
 				GameMode: "CaptureTheBase",
 				MapName:  "s1420_ceres3_asteroidcity",
 			},
@@ -141,14 +138,12 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 		},
 	}
 
-	println(startGameplayLine)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -167,7 +162,7 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			_, err := ParseCombatLogLine([]byte(line), now)
+			_, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 		}
 	})
@@ -178,15 +173,15 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineDamage
+		want      *parser.CombatLogLineDamage
 		wantError bool
 	}{
 		{
 			name: "ok",
 			raw:  `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel EMP`,
-			want: &CombatLogLineDamage{
+			want: &parser.CombatLogLineDamage{
 				LogTime: time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Gladiator",
 					InitiatorID: 3117,
 					Recipient:   "YanFei",
@@ -196,7 +191,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageHull:   0,
 				DamageShield: 73.78,
 				Weapon:       "Weapon_PlasmaBursts_T5_Rel",
-				DamageModifiers: []DamageModifier{
+				DamageModifiers: []parser.DamageModifier{
 					"EMP",
 				},
 			},
@@ -204,9 +199,9 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 		{
 			name: "no action",
 			raw:  `19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC`,
-			want: &CombatLogLineDamage{
+			want: &parser.CombatLogLineDamage{
 				LogTime: time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Megabomb_RW_BlackHole",
 					InitiatorID: 155,
 					Recipient:   "tuman",
@@ -216,7 +211,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageHull:   0,
 				DamageShield: 0,
 				Weapon:       "",
-				DamageModifiers: []DamageModifier{
+				DamageModifiers: []parser.DamageModifier{
 					"KINETIC",
 				},
 			},
@@ -224,9 +219,9 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 		{
 			name: "crash",
 			raw:  `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
-			want: &CombatLogLineDamage{
+			want: &parser.CombatLogLineDamage{
 				LogTime: time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Py6Jl",
 					InitiatorID: 395,
 					Recipient:   "Py6Jl",
@@ -237,7 +232,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageShield:   0,
 				Weapon:         "Weapon_OrbGun_T5_Epic",
 				IsFriendlyFire: true,
-				DamageModifiers: []DamageModifier{
+				DamageModifiers: []parser.DamageModifier{
 					"EMP", "PRIMARY_WEAPON", "EXPLOSION",
 				},
 			},
@@ -255,14 +250,12 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 		},
 	}
 
-	println(damageLine)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -278,15 +271,15 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 		r := require.New(t)
 		lines := strings.Split(damageRaw, "\n")
 
-		modifiers := make(map[DamageModifier]int)
+		modifiers := make(map[parser.DamageModifier]int)
 		for _, line := range lines {
 			if line == "" {
 				break
 			}
-			val, err := ParseCombatLogLine([]byte(line), now)
+			val, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 
-			for _, m := range val.(*CombatLogLineDamage).DamageModifiers {
+			for _, m := range val.(*parser.CombatLogLineDamage).DamageModifiers {
 				modifiers[m]++
 			}
 		}
@@ -300,15 +293,15 @@ func TestCombatHealUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineHeal
+		want      *parser.CombatLogLineHeal
 		wantError bool
 	}{
 		{
 			name: "ok",
 			raw:  `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic`,
-			want: &CombatLogLineHeal{
+			want: &parser.CombatLogLineHeal{
 				LogTime: time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 204,
 					Recipient:   "Feresey",
@@ -331,14 +324,12 @@ func TestCombatHealUnmarshal(t *testing.T) {
 		},
 	}
 
-	println(healLine)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -358,7 +349,7 @@ func TestCombatHealUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			_, err := ParseCombatLogLine([]byte(line), now)
+			_, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 		}
 	})
@@ -369,15 +360,15 @@ func TestCombatKillUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineKill
+		want      *parser.CombatLogLineKill
 		wantError bool
 	}{
 		{
 			name: "player",
 			raw:  `19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
-			want: &CombatLogLineKill{
+			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 204,
 					Recipient:   "Py6Jl",
@@ -390,9 +381,9 @@ func TestCombatKillUnmarshal(t *testing.T) {
 		{
 			name: "not player",
 			raw:  `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
-			want: &CombatLogLineKill{
+			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Feresey",
 					InitiatorID: 766,
 					Recipient:   "",
@@ -405,9 +396,9 @@ func TestCombatKillUnmarshal(t *testing.T) {
 		{
 			name: "friendly fire",
 			raw:  `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
-			want: &CombatLogLineKill{
+			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
-				Players: CombatPlayers{
+				Players: parser.CombatPlayers{
 					Initiator:   "Therm0Nuclear",
 					InitiatorID: 39068,
 					Recipient:   "",
@@ -430,14 +421,12 @@ func TestCombatKillUnmarshal(t *testing.T) {
 		},
 	}
 
-	println(killLine)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -457,7 +446,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			_, err := ParseCombatLogLine([]byte(line), now)
+			_, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 		}
 	})
@@ -468,14 +457,14 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      *CombatLogLineGameFinished
+		want      *parser.CombatLogLineGameFinished
 		wantError bool
 	}{
 		{
 			name: "ok",
 			raw:  `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
-			want: &CombatLogLineGameFinished{
-				LogTime:             time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
+			want: &parser.CombatLogLineGameFinished{
+				LogTime:          time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
 				WinnerTeamID:     1,
 				WinnerTeamReason: "PVE_MISSION_COMPLETE_ALT_2",
 				FinishReason:     "Mission complete",
@@ -494,14 +483,12 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 		},
 	}
 
-	println(gameFinishedLine)
-
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
 
-			val, err := ParseCombatLogLine([]byte(tt.raw), now)
+			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -521,33 +508,8 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			_, err := ParseCombatLogLine([]byte(line), now)
+			_, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 		}
 	})
-}
-
-//go:embed testdata/parser/combat.log
-var combatLog []byte
-
-func TestParseCombatLog(t *testing.T) {
-	r := require.New(t)
-
-	now := time.Date(2023, time.November, 11, 22, 55, 47, 688000000, time.Local)
-
-	rd := bufio.NewReader(bytes.NewReader(combatLog))
-	for {
-		rawLine, _, err := rd.ReadLine()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		r.NoError(err)
-
-		line, err := ParseCombatLogLine(rawLine, now)
-		if errors.Is(err, ErrUndefinedLineType) {
-			continue
-		}
-		r.NoError(err)
-		_ = line
-	}
 }

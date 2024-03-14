@@ -6,153 +6,159 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"time"
+
+	"github.com/Feresey/sclogparser/pkg/logger"
+	"go.opentelemetry.io/otel/trace"
 )
 
-type Parser struct {
-	sessionStartTime time.Time
-	combatLog        *bufio.Reader
-	gameLog          *bufio.Reader
-}
-
-func New(combatLog io.Reader, gameLog io.Reader, sessionStartTime time.Time) *Parser {
+func NewParser(lf logger.Factory, tr trace.Tracer) *Parser {
 	return &Parser{
-		combatLog:        bufio.NewReaderSize(combatLog, 10<<20),
-		gameLog:          bufio.NewReaderSize(gameLog, 1<<20),
-		sessionStartTime: sessionStartTime,
+		lf: lf,
+		tr: tr,
 	}
 }
 
-type CombatLogData struct {
-	Connect  *CombatLogLineConnectToGameSession
-	Start    *CombatLogLineStartGameplay
-	Damage   []CombatLogLineDamage
-	Heal     []CombatLogLineHeal
-	Kill     []CombatLogLineKill
-	Finished *CombatLogLineGameFinished
+type Parser struct {
+	lf logger.Factory
+	tr trace.Tracer
 }
 
-type GameLogData struct {
-	Connected     *GameLogLineConnected
-	AddedPlayers  []GameLogLineAddPlayer
-	LeavedPlayers []GameLogLinePlayerLeave
-	Finished      *GameLogLineFinished
-}
+func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, error) {
+	ctx, trace := p.tr.Start(ctx, "ParseGameLog")
+	defer trace.End()
 
-type Level struct {
-	Game   GameLogData
-	Combat CombatLogData
-}
+	var res []GameLogLine
 
-// ParseLevel читает один уровень из логов
-func (p *Parser) ParseLevel(
-	ctx context.Context,
-	stopLevelAfterTime time.Time,
-) (level *Level, err error) {
-	level = &Level{}
+	rd := bufio.NewReader(r)
 
-	// TODO add log
-	for {
-		line, err := p.loadCombatLogLine(level)
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				// TODO add log
-				break
-			}
-			if !errors.Is(err, ErrUndefinedLineType) {
-				return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
-			}
-		}
-		if line.Type() == CombatLogLineTypeGameplayFinished {
-			// TODO add log
-			break
-		}
+	logTime, err := p.getLogTime(ctx, rd)
+	if err != nil {
+		return nil, fmt.Errorf("getLogTime: %w", err)
 	}
 
 	for {
-		line, err := p.loadGameLogLine(level)
-		if err != nil {
+		line, err := p.loadGameLogLine(ctx, rd, logTime)
+		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
 			if errors.Is(err, io.EOF) {
-				// TODO add log
+				p.lf.For(ctx).Debugw("EOF")
 				break
 			}
-			if !errors.Is(err, ErrUndefinedLineType) {
-				return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
-			}
+			return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
 		}
-		if line.Type() == GameLogLineTypeGameFinished {
-			// TODO add log
-			break
+		if line != nil {
+			continue
 		}
+		res = append(res, line)
 	}
-	// TODO add log
 
-	return level, nil
+	return res, nil
 }
 
-func (p *Parser) loadCombatLogLine(level *Level) (logLine CombatLogLine, err error) {
-	rawLine, isPrefix, err := p.combatLog.ReadLine()
+func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]CombatLogLine, error) {
+	ctx, trace := p.tr.Start(ctx, "ParseCombatLog")
+	defer trace.End()
+
+	var res []CombatLogLine
+
+	rd := bufio.NewReader(r)
+
+	logTime, err := p.getLogTime(ctx, rd)
+	if err != nil {
+		return nil, fmt.Errorf("getLogTime: %w", err)
+	}
+
+	for {
+		line, err := p.loadCombatLogLine(ctx, rd, logTime)
+		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
+			if errors.Is(err, io.EOF) {
+				p.lf.For(ctx).Debugw("EOF")
+				break
+			}
+			return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
+		}
+		if line != nil {
+			continue
+		}
+		res = append(res, line)
+	}
+
+	return res, nil
+}
+
+func (p *Parser) loadCombatLogLine(ctx context.Context, r *bufio.Reader, startTime time.Time) (logLine CombatLogLine, err error) {
+	ctx, span := p.tr.Start(ctx, "loadCombatLogLine")
+	defer span.End()
+
+	rawLine, isPrefix, err := r.ReadLine()
 	if err != nil {
 		return nil, fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		// TODO add log
+		p.lf.For(ctx).Warnw("very long line. possible log corruption", "line", rawLine)
 		return nil, fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
-	combatLogLine, err := ParseCombatLogLine(rawLine, p.sessionStartTime)
+	line, err := ParseCombatLogLine(rawLine, startTime)
 	if err != nil {
 		return nil, fmt.Errorf("ParseCombatLogLine: %w", err)
 	}
-
-	switch line := combatLogLine.(type) {
-	case *CombatLogLineConnectToGameSession:
-		level.Combat.Connect = line
-	case *CombatLogLineStartGameplay:
-		level.Combat.Start = line
-	case *CombatLogLineDamage:
-		level.Combat.Damage = append(level.Combat.Damage, *line)
-	case *CombatLogLineHeal:
-		level.Combat.Heal = append(level.Combat.Heal, *line)
-	case *CombatLogLineKill:
-		level.Combat.Kill = append(level.Combat.Kill, *line)
-	case *CombatLogLineGameFinished:
-		level.Combat.Finished = line
-	default:
-		return nil, fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
-	}
-
-	return combatLogLine, nil
+	return line, nil
 }
 
-func (p *Parser) loadGameLogLine(level *Level) (logLine GameLogLine, err error) {
-	rawLine, isPrefix, err := p.gameLog.ReadLine()
+func (p *Parser) loadGameLogLine(ctx context.Context, r *bufio.Reader, startTime time.Time) (logLine GameLogLine, err error) {
+	ctx, span := p.tr.Start(ctx, "loadGameLogLine")
+	defer span.End()
+
+	rawLine, isPrefix, err := r.ReadLine()
 	if err != nil {
 		return nil, fmt.Errorf("read log: %w", err)
 	}
 	if isPrefix {
-		// TODO add log
+		p.lf.For(ctx).Warnw("very long line. possible log corruption", "line", rawLine)
 		return nil, fmt.Errorf("very long line detected: %s", rawLine)
 	}
 
-	gameLogLine, err := ParseGameLogLine(rawLine, p.sessionStartTime)
+	line, err := ParseGameLogLine(rawLine, startTime)
 	if err != nil {
 		return nil, fmt.Errorf("ParseGameLogLine: %w", err)
 	}
 
-	switch line := gameLogLine.(type) {
-	case *GameLogLineConnected:
-		level.Game.Connected = line
-	case *GameLogLineAddPlayer:
-		level.Game.AddedPlayers = append(level.Game.AddedPlayers, *line)
-	case *GameLogLineFinished:
-		level.Game.Finished = line
-	case *GameLogLineNetStat: // Я хз что с этим делать
-	case *GameLogLinePlayerLeave:
-		level.Game.LeavedPlayers = append(level.Game.LeavedPlayers, *line)
-	default:
-		return line, fmt.Errorf("%w: %T", ErrUndefinedLineType, line)
+	return line, nil
+}
+
+var firstLogLineRe = regexp.MustCompile(`--- Date: (\d\d\d\d-\d\d-\d\d)`)
+
+const (
+	firstLineReDate = iota + 1
+	firstLineReTotal
+)
+
+func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, error) {
+	ctx, span := p.tr.Start(ctx, "getLogTime")
+	defer span.End()
+
+	rawLine, isPrefix, err := rd.ReadLine()
+	if err != nil {
+		return time.Time{}, fmt.Errorf("read line: %w", err)
+	}
+	if string(rawLine) != "" || isPrefix {
+		return time.Time{}, fmt.Errorf("first line should be empty: %q", rawLine)
+	}
+	rawLine, isPrefix, err = rd.ReadLine()
+	if err != nil {
+		return time.Time{}, fmt.Errorf("read line: %w", err)
+	}
+	matches := firstLogLineRe.FindStringSubmatch(string(rawLine))
+	if len(matches) != firstLineReTotal {
+		return time.Time{}, fmt.Errorf("%w: %q", ErrWrongLineFormat, string(rawLine))
+	}
+	res, err := time.Parse("2006-02-01", matches[firstLineReDate])
+	if err != nil {
+		return time.Time{}, fmt.Errorf("parse time: %s: %w", rawLine, err)
 	}
 
-	return gameLogLine, nil
+	p.lf.For(ctx).Debugw("got log time", "log_time", res)
+	return res, nil
 }
