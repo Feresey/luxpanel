@@ -1,0 +1,119 @@
+issues:
+  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  max-same-issues: 0
+
+  # Exclude by issue content
+  exclude:
+    - don't use an underscore in package name
+
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: cmd/*
+      linters:
+        - gci
+        - funlen
+    - path: migrations/*
+      linters:
+        - gochecknoinits
+        - dupl
+        - wrapcheck
+        - gomnd
+        - goconst
+    - path: test/*
+      linters:
+        - gochecknoinits
+        - dupl
+        - wrapcheck
+        - goconst
+    - source: "//.*"
+      linters: [lll]
+linters:
+  disable-all: true
+  enable:
+    - gci
+    - gocyclo
+    - gomnd
+    - govet
+    - errcheck
+    - errorlint
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - revive
+    - gosec
+    - unconvert
+    - dupl
+    - goconst
+    - gofmt
+    - goimports
+    - misspell
+    - lll
+    - unparam
+    - dogsled
+    - nakedret
+    - prealloc
+    - gocritic
+    - gochecknoinits
+    - gochecknoglobals
+    - godox
+    - whitespace
+    - funlen
+    - goprintffuncname
+    - exportloopref
+    - nestif
+    - errname
+    - wrapcheck
+    - exhaustive
+
+
+# all available settings of specific linters
+linters-settings:
+  exhaustive:
+    # Presence of "default" case in switch statements satisfies exhaustiveness,
+    # even if all enum members are not listed.
+    # Default: false
+    default-signifies-exhaustive: true
+  gci:
+    # Section configuration to compare against.
+    # Section names are case-insensitive and may contain parameters in ().
+    # The order of sections is always `standard > default > custom`,
+    # it cannot be changed and doesn't follow the order of `sections` option.
+    # Default: ["standard", "default"]
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(github.com/Feresey/sclogparser) # Custom section: groups all imports with the specified Prefix.
+  funlen:
+    lines: 150
+    statements: 80
+  gomnd:
+    settings:
+      mnd:
+        ignored-functions:
+          - strconv.*
+          - time.*
+          - flag.*
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: "github.com/Feresey/sclogparser"
+  lll:
+    tab-width: 4
+    line-length: 160
+  revive:
+    rules:
+      - name: var-naming
+        arguments: [["ID", "UID", "UUID", "URL", "IP", "API", "HTTP"], []]
+  wrapcheck:
+    ignoreSigRegexps:
+      - Sync
+run:
+  go: "1.22"
+  # modules-download-mode: vendor
+  timeout: 3m
+  tests: false

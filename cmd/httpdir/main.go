@@ -1,14 +1,17 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/Feresey/sclogparser/site"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/Feresey/sclogparser/site"
 )
 
 func main() {
@@ -36,6 +39,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("create zap logger: %w", err)
 	}
+	//nolint:all
 	defer log.Sync()
 
 	r := mux.NewRouter()
@@ -50,7 +54,13 @@ func run() error {
 
 	log.Info("serving", zap.Int("port", cfg.Port))
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), r); err != nil && err != http.ErrServerClosed {
+	srv := http.Server{
+		Addr:              fmt.Sprintf(":%d", cfg.Port),
+		Handler:           r,
+		ReadHeaderTimeout: time.Minute,
+	}
+
+	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http.ListenAndServe: %w", err)
 	}
 

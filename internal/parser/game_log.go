@@ -45,6 +45,7 @@ func ParseGameLogLine(raw []byte, now time.Time) (line GameLogLine, err error) {
 	return line, nil
 }
 
+//nolint:gochecknoglobals // this is const
 var gameRe = struct {
 	connected,
 	addPlayer,
@@ -71,8 +72,15 @@ const (
 )
 
 const (
+	playerNameAndState = `\(([[:word:]]+)(\s+\[([[:word:]]*)\])?, (\d+)\)`
+)
+
+const (
 	// 20:21:01.615         | client: ADD_PLAYER 0 (Feresey [LuX], 2516405) status 2 team 1 group 5212349
-	gameLineAddPlayer     = gameLinePrefix + `client: ADD_PLAYER (\d+) \(([[:word:]]+)(\s+\[([[:word:]]*)\])?, (\d+)\) status (\d+) team (\d+)(\s+group (\d+))?\s*$`
+	gameLineAddPlayer = gameLinePrefix + `client: ADD_PLAYER (\d+)` + space +
+		playerNameAndState + `\s+status\s+(\d+) ` +
+		`team\s+(\d+)` +
+		`(\s+group\s+(\d+))?\s*$`
 	gameLineAddPlayerTime = iota
 	gameLineAddPlayerSessionPlayerID
 	gameLineAddPlayerPlayerName
@@ -95,7 +103,11 @@ const (
 
 const (
 	// 20:30:17.253         | client: avgPing 2.5/1.4; avgPacketLoss 0.0/0.0%; avgSnapshotLoss 0.0/0.2%, MTU 1492
-	gameLineNetStat     = gameLinePrefix + `client: avgPing (\d+\.\d+)/(\d+\.\d+); avgPackageLoss (\d+\.\d+)/(\d+\.\d+)%; avgSnapshotLoss (\d+\.\d+)/(\d+\.\d+)%, MTU (\d+)`
+	gameLineNetStat = gameLinePrefix + `client:` + space +
+		`avgPing (\d+\.\d+)/(\d+\.\d+);` + space +
+		`avgPackageLoss (\d+\.\d+)/(\d+\.\d+)%;` + space +
+		`avgSnapshotLoss (\d+\.\d+)/(\d+\.\d+)%,` + space +
+		`MTU (\d+)`
 	gameLineNetStatTime = iota
 	gameLineNetStatPing1
 	gameLineNetStatPing2

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Feresey/sclogparser/pkg/parser"
+	"github.com/Feresey/sclogparser/internal/parser"
 	"github.com/stretchr/testify/require"
 )
 

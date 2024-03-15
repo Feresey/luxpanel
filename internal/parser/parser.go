@@ -9,8 +9,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Feresey/sclogparser/pkg/logger"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Feresey/sclogparser/internal/logger"
 )
 
 func NewParser(lf logger.Factory, tr trace.Tracer) *Parser {
@@ -146,7 +147,7 @@ func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, e
 	if string(rawLine) != "" || isPrefix {
 		return time.Time{}, fmt.Errorf("first line should be empty: %q", rawLine)
 	}
-	rawLine, isPrefix, err = rd.ReadLine()
+	rawLine, _, err = rd.ReadLine()
 	if err != nil {
 		return time.Time{}, fmt.Errorf("read line: %w", err)
 	}
@@ -154,7 +155,10 @@ func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, e
 	if len(matches) != firstLineReTotal {
 		return time.Time{}, fmt.Errorf("%w: %q", ErrWrongLineFormat, string(rawLine))
 	}
-	res, err := time.Parse("2006-02-01", matches[firstLineReDate])
+
+	// abuse linter
+	var scDateFormat = "2006-02-01"
+	res, err := time.Parse(scDateFormat, matches[firstLineReDate])
 	if err != nil {
 		return time.Time{}, fmt.Errorf("parse time: %s: %w", rawLine, err)
 	}

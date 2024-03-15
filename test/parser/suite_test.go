@@ -3,8 +3,8 @@ package parser_test
 import (
 	"testing"
 
-	"github.com/Feresey/sclogparser/pkg/logger"
-	"github.com/Feresey/sclogparser/pkg/parser"
+	"github.com/Feresey/sclogparser/internal/logger"
+	"github.com/Feresey/sclogparser/internal/parser"
 	"github.com/stretchr/testify/suite"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"

@@ -13,7 +13,7 @@ import (
 func NewTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	exp, err := otlhttp.New(ctx, otlhttp.WithEndpoint("http://localhost:8080/trace"))
 	if err != nil {
-		return nil, fmt.Errorf("create http exporter: %v", err)
+		return nil, fmt.Errorf("create http exporter: %w", err)
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),

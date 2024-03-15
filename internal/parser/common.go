@@ -12,13 +12,15 @@ var (
 	ErrWrongLineFormat   = errors.New("wrong format")
 )
 
+const space = `\s+`
+
 const timeFormat = "15:04:05.000"
 
 func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
 	return func(s string) (time.Time, error) {
 		t, err := time.Parse(timeFormat, s)
 		if err != nil {
-			return t, err
+			return t, fmt.Errorf("time.Parse(%s): %w", timeFormat, err)
 		}
 		res := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local)
 		if res.Before(nowTime) {
@@ -31,7 +33,7 @@ func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
 func parseFloat(s string) (float64, error) {
 	res, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("strconv.ParseFloat: %w", err)
 	}
 	return res, nil
 }

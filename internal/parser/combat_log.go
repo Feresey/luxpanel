@@ -51,6 +51,7 @@ func ParseCombatLogLine(raw []byte, now time.Time) (line CombatLogLine, err erro
 	return line, nil
 }
 
+//nolint:gochecknoglobals // this is const
 var combatRe = struct {
 	connectToGameSession,
 	startGame,
@@ -73,7 +74,7 @@ var combatRe = struct {
 }
 
 const (
-	cmbtLinePrefix = `(?s)^(\d{2}:\d{2}:\d{2}\.\d{3})  CMBT   \| `
+	cmbtLinePrefix = `(?s)^(\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| `
 	playerIDLine   = `([a-zA-Z0-9()_/-]+)\|(-?\d+)`
 	floatLine      = `(-?\d+\.\d+)`
 	actionReason   = `([a-zA-Z0-9()_/-]+)?`
@@ -111,9 +112,9 @@ const (
 	// 19:33:24.165  CMBT   | Damage              n/a|-000000001 ->          Feresey|0000000204 558.90 (h:0.00 s:558.90) (crash) TRUE_DAMAGE|COLLISION
 	// 19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>
 	// 19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC
-	damageLine = cmbtLinePrefix + `Damage\s+` +
-		playerIDLine + `\s+->\s+` + playerIDLine + `\s+` +
-		damageDetailed + `\s` + actionReason + `\s` + damageModifiers + friendlyFire +
+	damageLine = cmbtLinePrefix + `Damage` + space +
+		playerIDLine + `\s+->\s+` + playerIDLine + space +
+		damageDetailed + space + actionReason + space + damageModifiers + friendlyFire +
 		cmbtLineSuffix
 	damageLineShort = cmbtLinePrefix + `Damage`
 )
@@ -135,9 +136,9 @@ const (
 
 const (
 	// 19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic
-	healLine = cmbtLinePrefix + `Heal\s+` +
-		playerIDLine + `\s+->\s+` + playerIDLine + `\s+` +
-		floatLine + `\s+` + actionReason +
+	healLine = cmbtLinePrefix + `Heal` + space +
+		playerIDLine + `\s+->\s+` + playerIDLine + space +
+		floatLine + space + actionReason +
 		cmbtLineSuffix
 	healLineShort = cmbtLinePrefix + `Heal`
 )
@@ -157,8 +158,8 @@ const (
 	killedPlayer = `(([a-zA-Z0-9()_/-]+)\s+)?([a-zA-Z0-9()_/-]+)\|(-?\d+)`
 	// 19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate
 	// 19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic
-	killLine = cmbtLinePrefix + `Killed\s+` +
-		killedPlayer + `;\s+killer\s+` + playerIDLine + `\s+` +
+	killLine = cmbtLinePrefix + `Killed` + space +
+		killedPlayer + `;\s+killer\s+` + playerIDLine + space +
 		actionReason + friendlyFire +
 		cmbtLineSuffix
 	killLineShort = cmbtLinePrefix + `Killed`
@@ -186,7 +187,7 @@ const (
 	// 20:30:08.030  CMBT   | Gameplay finished. Winner team: 2(ALL_ENEMY_SHIPS_KILLED). Finish reason: 'All SpaceShips destroyed'. Actual game time 521.4 sec
 	// 20:45:59.862  CMBT   | Gameplay finished. Winner team: 1(MORE_ALIVE_VITALPOINTS_LEFT). Finish reason: 'Timeout'. Actual game time 720.0 sec
 	gameFinishedLine = cmbtLinePrefix + `Gameplay finished\. Winner team: ` +
-		winnerTeam + `\s+` + finishReason + `\s+` + actualGameTime +
+		winnerTeam + space + finishReason + space + actualGameTime +
 		cmbtLineSuffix
 	gameFinishedLineShort = cmbtLinePrefix + `Gameplay finished`
 )
@@ -208,6 +209,7 @@ type CombatLogLineConnectToGameSession struct {
 func (c *CombatLogLineConnectToGameSession) Type() CombatLogLineType {
 	return CombatLogLineTypeConnectToGameSession
 }
+
 func (c *CombatLogLineConnectToGameSession) Time() time.Time {
 	return c.LogTime
 }
@@ -238,6 +240,7 @@ type CombatLogLineStartGameplay struct {
 func (c *CombatLogLineStartGameplay) Type() CombatLogLineType {
 	return CombatLogLineTypeStartGameplay
 }
+
 func (c *CombatLogLineStartGameplay) Time() time.Time {
 	return c.LogTime
 }
@@ -296,6 +299,7 @@ type CombatLogLineDamage struct {
 func (c CombatLogLineDamage) Type() CombatLogLineType {
 	return CombatLogLineTypeDamage
 }
+
 func (c CombatLogLineDamage) Time() time.Time {
 	return c.LogTime
 }
@@ -364,6 +368,7 @@ type CombatLogLineHeal struct {
 func (c CombatLogLineHeal) Type() CombatLogLineType {
 	return CombatLogLineTypeHeal
 }
+
 func (c CombatLogLineHeal) Time() time.Time {
 	return c.LogTime
 }
@@ -407,6 +412,7 @@ type CombatLogLineKill struct {
 func (c CombatLogLineKill) Type() CombatLogLineType {
 	return CombatLogLineTypeKill
 }
+
 func (c CombatLogLineKill) Time() time.Time {
 	return c.LogTime
 }
@@ -451,6 +457,7 @@ type CombatLogLineGameFinished struct {
 func (c CombatLogLineGameFinished) Type() CombatLogLineType {
 	return CombatLogLineTypeGameplayFinished
 }
+
 func (c CombatLogLineGameFinished) Time() time.Time {
 	return c.LogTime
 }
