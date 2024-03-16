@@ -7,11 +7,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
 	"github.com/Feresey/sclogparser/internal/formatter"
 	"github.com/Feresey/sclogparser/internal/logger"
 	"github.com/Feresey/sclogparser/internal/parser"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type Service struct {
@@ -101,7 +102,10 @@ func (s *Service) saveToDir(ctx context.Context, levels []*formatter.Level) erro
 			return fmt.Errorf("json.Marshal: %w", err)
 		}
 
-		if err := os.WriteFile(fileName, data, 0x600); err != nil {
+		const fileMode = 0600
+
+		s.lg.For(ctx).Infow("write to", "file", fileName)
+		if err := os.WriteFile(fileName, data, fileMode); err != nil {
 			return fmt.Errorf("os.WriteFile: %w", err)
 		}
 	}

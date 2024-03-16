@@ -125,11 +125,15 @@ func (f *Formatter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comb
 	}
 
 	f.lg.For(ctx).Debugw("detected teams", "team_ids", maps.Keys(playerTeamsMap))
-	lvl.Players = make(map[int][]Player, len(playerTeamsMap))
+	lvl.Teams = make(map[int][]Player, len(playerTeamsMap))
 	for teamID, team := range playerTeamsMap {
 		players := maps.Values(team)
 		f.lg.For(ctx).Debugw("detected team players", "team_id", teamID, "players", players)
-		lvl.Players[teamID] = players
+		lvl.Teams[teamID] = players
+	}
+
+	if len(lvl.Teams) == 0 {
+		return nil, fmt.Errorf("no teams found")
 	}
 
 	return lvl, nil
@@ -149,7 +153,7 @@ func (p Player) String() string {
 type Level struct {
 	StartLevelTime time.Time
 	EndLevelTime   time.Time
-	Players        map[int][]Player
+	Teams          map[int][]Player
 
 	GameLog   *GameLogLevel
 	CombatLog *CombatLogLevel

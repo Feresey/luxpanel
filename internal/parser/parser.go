@@ -26,29 +26,25 @@ type Parser struct {
 	tr trace.Tracer
 }
 
-func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, error) {
-	ctx, trace := p.tr.Start(ctx, "ParseGameLog")
-	defer trace.End()
-
-	var res []GameLogLine
+func parseLog[T any](ctx context.Context, p *Parser, r io.Reader, parse func(context.Context, *bufio.Reader, time.Time) (T, error)) ([]T, error) {
+	var res []T
 
 	rd := bufio.NewReader(r)
-
 	logTime, err := p.getLogTime(ctx, rd)
 	if err != nil {
 		return nil, fmt.Errorf("getLogTime: %w", err)
 	}
 
 	for {
-		line, err := p.loadGameLogLine(ctx, rd, logTime)
-		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
-			if errors.Is(err, io.EOF) {
-				p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
-				break
+		line, err := parse(ctx, rd, logTime)
+		if err != nil {
+			if !errors.Is(err, ErrUndefinedLineType) {
+				if errors.Is(err, io.EOF) {
+					p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
+					break
+				}
+				return nil, fmt.Errorf("parse: %w", err)
 			}
-			return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
-		}
-		if line == nil {
 			continue
 		}
 		res = append(res, line)
@@ -57,35 +53,18 @@ func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, 
 	return res, nil
 }
 
+func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, error) {
+	ctx, trace := p.tr.Start(ctx, "ParseGameLog")
+	defer trace.End()
+
+	return parseLog(ctx, p, r, p.loadGameLogLine)
+}
+
 func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]CombatLogLine, error) {
 	ctx, trace := p.tr.Start(ctx, "ParseCombatLog")
 	defer trace.End()
 
-	var res []CombatLogLine
-
-	rd := bufio.NewReader(r)
-
-	logTime, err := p.getLogTime(ctx, rd)
-	if err != nil {
-		return nil, fmt.Errorf("getLogTime: %w", err)
-	}
-
-	for {
-		line, err := p.loadCombatLogLine(ctx, rd, logTime)
-		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
-			if errors.Is(err, io.EOF) {
-				p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
-				break
-			}
-			return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
-		}
-		if line == nil {
-			continue
-		}
-		res = append(res, line)
-	}
-
-	return res, nil
+	return parseLog(ctx, p, r, p.loadCombatLogLine)
 }
 
 func (p *Parser) loadCombatLogLine(ctx context.Context, r *bufio.Reader, startTime time.Time) (logLine CombatLogLine, err error) {

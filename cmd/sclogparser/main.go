@@ -7,13 +7,14 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.uber.org/zap"
+
 	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
 	"github.com/Feresey/sclogparser/internal/formatter"
 	"github.com/Feresey/sclogparser/internal/logger"
 	"github.com/Feresey/sclogparser/internal/parser"
 	"github.com/Feresey/sclogparser/internal/service"
 	"github.com/Feresey/sclogparser/internal/trace"
-	"go.uber.org/zap"
 )
 
 func main() {
@@ -29,6 +30,9 @@ func main() {
 	defer sync()
 
 	tp, err := trace.NewTraceProvider(ctx)
+	if err != nil {
+		panic(err)
+	}
 
 	fr := formatter.NewFormatter(lg, tp.Tracer("formatter"))
 	pr := parser.NewParser(lg, tp.Tracer("parser"))
