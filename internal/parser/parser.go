@@ -43,12 +43,12 @@ func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, 
 		line, err := p.loadGameLogLine(ctx, rd, logTime)
 		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
 			if errors.Is(err, io.EOF) {
-				p.lf.For(ctx).Debugw("EOF")
+				p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
 				break
 			}
 			return nil, fmt.Errorf("parser.loadGameLogLine: %w", err)
 		}
-		if line != nil {
+		if line == nil {
 			continue
 		}
 		res = append(res, line)
@@ -74,12 +74,12 @@ func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]CombatLogLi
 		line, err := p.loadCombatLogLine(ctx, rd, logTime)
 		if err != nil && !errors.Is(err, ErrUndefinedLineType) {
 			if errors.Is(err, io.EOF) {
-				p.lf.For(ctx).Debugw("EOF")
+				p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
 				break
 			}
 			return nil, fmt.Errorf("parser.loadCombatLogLine: %w", err)
 		}
-		if line != nil {
+		if line == nil {
 			continue
 		}
 		res = append(res, line)
@@ -156,9 +156,7 @@ func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, e
 		return time.Time{}, fmt.Errorf("%w: %q", ErrWrongLineFormat, string(rawLine))
 	}
 
-	// abuse linter
-	var scDateFormat = "2006-02-01"
-	res, err := time.Parse(scDateFormat, matches[firstLineReDate])
+	res, err := time.Parse("2006-01-02", matches[firstLineReDate])
 	if err != nil {
 		return time.Time{}, fmt.Errorf("parse time: %s: %w", rawLine, err)
 	}

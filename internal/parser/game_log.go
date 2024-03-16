@@ -95,8 +95,10 @@ const (
 )
 
 const (
-	gameLinePlayerLeave     = gameLinePrefix + `client: player (\d+) leave game\s*$`
-	gameLinePlayerLeaveTime = iota
+	gameLinePlayerLeave = gameLinePrefix + `client: player (\d+) leave game\s*$`
+)
+const (
+	gameLinePlayerLeaveTime = iota + 1
 	gameLinePlayerLeaveSessionPlayerID
 	gameLinePlayerLeaveTotal
 )
@@ -267,6 +269,11 @@ func (g *GameLogLinePlayerLeave) Unmarshal(raw []byte, now time.Time) (err error
 	}
 
 	g.LogTime, err = ParseField(res[gameLinePlayerLeaveTime], "time", parseLogTime(now))
+	if err != nil {
+		return err
+	}
+
+	g.PlayerID, err = ParseField(res[gameLinePlayerLeaveSessionPlayerID], "player_id", strconv.Atoi)
 	if err != nil {
 		return err
 	}

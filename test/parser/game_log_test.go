@@ -245,7 +245,8 @@ func TestLeaveUnmarshal(t *testing.T) {
 			name: "ok",
 			raw:  "21:37:37.915         | client: player 12 leave game",
 			want: parser.GameLogLinePlayerLeave{
-				LogTime: time.Date(2023, 1, 0, 21, 37, 37, 915000000, time.Local),
+				LogTime:  time.Date(2023, 1, 0, 21, 37, 37, 915000000, time.Local),
+				PlayerID: 12,
 			},
 		},
 		{

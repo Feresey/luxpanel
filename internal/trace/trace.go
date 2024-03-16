@@ -8,10 +8,17 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
-func NewTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
-	exp, err := otlhttp.New(ctx, otlhttp.WithEndpoint("http://localhost:8080/trace"))
+const traceEnabled = false
+
+func NewTraceProvider(ctx context.Context) (trace.TracerProvider, error) {
+	if !traceEnabled {
+		return noop.NewTracerProvider(), nil
+	}
+	exp, err := otlhttp.New(ctx, otlhttp.WithEndpoint(":8080"))
 	if err != nil {
 		return nil, fmt.Errorf("create http exporter: %w", err)
 	}

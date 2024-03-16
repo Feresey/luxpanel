@@ -1,114 +1,41 @@
 package main
 
-// import (
-// 	"context"
-// 	"errors"
-// 	"flag"
-// 	"fmt"
-// 	"os"
-// 	"path/filepath"
-// 	"time"
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
-// 	"github.com/Feresey/sclogparser/pkg/formatter"
-// 	"github.com/Feresey/sclogparser/pkg/logger"
-// 	"github.com/Feresey/sclogparser/pkg/parser"
-// 	"github.com/tealeg/xlsx/v3"
-// 	"go.uber.org/zap"
-// 	"go.uber.org/zap/zapcore"
-// )
+	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
+	"github.com/Feresey/sclogparser/internal/formatter"
+	"github.com/Feresey/sclogparser/internal/logger"
+	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/sclogparser/internal/service"
+	"github.com/Feresey/sclogparser/internal/trace"
+	"go.uber.org/zap"
+)
 
 func main() {
-	// var (
-	// 	inputDir   string
-	// 	outputFile string
-	// )
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	// flag.StringVar(&inputDir, "i", "", "input directory")
-	// flag.StringVar(&outputFile, "o", "", "output file")
-	// flag.Parse()
+	cfg := config.GetConfig()
 
-	// if err := run(inputDir, outputFile); err != nil {
-	// 	panic(err)
-	// }
+	lg, sync, err := logger.NewFactory(zap.NewDevelopmentConfig())
+	if err != nil {
+		panic(err)
+	}
+	defer sync()
+
+	tp, err := trace.NewTraceProvider(ctx)
+
+	fr := formatter.NewFormatter(lg, tp.Tracer("formatter"))
+	pr := parser.NewParser(lg, tp.Tracer("parser"))
+
+	svc := service.NewService(cfg, lg, tp.Tracer("service"), fr, pr)
+
+	if err := svc.Run(ctx); err != nil {
+		panic(fmt.Sprintf("service.Run: %v", err))
+	}
 }
-
-// func run(inputDir string, outputFile string) (err error) {
-// 	ctx := context.TODO()
-// 	_, baseDir := filepath.Split(inputDir)
-
-// 	log, close, err := logger.NewFactory(zap.NewDevelopmentConfig())
-// 	if err != nil {
-// 		return fmt.Errorf("create logger: %w", err)
-// 	}
-// 	defer close()
-
-// 	sessionStartTime, err := time.Parse("2006.01.02 15.04.05.000", baseDir)
-// 	if err != nil {
-// 		return fmt.Errorf("parse base dir time: %w", err)
-// 	}
-
-// 	combatLog, err := os.Open(filepath.Join(inputDir, "combat.log"))
-// 	if err != nil {
-// 		return fmt.Errorf("os.Open(combat.log): %w", err)
-// 	}
-// 	defer combatLog.Close()
-
-// 	gameLog, err := os.Open(filepath.Join(inputDir, "game.log"))
-// 	if err != nil {
-// 		return fmt.Errorf("os.Open(game.log): %w", err)
-// 	}
-// 	defer gameLog.Close()
-
-// 	out := xlsx.NewFile()
-
-// 	p := parser.New(log, combatLog, gameLog, sessionStartTime)
-
-// 	lc := zap.NewDevelopmentConfig()
-// 	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-// 	lg, err := lc.Build()
-// 	if err != nil {
-// 		return fmt.Errorf("log.Build: %w", err)
-// 	}
-// 	defer lg.Sync()
-
-// 	var levelsParsed int
-
-// 	for {
-// 		level, err := p.ParseLevel(ctx, time.Time{})
-// 		if err != nil {
-// 			return fmt.Errorf("parser.ParseLevel: %w", err)
-// 		}
-// 		if level.Combat.Finished == nil || level.Game.Finished == nil {
-// 			lg.Info("level is not finished")
-// 			break
-// 		}
-
-// 		format := formatter.New(level)
-
-// 		if err := format.Format(out); err != nil {
-// 			return fmt.Errorf("formatter.Format: %w", err)
-// 		}
-// 		levelsParsed++
-// 	}
-
-// 	if levelsParsed == 0 {
-// 		lg.Warn("no levels parsed")
-// 		return nil
-// 	}
-
-// 	outFile, err := os.Create(outputFile)
-// 	if err != nil {
-// 		return fmt.Errorf("os.Create(%s): %w", outputFile, err)
-// 	}
-// 	defer func() {
-// 		if closeErr := outFile.Close(); closeErr != nil {
-// 			err = errors.Join(err, closeErr)
-// 		}
-// 	}()
-
-// 	if err := out.Write(outFile); err != nil {
-// 		return fmt.Errorf("out.Write: %w", err)
-// 	}
-
-// 	return nil
-// }

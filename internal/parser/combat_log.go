@@ -81,8 +81,8 @@ const (
 	playerObjectLine = `([a-zA-Z0-9_/-]+)\(([a-zA-Z0-9_/-]+)\)`
 	// Имя игрока с ID игрового объекта
 	playerIDLine = playerLine + `\|(-?\d+)`
-	// Имя объекта игрока с ID игрового объекта
-	playerObjectIDLine = `([a-zA-Z0-9_/-]+)(\(([a-zA-Z0-9_/-]+)\))\|(-?\d+)`
+	// // Имя объекта игрока с ID игрового объекта
+	// playerObjectIDLine = `([a-zA-Z0-9_/-]+)(\(([a-zA-Z0-9_/-]+)\))\|(-?\d+)`
 	// Имя объекта/игрока/объекта игрока с ID игрового объекта
 	playerOrObjectIDLine = `(` + playerLine + `|` + playerObjectLine + `)\|(-?\d+)`
 	floatLine            = `(-?\d+\.\d+)`

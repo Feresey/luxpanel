@@ -25,7 +25,7 @@ type FactoryImpl struct {
 	lg *zap.SugaredLogger
 }
 
-func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, closer context.CancelFunc, err error) {
+func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, sync context.CancelFunc, err error) {
 	lg, err := lc.Build(opts...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("build logger")
@@ -38,7 +38,7 @@ func (f *FactoryImpl) With(fields ...any) Factory {
 }
 
 func (f *FactoryImpl) For(ctx context.Context) Logger {
-	return &LoggerImpl{lg: f.lg}
+	return &LoggerImpl{lg: f.lg.WithOptions(zap.AddCallerSkip(1))}
 }
 
 type LoggerImpl struct {
@@ -54,7 +54,7 @@ func (l *LoggerImpl) Sync() error {
 }
 
 func (l *LoggerImpl) Debugw(message string, args ...interface{}) {
-	l.lg.Debugw(message, args...)
+	l.lg.WithOptions(zap.AddCallerSkip(0)).Debugw(message, args...)
 }
 
 func (l *LoggerImpl) Infow(message string, args ...interface{}) {
