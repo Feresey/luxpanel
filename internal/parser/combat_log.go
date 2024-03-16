@@ -62,24 +62,33 @@ var combatRe = struct {
 	_ *regexp.Regexp
 }{
 	connectToGameSession: regexp.MustCompile(connectToGameSessionLine),
-	startGame:            regexp.MustCompile(startGameplayLine),
-	damage:               regexp.MustCompile(damageLine),
+	startGame:            regexp.MustCompile(StartGameplayLine),
+	damage:               regexp.MustCompile(DamageLine),
 	damageShort:          regexp.MustCompile(damageLineShort),
-	heal:                 regexp.MustCompile(healLine),
+	heal:                 regexp.MustCompile(HealLine),
 	healShort:            regexp.MustCompile(healLineShort),
-	kill:                 regexp.MustCompile(killLine),
+	kill:                 regexp.MustCompile(KillLine),
 	killShort:            regexp.MustCompile(killLineShort),
-	gameFinished:         regexp.MustCompile(gameFinishedLine),
+	gameFinished:         regexp.MustCompile(GameFinishedLine),
 	gameFinishedShort:    regexp.MustCompile(gameFinishedLineShort),
 }
 
 const (
-	cmbtLinePrefix = `(?s)^(\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| `
-	playerIDLine   = `([a-zA-Z0-9()_/-]+)\|(-?\d+)`
-	floatLine      = `(-?\d+\.\d+)`
-	actionReason   = `([a-zA-Z0-9()_/-]+)?`
-	friendlyFire   = `(\s+<FriendlyFire>)?`
-	cmbtLineSuffix = `\s*$`
+	cmbtLinePrefix = `(?s)^(?P<Time>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+`
+	// Имя игрока или объекта
+	playerLine = `([a-zA-Z0-9_/-]+)`
+	// Имя объекта игрока
+	playerObjectLine = `([a-zA-Z0-9_/-]+)\(([a-zA-Z0-9_/-]+)\)`
+	// Имя игрока с ID игрового объекта
+	playerIDLine = playerLine + `\|(-?\d+)`
+	// Имя объекта игрока с ID игрового объекта
+	playerObjectIDLine = `([a-zA-Z0-9_/-]+)(\(([a-zA-Z0-9_/-]+)\))\|(-?\d+)`
+	// Имя объекта/игрока/объекта игрока с ID игрового объекта
+	playerOrObjectIDLine = `(` + playerLine + `|` + playerObjectLine + `)\|(-?\d+)`
+	floatLine            = `(-?\d+\.\d+)`
+	actionSource         = `(?P<ActionSource>[a-zA-Z0-9()_/-]+)?`
+	friendlyFire         = `(?P<FriendlyFire>\s+<FriendlyFire>)?`
+	cmbtLineSuffix       = `\s*$`
 )
 
 const (
@@ -95,7 +104,7 @@ const (
 
 const (
 	// 19:33:00.763  CMBT   | ======= Start gameplay 'BombTheBase' map 's1340_thar_aliendebris13', local client team 2 =======
-	startGameplayLine = cmbtLinePrefix + `======= Start .* '(.+)' map '(.+)'(, local client team \d+)?\s*=======` + cmbtLineSuffix
+	StartGameplayLine = cmbtLinePrefix + `======= Start .* '(.+)' map '(.+)'(, local client team \d+)?\s*=======` + cmbtLineSuffix
 )
 
 const (
@@ -108,13 +117,15 @@ const (
 
 const (
 	damageDetailed  = floatLine + `\s+\(h:` + floatLine + `\s+s:` + floatLine + `\)`
-	damageModifiers = `([A-Z\|_]+)`
+	damageModifiers = `(?P<DamageModifiers>[A-Z\|_]+)`
 	// 19:33:24.165  CMBT   | Damage              n/a|-000000001 ->          Feresey|0000000204 558.90 (h:0.00 s:558.90) (crash) TRUE_DAMAGE|COLLISION
+	// 15:28:25.934  CMBT   | Damage         SOGEKING|0000000213 ->         SOGEKING|0000000213 4427.15 (h:4427.15 s:0.00) (suicide) TRUE_DAMAGE|IGNORE_DAMAGE_SCALE|IGNORE_SHIELD|SUICIDE|KICK_EXCE <FriendlyFire>
+	// 15:28:18.548  CMBT   | Damage        CJIOHEHOK|0000000141 ->       SwarmPack3(vavanu4)|0000000571 187.11 (h:187.11 s:0.00) ModuleArmor_Reaper_Mk8 KINETIC|IGNORE_SHIELD
 	// 19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>
 	// 19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC
-	damageLine = cmbtLinePrefix + `Damage` + space +
-		playerIDLine + `\s+->\s+` + playerIDLine + space +
-		damageDetailed + space + actionReason + space + damageModifiers + friendlyFire +
+	DamageLine = cmbtLinePrefix + `Damage` + space +
+		playerIDLine + `\s+->\s+` + playerOrObjectIDLine + space +
+		damageDetailed + space + actionSource + space + damageModifiers + friendlyFire +
 		cmbtLineSuffix
 	damageLineShort = cmbtLinePrefix + `Damage`
 )
@@ -123,12 +134,15 @@ const (
 	damageLineTime = iota + 1
 	damageLineInitiator
 	damageLineInitiatorID
-	damageLineRecipient
+	damageLineRecipientFull
+	damageLineRecipientName
+	damageLineRecipientObject
+	damageLineRecipientObjectName
 	damageLineRecipientID
 	damageLineDamage
 	damageLineHullDamage
 	damageLineShieldDamage
-	damageLineWeapon
+	damageLineDamageSource
 	damageLineWeaponModifiers
 	damageLineFriendlyFire
 	damageLineTotal
@@ -136,9 +150,9 @@ const (
 
 const (
 	// 19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic
-	healLine = cmbtLinePrefix + `Heal` + space +
+	HealLine = cmbtLinePrefix + `Heal` + space +
 		playerIDLine + `\s+->\s+` + playerIDLine + space +
-		floatLine + space + actionReason +
+		floatLine + space + actionSource +
 		cmbtLineSuffix
 	healLineShort = cmbtLinePrefix + `Heal`
 )
@@ -146,34 +160,39 @@ const (
 const (
 	healLineTime = iota + 1
 	healLineInitiator
-	healLineInitiatorID
+	healLineInitiatorObjectID
 	healLineRecipient
-	healLineRecipientID
+	healLineRecipientObjectID
 	healLineHeal
 	healLineReason
 	healLineTotal
 )
 
 const (
-	killedPlayer = `(([a-zA-Z0-9()_/-]+)\s+)?([a-zA-Z0-9()_/-]+)\|(-?\d+)`
+	killedPlayer = `(` + playerLine + `\s+)?` + playerOrObjectIDLine
 	// 19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate
+	// 02:01:30.385  CMBT   | Killed Expendable_BattleDroneLarge_T5_Mk3(XAKIM)|0000001252;	 killer P3n3tr4t0r|0000001046 Weapon_HeatingGun_T4_Epic
 	// 19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic
-	killLine = cmbtLinePrefix + `Killed` + space +
+	// 15:55:08.879  CMBT   | Killed SwarmPack3(MADEinHEAVEN)|0000056377;	 killer MADEinHEAVEN|0000056377 (suicide) <FriendlyFire>
+	KillLine = cmbtLinePrefix + `Killed` + space +
 		killedPlayer + `;\s+killer\s+` + playerIDLine + space +
-		actionReason + friendlyFire +
+		actionSource + friendlyFire +
 		cmbtLineSuffix
 	killLineShort = cmbtLinePrefix + `Killed`
 )
 
 const (
 	killLineTime = iota + 1
-	_
-	killLineRecipient
-	killLineKilledShip
+	killLineHasRecipientName
+	killLineRecipientName
+	killLineRecipientObjectFull
+	killLineRecipientShip
+	killLineRecipientObjectName
+	killLineRecipientPlayerName
 	killLineRecipientID
 	killLineInitiator
 	killLineInitiatorID
-	killLineWeapon
+	killLineReason
 	killLineFriendlyFire
 	killLineTotal
 )
@@ -186,7 +205,7 @@ const (
 	// 20:18:37.406  CMBT   | Gameplay finished. Winner team: 1(ALL_ENEMY_VITALPOINTS_DEAD). Finish reason: 'All beacons captured'. Actual game time 591.1 sec
 	// 20:30:08.030  CMBT   | Gameplay finished. Winner team: 2(ALL_ENEMY_SHIPS_KILLED). Finish reason: 'All SpaceShips destroyed'. Actual game time 521.4 sec
 	// 20:45:59.862  CMBT   | Gameplay finished. Winner team: 1(MORE_ALIVE_VITALPOINTS_LEFT). Finish reason: 'Timeout'. Actual game time 720.0 sec
-	gameFinishedLine = cmbtLinePrefix + `Gameplay finished\. Winner team: ` +
+	GameFinishedLine = cmbtLinePrefix + `Gameplay finished\. Winner team: ` +
 		winnerTeam + space + finishReason + space + actualGameTime +
 		cmbtLineSuffix
 	gameFinishedLineShort = cmbtLinePrefix + `Gameplay finished`
@@ -261,10 +280,11 @@ func (c *CombatLogLineStartGameplay) Unmarshal(raw []byte, now time.Time) (err e
 }
 
 type CombatPlayers struct {
-	Initiator   string
-	InitiatorID int
-	Recipient   string
-	RecipientID int
+	Initiator       string
+	InitiatorID     int
+	Recipient       string
+	RecipientObject string
+	RecipientID     int
 }
 
 type DamageModifier string
@@ -291,7 +311,7 @@ type CombatLogLineDamage struct {
 	DamageTotal     float64
 	DamageHull      float64
 	DamageShield    float64
-	Weapon          string
+	DamageSource    string
 	DamageModifiers []DamageModifier
 	IsFriendlyFire  bool
 }
@@ -310,8 +330,14 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 		return ErrWrongLineFormat
 	}
 	c.Players.Initiator = res[damageLineInitiator]
-	c.Players.Recipient = res[damageLineRecipient]
-	c.Weapon = res[damageLineWeapon]
+	c.Players.Recipient = res[damageLineRecipientFull]
+	if res[damageLineRecipientName] != "" {
+		c.Players.Recipient = res[damageLineRecipientName]
+	} else if res[damageLineRecipientObject] != "" {
+		c.Players.Recipient = res[damageLineRecipientObjectName]
+		c.Players.RecipientObject = res[damageLineRecipientObject]
+	}
+	c.DamageSource = res[damageLineDamageSource]
 
 	c.LogTime, err = ParseField(res[damageLineTime], "time", parseLogTime(now))
 	if err != nil {
@@ -386,11 +412,11 @@ func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 	if err != nil {
 		return err
 	}
-	c.Players.InitiatorID, err = ParseField(res[healLineInitiatorID], "initiator_id", strconv.Atoi)
+	c.Players.InitiatorID, err = ParseField(res[healLineInitiatorObjectID], "initiator_id", strconv.Atoi)
 	if err != nil {
 		return err
 	}
-	c.Players.RecipientID, err = ParseField(res[healLineRecipientID], "recipient_id", strconv.Atoi)
+	c.Players.RecipientID, err = ParseField(res[healLineRecipientObjectID], "recipient_id", strconv.Atoi)
 	if err != nil {
 		return err
 	}
@@ -404,7 +430,6 @@ func (c *CombatLogLineHeal) Unmarshal(raw []byte, now time.Time) (err error) {
 type CombatLogLineKill struct {
 	LogTime        time.Time
 	Players        CombatPlayers
-	KilledShip     string
 	IsFriendlyFire bool
 	Weapon         string
 }
@@ -423,9 +448,18 @@ func (c *CombatLogLineKill) Unmarshal(raw []byte, now time.Time) (err error) {
 		return ErrWrongLineFormat
 	}
 	c.Players.Initiator = res[killLineInitiator]
-	c.Players.Recipient = res[killLineRecipient]
-	c.KilledShip = res[killLineKilledShip]
-	c.Weapon = res[killLineWeapon]
+	if res[killLineHasRecipientName] != "" {
+		c.Players.Recipient = res[killLineRecipientName]
+		c.Players.RecipientObject = res[killLineRecipientShip]
+	} else if res[killLineRecipientObjectFull] != "" {
+		c.Players.Recipient = res[killLineRecipientPlayerName]
+		if res[killLineRecipientShip] != "" {
+			c.Players.RecipientObject = res[killLineRecipientShip]
+		} else {
+			c.Players.RecipientObject = res[killLineRecipientObjectName]
+		}
+	}
+	c.Weapon = res[killLineReason]
 
 	c.LogTime, err = ParseField(res[killLineTime], "time", parseLogTime(now))
 	if err != nil {

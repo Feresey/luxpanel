@@ -169,6 +169,8 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 }
 
 func TestCombatDamageUnmarshal(t *testing.T) {
+	println(parser.DamageLine)
+
 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
 	tests := []struct {
 		name      string
@@ -190,7 +192,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageTotal:  73.78,
 				DamageHull:   0,
 				DamageShield: 73.78,
-				Weapon:       "Weapon_PlasmaBursts_T5_Rel",
+				DamageSource: "Weapon_PlasmaBursts_T5_Rel",
 				DamageModifiers: []parser.DamageModifier{
 					"EMP",
 				},
@@ -210,7 +212,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageTotal:  0,
 				DamageHull:   0,
 				DamageShield: 0,
-				Weapon:       "",
+				DamageSource: "",
 				DamageModifiers: []parser.DamageModifier{
 					"KINETIC",
 				},
@@ -230,7 +232,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageTotal:    0,
 				DamageHull:     0,
 				DamageShield:   0,
-				Weapon:         "Weapon_OrbGun_T5_Epic",
+				DamageSource:   "Weapon_OrbGun_T5_Epic",
 				IsFriendlyFire: true,
 				DamageModifiers: []parser.DamageModifier{
 					"EMP", "PRIMARY_WEAPON", "EXPLOSION",
@@ -369,13 +371,13 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
 				Players: parser.CombatPlayers{
-					Initiator:   "Feresey",
-					InitiatorID: 204,
-					Recipient:   "Py6Jl",
-					RecipientID: 248,
+					Initiator:       "Feresey",
+					InitiatorID:     204,
+					Recipient:       "Py6Jl",
+					RecipientObject: "Ship_Race3_M_T2_Pirate",
+					RecipientID:     248,
 				},
-				KilledShip: "Ship_Race3_M_T2_Pirate",
-				Weapon:     "Weapon_Plasmagun_Heavy_T5_Pirate",
+				Weapon: "Weapon_Plasmagun_Heavy_T5_Pirate",
 			},
 		},
 		{
@@ -384,13 +386,13 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
 				Players: parser.CombatPlayers{
-					Initiator:   "Feresey",
-					InitiatorID: 766,
-					Recipient:   "",
-					RecipientID: 1154,
+					Initiator:       "Feresey",
+					InitiatorID:     766,
+					Recipient:       "",
+					RecipientObject: "Alien_Destroyer_Life_02_T5",
+					RecipientID:     1154,
 				},
-				KilledShip: "Alien_Destroyer_Life_02_T5",
-				Weapon:     "Weapon_PlasmaWebLaser_T5_Epic",
+				Weapon: "Weapon_PlasmaWebLaser_T5_Epic",
 			},
 		},
 		{
@@ -399,12 +401,28 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			want: &parser.CombatLogLineKill{
 				LogTime: time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
 				Players: parser.CombatPlayers{
-					Initiator:   "Therm0Nuclear",
-					InitiatorID: 39068,
-					Recipient:   "",
-					RecipientID: 39068,
+					Initiator:       "Therm0Nuclear",
+					InitiatorID:     39068,
+					Recipient:       "Therm0Nuclear",
+					RecipientObject: "HealBot_Armor",
+					RecipientID:     39068,
 				},
-				KilledShip:     "HealBot_Armor(Therm0Nuclear)",
+				Weapon:         "(suicide)",
+				IsFriendlyFire: true,
+			},
+		},
+		{
+			name: "killed object",
+			raw:  `15:55:08.879  CMBT   | Killed SwarmPack3(MADEinHEAVEN)|0000056377;	 killer MADEinHEAVEN|0000056377 (suicide) <FriendlyFire>`,
+			want: &parser.CombatLogLineKill{
+				LogTime: time.Date(2023, 1, 0, 15, 55, 8, 879000000, time.Local),
+				Players: parser.CombatPlayers{
+					Initiator:       "MADEinHEAVEN",
+					InitiatorID:     56377,
+					Recipient:       "MADEinHEAVEN",
+					RecipientObject: "SwarmPack3",
+					RecipientID:     56377,
+				},
 				Weapon:         "(suicide)",
 				IsFriendlyFire: true,
 			},
@@ -428,13 +446,13 @@ func TestCombatKillUnmarshal(t *testing.T) {
 
 			val, err := parser.ParseCombatLogLine([]byte(tt.raw), now)
 			if tt.wantError {
-				r.Error(err)
+				r.Error(err, parser.KillLine)
 				return
 			} else {
-				r.NoError(err)
+				r.NoError(err, parser.KillLine)
 			}
 
-			r.Equal(tt.want, val)
+			r.Equal(tt.want, val, parser.KillLine)
 		})
 	}
 
