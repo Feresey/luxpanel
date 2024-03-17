@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	otlhttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	otlgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	// otlhttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -12,23 +13,23 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-const traceEnabled = false
+const traceEnabled = true
 
-func NewTraceProvider(ctx context.Context) (trace.TracerProvider, error) {
+func NewTraceProvider(ctx context.Context, serviceName string) (trcer trace.TracerProvider, shutdown func(context.Context) error, err error) {
 	if !traceEnabled {
-		return noop.NewTracerProvider(), nil
+		return noop.NewTracerProvider(), func(ctx context.Context) error { return nil }, nil
 	}
-	exp, err := otlhttp.New(ctx, otlhttp.WithEndpoint(":8080"))
+	exp, err := otlgrpc.New(ctx, otlgrpc.WithInsecure())
 	if err != nil {
-		return nil, fmt.Errorf("create http exporter: %w", err)
+		return nil, nil, fmt.Errorf("create http exporter: %w", err)
 	}
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("todo-service"),
+			semconv.ServiceNameKey.String(serviceName),
 			semconv.DeploymentEnvironmentKey.String("production"),
 		)),
 	)
-	return tp, nil
+	return tp, tp.Shutdown, nil
 }

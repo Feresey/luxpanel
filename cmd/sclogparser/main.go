@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -29,10 +30,18 @@ func main() {
 	}
 	defer sync()
 
-	tp, err := trace.NewTraceProvider(ctx)
+	tp, shutdown, err := trace.NewTraceProvider(ctx, "sclogparser")
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		if err := shutdown(ctx); err != nil {
+			lg.For(ctx).Errorw("shutting down tracer", "err", err)
+		}
+	}()
 
 	fr := formatter.NewFormatter(lg, tp.Tracer("formatter"))
 	pr := parser.NewParser(lg, tp.Tracer("parser"))

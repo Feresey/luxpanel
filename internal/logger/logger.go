@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
 )
 
@@ -13,8 +14,6 @@ type Factory interface {
 }
 
 type Logger interface {
-	With(vals ...any) Logger
-	Sync() error
 	Debugw(msg string, keysAndValues ...interface{})
 	Infow(msg string, keysAndValues ...interface{})
 	Warnw(msg string, keysAndValues ...interface{})
@@ -22,7 +21,7 @@ type Logger interface {
 }
 
 type FactoryImpl struct {
-	lg *zap.SugaredLogger
+	lg *otelzap.SugaredLogger
 }
 
 func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, sync context.CancelFunc, err error) {
@@ -30,31 +29,34 @@ func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, sync context.Can
 	if err != nil {
 		return nil, nil, fmt.Errorf("build logger")
 	}
-	return &FactoryImpl{lg: lg.Sugar()}, func() { _ = lg.Sync() }, nil
+	ozlog := otelzap.New(lg,
+		otelzap.WithCaller(true),
+		otelzap.WithMinLevel(zap.InfoLevel),
+		otelzap.WithTraceIDField(true),
+		otelzap.WithCallerDepth(1),
+	).WithOptions(zap.AddCallerSkip(1)).
+		Sugar()
+	return &FactoryImpl{lg: ozlog}, func() { _ = lg.Sync() }, nil
 }
 
 func (f *FactoryImpl) With(fields ...any) Factory {
-	return &FactoryImpl{lg: f.lg.With(fields...)}
+	return &FactoryImpl{
+		lg: f.lg.With(fields...),
+	}
 }
 
 func (f *FactoryImpl) For(ctx context.Context) Logger {
-	return &LoggerImpl{lg: f.lg.WithOptions(zap.AddCallerSkip(1))}
+	return &LoggerImpl{
+		lg: f.lg.Ctx(ctx),
+	}
 }
 
 type LoggerImpl struct {
-	lg *zap.SugaredLogger
-}
-
-func (l *LoggerImpl) With(vals ...any) Logger {
-	return &LoggerImpl{lg: l.lg.With(vals...)}
-}
-
-func (l *LoggerImpl) Sync() error {
-	return l.lg.Sync()
+	lg otelzap.SugaredLoggerWithCtx
 }
 
 func (l *LoggerImpl) Debugw(message string, args ...interface{}) {
-	l.lg.WithOptions(zap.AddCallerSkip(0)).Debugw(message, args...)
+	l.lg.Debugw(message, args...)
 }
 
 func (l *LoggerImpl) Infow(message string, args ...interface{}) {

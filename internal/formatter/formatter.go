@@ -188,8 +188,6 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 	currLevel := new(GameLogLevel)
 
 	for _, line := range lines {
-		f.lg.For(ctx).Debugw("processing line", "line", line)
-
 		currLevel.Lines = append(currLevel.Lines, line)
 		switch line := line.(type) {
 		case *parser.GameLogLineConnected:
@@ -206,7 +204,7 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 		}
 	}
 
-	f.lg.For(ctx).Debugw("got levels", "count", len(res))
+	f.lg.For(ctx).Errorw("got levels", "count", len(res))
 	return res
 }
 func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
@@ -235,6 +233,6 @@ func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.Comba
 		}
 	}
 
-	f.lg.For(ctx).Debugw("got levels", "count", len(res))
+	f.lg.For(ctx).Infow("got levels", "count", len(res))
 	return res
 }
