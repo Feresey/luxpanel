@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
 	"github.com/Feresey/sclogparser/internal/formatter"
@@ -23,8 +24,10 @@ func main() {
 	defer cancel()
 
 	cfg := config.GetConfig()
+	lc := zap.NewDevelopmentConfig()
+	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	lg, sync, err := logger.NewFactory(zap.NewDevelopmentConfig())
+	lg, sync, err := logger.NewFactory(lc)
 	if err != nil {
 		panic(err)
 	}

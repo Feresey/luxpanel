@@ -62,3 +62,10 @@ func ParseField[T any](raw string, fieldName string, convert func(raw string) (r
 	}
 	return res, nil
 }
+
+func wrapJSONError(data []byte, err error) ([]byte, error) {
+	if err != nil {
+		return nil, fmt.Errorf("json.Marshal: %w", err)
+	}
+	return data, nil
+}

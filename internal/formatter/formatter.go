@@ -30,37 +30,21 @@ func (f *Formatter) SplitLevels(ctx context.Context, gameLog []parser.GameLogLin
 
 	gameLevels := f.GetGameLogLevels(ctx, gameLog)
 	combatLevels := f.GetCombatLogLevels(ctx, combatLog)
-	// if len(gameLevels) != len(combatLevels) {
-	// 	mx := max(len(gameLevels), len(combatLevels))
-	// 	f.lg.For(ctx).Debugw("levels count mismatch", "combat", len(combatLevels), "game", len(gameLevels))
-	// 	for i := range mx {
-	// 		var gm *GameLogLevel
-	// 		var cm *CombatLogLevel
-	// 		if i < len(gameLevels) {
-	// 			gm = gameLevels[i]
-	// 		}
-	// 		if i < len(combatLevels) {
-	// 			cm = combatLevels[i]
-	// 		}
-
-	// 		var startTime, endTime time.Time
-	// 		if gm != nil {
-	// 			startTime = gm.StartGameplay.LogTime
-	// 		}
-	// 		if cm != nil && startTime.After(cm.Connect.LogTime) {
-	// 			startTime = cm.Connect.LogTime
-	// 		}
-
-	// 		if gm != nil {
-	// 			endTime = gm.FinishGameplay.LogTime
-	// 		}
-	// 		if cm != nil && endTime.Before(cm.Finished.LogTime) {
-	// 			endTime = cm.Finished.LogTime
-	// 		}
-	// 		f.lg.For(ctx).Debugw("game", "start", startTime, "end", endTime)
-	// 	}
-	// 	return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
-	// }
+	if len(gameLevels) != len(combatLevels) {
+		mx := max(len(gameLevels), len(combatLevels))
+		f.lg.For(ctx).Infow("levels count mismatch", "combat", len(combatLevels), "game", len(gameLevels))
+		for i := range mx {
+			if i < len(gameLevels) {
+				gm := gameLevels[i]
+				f.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay, "end", gm.FinishGameplay)
+			}
+			if i < len(combatLevels) {
+				cm := combatLevels[i]
+				f.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start, "end", cm.Finished)
+			}
+		}
+		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
+	}
 
 	levels := make([]*Level, 0, len(gameLevels))
 	mx := max(len(gameLevels), len(combatLevels))
@@ -97,13 +81,18 @@ func (f *Formatter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comb
 	if gameLevel != nil {
 		lvl.StartLevelTime = gameLevel.StartGameplay.LogTime
 	}
-	if combatLevel != nil && lvl.StartLevelTime.After(combatLevel.Start.LogTime) {
-		lvl.StartLevelTime = combatLevel.Start.LogTime
+	if combatLevel != nil {
+		if combatLevel.Start != nil && lvl.StartLevelTime.After(combatLevel.Start.LogTime) {
+			lvl.StartLevelTime = combatLevel.Start.LogTime
+		}
+		if combatLevel.Connect != nil && lvl.StartLevelTime.After(combatLevel.Connect.LogTime) {
+			lvl.StartLevelTime = combatLevel.Connect.LogTime
+		}
 	}
-	if gameLevel != nil {
+	if gameLevel != nil && gameLevel.FinishGameplay != nil {
 		lvl.EndLevelTime = gameLevel.FinishGameplay.LogTime
 	}
-	if combatLevel != nil && lvl.EndLevelTime.Before(combatLevel.Finished.LogTime) {
+	if combatLevel != nil && combatLevel.Finished != nil && lvl.EndLevelTime.Before(combatLevel.Finished.LogTime) {
 		lvl.EndLevelTime = combatLevel.Finished.LogTime
 	}
 
@@ -191,6 +180,12 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 		currLevel.Lines = append(currLevel.Lines, line)
 		switch line := line.(type) {
 		case *parser.GameLogLineConnected:
+			if currLevel.StartGameplay != nil {
+				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line)
+				f.lg.For(ctx).Warnw("finished level", "start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
+				res = append(res, currLevel)
+				currLevel = new(GameLogLevel)
+			}
 			currLevel.StartGameplay = line
 		case *parser.GameLogLineAddPlayer:
 			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
@@ -204,7 +199,7 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 		}
 	}
 
-	f.lg.For(ctx).Errorw("got levels", "count", len(res))
+	f.lg.For(ctx).Infow("got levels", "count", len(res))
 	return res
 }
 func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
@@ -217,8 +212,20 @@ func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.Comba
 		currLevel.Lines = append(currLevel.Lines, line)
 		switch line := line.(type) {
 		case *parser.CombatLogLineConnectToGameSession:
+			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
+				f.lg.For(ctx).Warnw("connect to game session twice", "prev", currLevel.Connect, "next", line)
+				f.lg.For(ctx).Warnw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+				res = append(res, currLevel)
+				currLevel = new(CombatLogLevel)
+			}
 			currLevel.Connect = line
 		case *parser.CombatLogLineStartGameplay:
+			if currLevel.Start != nil {
+				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.Start, "next", line)
+				f.lg.For(ctx).Warnw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+				res = append(res, currLevel)
+				currLevel = new(CombatLogLevel)
+			}
 			currLevel.Start = line
 		case *parser.CombatLogLineDamage:
 			currLevel.Damage = append(currLevel.Damage, line)
@@ -228,6 +235,7 @@ func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.Comba
 			currLevel.Kill = append(currLevel.Kill, line)
 		case *parser.CombatLogLineGameFinished:
 			currLevel.Finished = line
+			f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 			res = append(res, currLevel)
 			currLevel = new(CombatLogLevel)
 		}
