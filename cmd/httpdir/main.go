@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/Feresey/sclogparser/site"
+	"github.com/Feresey/luxpanel/site"
 )
 
 func main() {

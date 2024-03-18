@@ -11,7 +11,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/Feresey/sclogparser/internal/logger"
+	"github.com/Feresey/luxpanel/internal/logger"
 )
 
 func NewParser(lf logger.Factory, tr trace.TracerProvider) *Parser {

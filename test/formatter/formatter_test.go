@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Feresey/sclogparser/internal/parser"
-	"github.com/Feresey/sclogparser/internal/splitter"
+	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
 // func (s *Suite) TestFormatter() {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
+	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
 	otlgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/fx"
 

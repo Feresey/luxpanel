@@ -10,8 +10,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/maps"
 
-	"github.com/Feresey/sclogparser/internal/logger"
-	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/luxpanel/internal/logger"
+	"github.com/Feresey/luxpanel/internal/parser"
 )
 
 var ErrLogsCorrupted = errors.New("logs corrupted")

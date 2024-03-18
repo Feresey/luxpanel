@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/luxpanel/internal/parser"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

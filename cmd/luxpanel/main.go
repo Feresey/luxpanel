@@ -12,12 +12,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
-	"github.com/Feresey/sclogparser/internal/logger"
-	"github.com/Feresey/sclogparser/internal/mytrace"
-	"github.com/Feresey/sclogparser/internal/parser"
-	"github.com/Feresey/sclogparser/internal/service"
-	"github.com/Feresey/sclogparser/internal/splitter"
+	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
+	"github.com/Feresey/luxpanel/internal/logger"
+	"github.com/Feresey/luxpanel/internal/mytrace"
+	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/service"
+	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
 func main() {

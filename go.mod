@@ -1,4 +1,4 @@
-module github.com/Feresey/sclogparser
+module github.com/Feresey/luxpanel
 
 go 1.22.1
 

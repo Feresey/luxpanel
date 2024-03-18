@@ -5,8 +5,8 @@ import (
 	"embed"
 	"testing"
 
-	"github.com/Feresey/sclogparser/internal/logger"
-	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/luxpanel/internal/logger"
+	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace/noop"
 )
