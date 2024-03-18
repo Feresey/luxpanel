@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
@@ -113,11 +114,19 @@ func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 		teamMap[player.String()] = player
 	}
 
-	f.lg.For(ctx).Debugw("detected teams", "team_ids", maps.Keys(playerTeamsMap))
+	teams := maps.Keys(playerTeamsMap)
+	slices.Sort(teams)
+	f.lg.For(ctx).Debugw("level", "level", lvl.CombatLog.Start, "team_ids", teams)
+
 	lvl.Teams = make(map[int][]Player, len(playerTeamsMap))
 	for teamID, team := range playerTeamsMap {
 		players := maps.Values(team)
-		f.lg.For(ctx).Debugw("detected team players", "team_id", teamID, "players", players)
+		playerNames := make([]string, 0, len(players))
+		for _, p := range players {
+			playerNames = append(playerNames, p.String())
+		}
+		slices.Sort(playerNames)
+		f.lg.For(ctx).Debugw("team players", "team_id", teamID, "players", playerNames)
 		lvl.Teams[teamID] = players
 	}
 
@@ -136,7 +145,7 @@ type Player struct {
 }
 
 func (p Player) String() string {
-	return fmt.Sprintf("%s [%s] (id: %d) (in_game_id: %d)", p.Name, p.CorpTag, p.ID, p.TeamID)
+	return fmt.Sprintf("%s [%s] (id: %d)", p.Name, p.CorpTag, p.ID)
 }
 
 type Level struct {
@@ -191,8 +200,8 @@ func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogL
 			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
 		case *parser.GameLogLineConnectionClosed:
 			currLevel.FinishGameplay = line
-			f.lg.For(ctx).Infow("detected could not connect log", "line", line)
 			if line.Reason == parser.ConnectionClosedReasonClientCouldNotConnect {
+				f.lg.For(ctx).Infow("detected could not connect log", "line", line)
 				currLevel = new(GameLogLevel)
 				continue
 			}
@@ -204,7 +213,7 @@ func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogL
 		}
 	}
 
-	f.lg.For(ctx).Infow("got levels", "count", len(res))
+	f.lg.For(ctx).Infow("got game log levels", "count", len(res))
 	return res
 }
 
@@ -242,12 +251,12 @@ func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.Combat
 			currLevel.Kill = append(currLevel.Kill, line)
 		case *parser.CombatLogLineGameFinished:
 			currLevel.Finished = line
-			f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+			// f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 			res = append(res, currLevel)
 			currLevel = new(CombatLogLevel)
 		}
 	}
 
-	f.lg.For(ctx).Infow("got levels", "count", len(res))
+	f.lg.For(ctx).Infow("got combat log levels", "count", len(res))
 	return res
 }

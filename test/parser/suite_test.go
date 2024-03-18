@@ -39,10 +39,6 @@ func (s *Suite) SetupSuite() {
 		fx.Supply(
 			config.GetConfig(),
 			logConfig,
-			fx.Annotated{
-				Name:   "service",
-				Target: "sclogparser",
-			},
 		),
 		fx.Provide(
 			logger.NewFactory,

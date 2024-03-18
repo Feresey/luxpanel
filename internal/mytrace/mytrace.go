@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
 	otlgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/fx"
 
@@ -15,17 +16,15 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-const traceEnabled = true
-
 type FxConfig struct {
 	fx.In
 
-	LC          fx.Lifecycle
-	ServiceName string `name:"service"`
+	LC     fx.Lifecycle
+	Config *config.Config
 }
 
 func NewTraceProvider(cfg FxConfig) trace.TracerProvider {
-	if !traceEnabled {
+	if !cfg.Config.Trace.Enabled {
 		return noop.NewTracerProvider()
 	}
 	exp := otlgrpc.NewUnstarted(otlgrpc.WithInsecure())
@@ -33,7 +32,7 @@ func NewTraceProvider(cfg FxConfig) trace.TracerProvider {
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(cfg.ServiceName),
+			semconv.ServiceNameKey.String(cfg.Config.Trace.ServiceName),
 			semconv.DeploymentEnvironmentKey.String("production"),
 			// TODO service version
 		)),
@@ -42,14 +41,14 @@ func NewTraceProvider(cfg FxConfig) trace.TracerProvider {
 	cfg.LC.Append(fx.StartStopHook(
 		func(ctx context.Context) error {
 			if err := exp.Start(ctx); err != nil {
-				return fmt.Errorf("run  exporter: %w", err)
+				return fmt.Errorf("run exporter: %w", err)
 			}
 			return nil
 		},
 		func(ctx context.Context) error {
-			if err := exp.Shutdown(ctx); err != nil {
-				return fmt.Errorf("shutdown exporter: %w", err)
-			}
+			// if err := exp.Shutdown(ctx); err != nil {
+			// 	return fmt.Errorf("shutdown exporter: %w", err)
+			// }
 			if err := tp.Shutdown(ctx); err != nil {
 				return fmt.Errorf("shutdown trace provider: %w", err)
 			}

@@ -41,8 +41,8 @@ func NewFactory(cfg FxConfig) (lf Factory, err error) {
 	cfg.LC.Append(fx.StopHook(lg.Sync))
 
 	ozlog := otelzap.New(lg,
-		otelzap.WithCaller(true),
-		otelzap.WithMinLevel(zap.InfoLevel),
+		otelzap.WithCaller(false),
+		otelzap.WithMinLevel(zap.DebugLevel),
 		otelzap.WithTraceIDField(true),
 		otelzap.WithCallerDepth(1),
 	).WithOptions(zap.AddCallerSkip(1)).
