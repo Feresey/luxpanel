@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/Feresey/sclogparser/internal/formatter"
 	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/sclogparser/internal/splitter"
 )
 
 // func (s *Suite) TestFormatter() {
@@ -17,14 +17,14 @@ import (
 // 	// 	gameLines   []*parser.GameLogLine
 // 	// 	combatLines []*parser.CombatLogLine
 
-// 	// 	wantLevels []*formatter.Level
+// 	// 	wantLevels []*splitter.Level
 // 	// }{
 // 	// 	{
 
 // 	// 	},
 // 	// }
 
-// 	levels, err := s.formatter.SplitLevels(ctx,
+// 	levels, err := s.splitter.SplitLevels(ctx,
 // 		[]parser.GameLogLine{
 // 			&parser.GameLogLineConnected{LogTime: now},
 // 			&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},
@@ -42,12 +42,12 @@ import (
 // 	)
 // 	r.NoError(err)
 
-// 	wantLevels := []*formatter.Level{
+// 	wantLevels := []*splitter.Level{
 // 		{
 // 			StartLevelTime: now,
 // 			EndLevelTime:   now.Add(5),
-// 			Players: map[int][]formatter.Player{
-// 				1: []formatter.Player{},
+// 			Players: map[int][]splitter.Player{
+// 				1: []splitter.Player{},
 // 			},
 // 		},
 // 	}
@@ -60,7 +60,7 @@ func (s *Suite) TestGameLogLevels() {
 	ctx := context.Background()
 	now := time.Date(2024, time.April, 0, 0, 0, 0, 0, time.Local)
 
-	levels := s.formatter.GetGameLogLevels(ctx, []parser.GameLogLine{
+	levels := s.splitter.GetGameLogLevels(ctx, []parser.GameLogLine{
 		&parser.GameLogLineConnected{LogTime: now},
 		&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},
 		&parser.GameLogLinePlayerLeave{LogTime: now.Add(2)},
@@ -68,7 +68,7 @@ func (s *Suite) TestGameLogLevels() {
 	})
 
 	r.Len(levels, 1)
-	r.Equal([]*formatter.GameLogLevel{{
+	r.Equal([]*splitter.GameLogLevel{{
 		Lines: []parser.GameLogLine{
 			&parser.GameLogLineConnected{LogTime: now},
 			&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},

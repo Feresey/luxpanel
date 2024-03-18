@@ -30,7 +30,7 @@ func (s *Suite) TestParseGameLog() {
 func BenchmarkParseGameLog(b *testing.B) {
 	r := require.New(b)
 
-	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider().Tracer(""))
+	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider())
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -58,7 +58,7 @@ func (s *Suite) TestParseCombatLog() {
 func BenchmarkCombatGameLog(b *testing.B) {
 	r := require.New(b)
 
-	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider().Tracer(""))
+	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider())
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

@@ -10,32 +10,32 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
-	"github.com/Feresey/sclogparser/internal/formatter"
 	"github.com/Feresey/sclogparser/internal/logger"
 	"github.com/Feresey/sclogparser/internal/parser"
+	"github.com/Feresey/sclogparser/internal/splitter"
 )
 
 type Service struct {
-	cfg       *config.Config
-	lg        logger.Factory
-	tr        trace.Tracer
-	formatter *formatter.Formatter
-	parser    *parser.Parser
+	cfg      *config.Config
+	lg       logger.Factory
+	tr       trace.Tracer
+	splitter *splitter.Splitter
+	parser   *parser.Parser
 }
 
 func NewService(
 	cfg *config.Config,
 	lg logger.Factory,
-	tr trace.Tracer,
-	formatter *formatter.Formatter,
+	tr trace.TracerProvider,
+	splitter *splitter.Splitter,
 	parser *parser.Parser,
 ) *Service {
 	return &Service{
-		cfg:       cfg,
-		lg:        lg,
-		tr:        tr,
-		formatter: formatter,
-		parser:    parser,
+		cfg:      cfg,
+		lg:       lg,
+		tr:       tr.Tracer("service"),
+		splitter: splitter,
+		parser:   parser,
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) parseLevels(ctx context.Context) ([]*formatter.Level, error) {
+func (s *Service) parseLevels(ctx context.Context) ([]*splitter.Level, error) {
 	ctx, span := s.tr.Start(ctx, "parseLevels")
 	defer span.End()
 
@@ -82,15 +82,15 @@ func (s *Service) parseLevels(ctx context.Context) ([]*formatter.Level, error) {
 		return nil, fmt.Errorf("parser.ParseGameLog: %w", err)
 	}
 
-	levels, err := s.formatter.SplitLevels(ctx, gameLogLines, combatLogLines)
+	levels, err := s.splitter.SplitLevels(ctx, gameLogLines, combatLogLines)
 	if err != nil {
-		return nil, fmt.Errorf("formatter.SplitLevels: %w", err)
+		return nil, fmt.Errorf("splitter.SplitLevels: %w", err)
 	}
 
 	return levels, nil
 }
 
-func (s *Service) saveToDir(ctx context.Context, levels []*formatter.Level) error {
+func (s *Service) saveToDir(ctx context.Context, levels []*splitter.Level) error {
 	ctx, span := s.tr.Start(ctx, "saveToDir")
 	defer span.End()
 

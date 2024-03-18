@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
 
@@ -24,11 +25,21 @@ type FactoryImpl struct {
 	lg *otelzap.SugaredLogger
 }
 
-func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, sync context.CancelFunc, err error) {
-	lg, err := lc.Build(opts...)
+type FxConfig struct {
+	fx.In
+
+	LC        fx.Lifecycle
+	LogConfig zap.Config
+	Options   []zap.Option `optional:"true"`
+}
+
+func NewFactory(cfg FxConfig) (lf Factory, err error) {
+	lg, err := cfg.LogConfig.Build(cfg.Options...)
 	if err != nil {
-		return nil, nil, fmt.Errorf("build logger")
+		return nil, fmt.Errorf("build logger: %w", err)
 	}
+	cfg.LC.Append(fx.StopHook(lg.Sync))
+
 	ozlog := otelzap.New(lg,
 		otelzap.WithCaller(true),
 		otelzap.WithMinLevel(zap.InfoLevel),
@@ -36,7 +47,7 @@ func NewFactory(lc zap.Config, opts ...zap.Option) (lf Factory, sync context.Can
 		otelzap.WithCallerDepth(1),
 	).WithOptions(zap.AddCallerSkip(1)).
 		Sugar()
-	return &FactoryImpl{lg: ozlog}, func() { _ = lg.Sync() }, nil
+	return &FactoryImpl{lg: ozlog}, nil
 }
 
 func (f *FactoryImpl) With(fields ...any) Factory {

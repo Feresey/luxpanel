@@ -14,10 +14,10 @@ import (
 	"github.com/Feresey/sclogparser/internal/logger"
 )
 
-func NewParser(lf logger.Factory, tr trace.Tracer) *Parser {
+func NewParser(lf logger.Factory, tr trace.TracerProvider) *Parser {
 	return &Parser{
 		lf: lf,
-		tr: tr,
+		tr: tr.Tracer("parser"),
 	}
 }
 

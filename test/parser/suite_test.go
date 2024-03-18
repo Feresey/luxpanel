@@ -1,21 +1,26 @@
 package parser_test
 
 import (
+	"context"
+	"errors"
+	"syscall"
 	"testing"
 
+	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
 	"github.com/Feresey/sclogparser/internal/logger"
+	"github.com/Feresey/sclogparser/internal/mytrace"
 	"github.com/Feresey/sclogparser/internal/parser"
 	"github.com/stretchr/testify/suite"
-	"go.opentelemetry.io/otel/trace"
-	"go.opentelemetry.io/otel/trace/noop"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxtest"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Suite struct {
 	suite.Suite
 
-	lf logger.Factory
-	tp trace.TracerProvider
+	app *fxtest.App
 
 	parser *parser.Parser
 }
@@ -25,15 +30,35 @@ func TestSuite(t *testing.T) {
 }
 
 func (s *Suite) SetupSuite() {
-	r := s.Require()
+	logConfig := zap.NewDevelopmentConfig()
+	logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	lc := zap.NewDevelopmentConfig()
-	lf, close, err := logger.NewFactory(lc)
-	r.NoError(err)
-	defer close()
+	s.app = fxtest.New(
+		s.T(),
+		fx.NopLogger,
+		fx.Supply(
+			config.GetConfig(),
+			logConfig,
+			fx.Annotated{
+				Name:   "service",
+				Target: "sclogparser",
+			},
+		),
+		fx.Provide(
+			logger.NewFactory,
+			mytrace.NewTraceProvider,
+			parser.NewParser,
+		),
+		fx.Populate(
+			&s.parser,
+		),
+	)
 
-	s.lf = lf
-	s.tp = noop.NewTracerProvider()
+	s.app.RequireStart()
+}
 
-	s.parser = parser.NewParser(lf, s.tp.Tracer("test"))
+func (s *Suite) TearDownSuite() {
+	if stopErr := s.app.Stop(context.Background()); stopErr != nil && !errors.Is(stopErr, syscall.ENOTTY) {
+		// s.NoError(stopErr)
+	}
 }

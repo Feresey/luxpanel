@@ -1,4 +1,4 @@
-package formatter
+package splitter
 
 import (
 	"context"
@@ -15,16 +15,16 @@ import (
 
 var ErrLogsCorrupted = errors.New("logs corrupted")
 
-type Formatter struct {
+type Splitter struct {
 	lg logger.Factory
 	tr trace.Tracer
 }
 
-func NewFormatter(lg logger.Factory, tr trace.Tracer) *Formatter {
-	return &Formatter{lg: lg, tr: tr}
+func NewSplitter(lg logger.Factory, tr trace.TracerProvider) *Splitter {
+	return &Splitter{lg: lg, tr: tr.Tracer("splitter")}
 }
 
-func (f *Formatter) SplitLevels(ctx context.Context, gameLog []parser.GameLogLine, combatLog []parser.CombatLogLine) ([]*Level, error) {
+func (f *Splitter) SplitLevels(ctx context.Context, gameLog []parser.GameLogLine, combatLog []parser.CombatLogLine) ([]*Level, error) {
 	ctx, span := f.tr.Start(ctx, "SplitLevels")
 	defer span.End()
 
@@ -69,7 +69,7 @@ func (f *Formatter) SplitLevels(ctx context.Context, gameLog []parser.GameLogLin
 	return levels, nil
 }
 
-func (f *Formatter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
+func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
 	ctx, span := f.tr.Start(ctx, "makeLevel")
 	defer span.End()
 
@@ -170,7 +170,7 @@ type CombatLogLevel struct {
 	Finished *parser.CombatLogLineGameFinished
 }
 
-func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogLine) (res []*GameLogLevel) {
+func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogLine) (res []*GameLogLevel) {
 	ctx, span := f.tr.Start(ctx, "GetGameLogLevels")
 	defer span.End()
 
@@ -208,7 +208,7 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 	return res
 }
 
-func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
+func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
 	ctx, span := f.tr.Start(ctx, "GetCombatLogLevels")
 	defer span.End()
 

@@ -2,56 +2,73 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/Feresey/sclogparser/cmd/sclogparser/config"
-	"github.com/Feresey/sclogparser/internal/formatter"
 	"github.com/Feresey/sclogparser/internal/logger"
+	"github.com/Feresey/sclogparser/internal/mytrace"
 	"github.com/Feresey/sclogparser/internal/parser"
 	"github.com/Feresey/sclogparser/internal/service"
-	"github.com/Feresey/sclogparser/internal/trace"
+	"github.com/Feresey/sclogparser/internal/splitter"
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	var svc *service.Service
 
-	cfg := config.GetConfig()
-	lc := zap.NewDevelopmentConfig()
-	lc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logConfig := zap.NewDevelopmentConfig()
+	logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	lg, sync, err := logger.NewFactory(lc)
-	if err != nil {
-		panic(err)
+	app := fx.New(
+		fx.NopLogger,
+		fx.Supply(
+			config.GetConfig(),
+			logConfig,
+			fx.Annotated{
+				Name:   "service",
+				Target: "sclogparser",
+			},
+		),
+		fx.Provide(
+			logger.NewFactory,
+			mytrace.NewTraceProvider,
+			splitter.NewSplitter,
+			service.NewService,
+			parser.NewParser,
+		),
+		fx.Populate(&svc),
+	)
+
+	if err := run(app, svc); err != nil {
+		fmt.Fprintf(os.Stderr, err.Error()+"\n")
+		os.Exit(1)
 	}
-	defer sync()
+}
 
-	tp, shutdown, err := trace.NewTraceProvider(ctx, "sclogparser")
-	if err != nil {
-		panic(err)
+func run(app *fx.App, svc *service.Service) (err error) {
+	if err := app.Start(context.Background()); err != nil {
+		return fmt.Errorf("fx.Start: %w", err)
 	}
+
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		if err := shutdown(ctx); err != nil {
-			lg.For(ctx).Errorw("shutting down tracer", "err", err)
+		if stopErr := app.Stop(context.Background()); stopErr != nil && !errors.Is(stopErr, syscall.ENOTTY) {
+			err = errors.Join(err, fmt.Errorf("fx.Stop: %w", stopErr))
 		}
 	}()
 
-	fr := formatter.NewFormatter(lg, tp.Tracer("formatter"))
-	pr := parser.NewParser(lg, tp.Tracer("parser"))
-
-	svc := service.NewService(cfg, lg, tp.Tracer("service"), fr, pr)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
 	if err := svc.Run(ctx); err != nil {
-		panic(fmt.Sprintf("service.Run: %v", err))
+		return fmt.Errorf("service.Run: %w", err)
 	}
+
+	return nil
 }
