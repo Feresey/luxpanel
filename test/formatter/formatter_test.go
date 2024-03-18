@@ -29,7 +29,7 @@ import (
 // 			&parser.GameLogLineConnected{LogTime: now},
 // 			&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},
 // 			&parser.GameLogLinePlayerLeave{LogTime: now.Add(2)},
-// 			&parser.GameLogLineFinished{LogTime: now.Add(3)},
+// 			&parser.GameLogLineConnectionClosed{LogTime: now.Add(3)},
 // 		},
 // 		[]parser.CombatLogLine{
 // 			&parser.CombatLogLineConnectToGameSession{LogTime: now},
@@ -64,7 +64,7 @@ func (s *Suite) TestGameLogLevels() {
 		&parser.GameLogLineConnected{LogTime: now},
 		&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},
 		&parser.GameLogLinePlayerLeave{LogTime: now.Add(2)},
-		&parser.GameLogLineFinished{LogTime: now.Add(3)},
+		&parser.GameLogLineConnectionClosed{LogTime: now.Add(3)},
 	})
 
 	r.Len(levels, 1)
@@ -73,7 +73,7 @@ func (s *Suite) TestGameLogLevels() {
 			&parser.GameLogLineConnected{LogTime: now},
 			&parser.GameLogLineAddPlayer{LogTime: now.Add(1)},
 			&parser.GameLogLinePlayerLeave{LogTime: now.Add(2)},
-			&parser.GameLogLineFinished{LogTime: now.Add(3)},
+			&parser.GameLogLineConnectionClosed{LogTime: now.Add(3)},
 		},
 		StartGameplay: &parser.GameLogLineConnected{LogTime: now},
 		AddPlayer: []*parser.GameLogLineAddPlayer{
@@ -82,6 +82,6 @@ func (s *Suite) TestGameLogLevels() {
 		LeavePlayer: []*parser.GameLogLinePlayerLeave{
 			{LogTime: now.Add(2)},
 		},
-		FinishGameplay: &parser.GameLogLineFinished{LogTime: now.Add(3)},
+		FinishGameplay: &parser.GameLogLineConnectionClosed{LogTime: now.Add(3)},
 	}}, levels)
 }

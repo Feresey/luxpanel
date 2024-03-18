@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	otlgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+
 	// otlhttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -31,5 +32,13 @@ func NewTraceProvider(ctx context.Context, serviceName string) (trcer trace.Trac
 			semconv.DeploymentEnvironmentKey.String("production"),
 		)),
 	)
-	return tp, tp.Shutdown, nil
+	return tp, func(ctx context.Context) error {
+		if err := exp.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown exporter: %w", err)
+		}
+		if err := tp.Shutdown(ctx); err != nil {
+			return fmt.Errorf("shutdown trace provider: %w", err)
+		}
+		return nil
+	}, nil
 }

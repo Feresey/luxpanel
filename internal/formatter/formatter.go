@@ -156,7 +156,7 @@ type GameLogLevel struct {
 	StartGameplay  *parser.GameLogLineConnected
 	AddPlayer      []*parser.GameLogLineAddPlayer
 	LeavePlayer    []*parser.GameLogLinePlayerLeave
-	FinishGameplay *parser.GameLogLineFinished
+	FinishGameplay *parser.GameLogLineConnectionClosed
 }
 
 type CombatLogLevel struct {
@@ -181,16 +181,21 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 		switch line := line.(type) {
 		case *parser.GameLogLineConnected:
 			if currLevel.StartGameplay != nil {
-				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line)
-				f.lg.For(ctx).Warnw("finished level", "start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
+				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line,
+					"start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
 				res = append(res, currLevel)
 				currLevel = new(GameLogLevel)
 			}
 			currLevel.StartGameplay = line
 		case *parser.GameLogLineAddPlayer:
 			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
-		case *parser.GameLogLineFinished:
+		case *parser.GameLogLineConnectionClosed:
 			currLevel.FinishGameplay = line
+			f.lg.For(ctx).Infow("detected could not connect log", "line", line)
+			if line.Reason == parser.ConnectionClosedReasonClientCouldNotConnect {
+				currLevel = new(GameLogLevel)
+				continue
+			}
 			res = append(res, currLevel)
 			currLevel = new(GameLogLevel)
 		case *parser.GameLogLinePlayerLeave:
@@ -202,6 +207,7 @@ func (f *Formatter) GetGameLogLevels(ctx context.Context, lines []parser.GameLog
 	f.lg.For(ctx).Infow("got levels", "count", len(res))
 	return res
 }
+
 func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
 	ctx, span := f.tr.Start(ctx, "GetCombatLogLevels")
 	defer span.End()
@@ -213,16 +219,17 @@ func (f *Formatter) GetCombatLogLevels(ctx context.Context, lines []parser.Comba
 		switch line := line.(type) {
 		case *parser.CombatLogLineConnectToGameSession:
 			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
-				f.lg.For(ctx).Warnw("connect to game session twice", "prev", currLevel.Connect, "next", line)
-				f.lg.For(ctx).Warnw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+				f.lg.For(ctx).Warnw("connect to game session twice",
+					"prev", currLevel.Connect, "next", line,
+					"connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Connect = line
 		case *parser.CombatLogLineStartGameplay:
 			if currLevel.Start != nil {
-				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.Start, "next", line)
-				f.lg.For(ctx).Warnw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.Start, "next", line,
+					"connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}

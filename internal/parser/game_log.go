@@ -32,7 +32,7 @@ func ParseGameLogLine(raw []byte, now time.Time) (line GameLogLine, err error) {
 	case gameRe.playerLeave.Match(raw):
 		line = &GameLogLinePlayerLeave{}
 	case gameRe.finished.Match(raw):
-		line = &GameLogLineFinished{}
+		line = &GameLogLineConnectionClosed{}
 	case gameRe.netStat.Match(raw):
 		line = &GameLogLineConnected{}
 	default:
@@ -58,7 +58,7 @@ var gameRe = struct {
 	addPlayer:   regexp.MustCompile(gameLineAddPlayer),
 	playerLeave: regexp.MustCompile(gameLinePlayerLeave),
 	netStat:     regexp.MustCompile(gameLineNetStat),
-	finished:    regexp.MustCompile(gameLineFinished),
+	finished:    regexp.MustCompile(gameLineConnectionClosed),
 }
 
 const (
@@ -121,10 +121,12 @@ const (
 	gameLineNetStatTotal
 )
 
+const gameLineConnectionClosed = gameLinePrefix + `client: connection closed\. ([A-Z_]+)\s*$`
+
 const (
-	gameLineFinished     = gameLinePrefix + `client: connection closed\. DR_CLIENT_GAME_FINISHED\s*$`
-	gameLineFinishedTime = iota
-	gameLineFinishedTotal
+	gameLineConnectionClosedTime = iota + 1
+	gameLineConnectionClosedReason
+	gameLineConnectionClosedTotal
 )
 
 type GameLogLineConnected struct {
@@ -201,21 +203,52 @@ func (g *GameLogLineAddPlayer) Unmarshal(raw []byte, now time.Time) (err error) 
 	return nil
 }
 
-type GameLogLineFinished struct {
-	LogTime time.Time
+type ConnectionClosedReason string
+
+const (
+	ConnectionClosedReasonGameFinished          ConnectionClosedReason = "DR_CLIENT_GAME_FINISHED"
+	ConnectionClosedReasonClientCouldNotConnect ConnectionClosedReason = "DR_CLIENT_COULD_NOT_CONNECT"
+)
+
+func (c ConnectionClosedReason) Validate() error {
+	switch c {
+	case ConnectionClosedReasonGameFinished:
+	case ConnectionClosedReasonClientCouldNotConnect:
+	default:
+		return fmt.Errorf("undefined connection closed reason: %q", c)
+	}
+	return nil
 }
 
-func (g GameLogLineFinished) Type() GameLogLineType {
+func parseConnectionClosedReason(s string) (res ConnectionClosedReason, err error) {
+	res = ConnectionClosedReason(s)
+	if err := res.Validate(); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+type GameLogLineConnectionClosed struct {
+	LogTime time.Time
+	Reason  ConnectionClosedReason
+}
+
+func (g GameLogLineConnectionClosed) Type() GameLogLineType {
 	return GameLogLineTypeGameFinished
 }
 
-func (g *GameLogLineFinished) Unmarshal(raw []byte, now time.Time) (err error) {
+func (g *GameLogLineConnectionClosed) Unmarshal(raw []byte, now time.Time) (err error) {
 	res := gameRe.finished.FindStringSubmatch(string(raw))
-	if len(res) != gameLineFinishedTotal {
+	if len(res) != gameLineConnectionClosedTotal {
 		return ErrWrongLineFormat
 	}
 
-	g.LogTime, err = ParseField(res[gameLineFinishedTime], "time", parseLogTime(now))
+	g.LogTime, err = ParseField(res[gameLineConnectionClosedTime], "time", parseLogTime(now))
+	if err != nil {
+		return err
+	}
+
+	g.Reason, err = ParseField(res[gameLineConnectionClosedReason], "reason", parseConnectionClosedReason)
 	if err != nil {
 		return err
 	}
@@ -242,10 +275,6 @@ func (g *GameLogLineNetStat) Unmarshal(raw []byte, now time.Time) (err error) {
 		return ErrWrongLineFormat
 	}
 
-	g.LogTime, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
-	if err != nil {
-		return err
-	}
 	g.LogTime, err = ParseField(res[gameLineNetStatTime], "time", parseLogTime(now))
 	if err != nil {
 		return err

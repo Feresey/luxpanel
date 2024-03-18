@@ -179,14 +179,23 @@ func TestFinishedUnmarshal(t *testing.T) {
 	tests := []struct {
 		name      string
 		raw       string
-		want      parser.GameLogLineFinished
+		want      parser.GameLogLineConnectionClosed
 		wantError bool
 	}{
 		{
 			name: "ok",
 			raw:  "21:37:38.024         | client: connection closed. DR_CLIENT_GAME_FINISHED",
-			want: parser.GameLogLineFinished{
+			want: parser.GameLogLineConnectionClosed{
 				LogTime: time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.Local),
+				Reason:  parser.ConnectionClosedReasonGameFinished,
+			},
+		},
+		{
+			name: "connection closed",
+			raw:  "21:37:38.024         | client: connection closed. DR_CLIENT_COULD_NOT_CONNECT",
+			want: parser.GameLogLineConnectionClosed{
+				LogTime: time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.Local),
+				Reason:  parser.ConnectionClosedReasonClientCouldNotConnect,
 			},
 		},
 		{
@@ -205,7 +214,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			r := require.New(t)
-			var val parser.GameLogLineFinished
+			var val parser.GameLogLineConnectionClosed
 
 			err := val.Unmarshal([]byte(tt.raw), now)
 			if tt.wantError {
@@ -226,7 +235,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 			if line == "" {
 				return
 			}
-			var val parser.GameLogLineFinished
+			var val parser.GameLogLineConnectionClosed
 			err := val.Unmarshal([]byte(line), now)
 			r.NoError(err)
 		}
