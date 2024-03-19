@@ -30,12 +30,12 @@ func parseLogTime(nowTime time.Time) func(string) (time.Time, error) {
 	}
 }
 
-func parseFloat(s string) (float64, error) {
-	res, err := strconv.ParseFloat(s, 64)
+func parseFloat(s string) (float32, error) {
+	res, err := strconv.ParseFloat(s, 32)
 	if err != nil {
 		return 0, fmt.Errorf("strconv.ParseFloat: %w", err)
 	}
-	return res, nil
+	return float32(res), nil
 }
 
 type ParseFieldError struct {

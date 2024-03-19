@@ -54,7 +54,115 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 	}
 
+	for _, level := range levels {
+		s.showLevelStatistics(ctx, level)
+		fmt.Println("========")
+	}
+
 	return nil
+}
+
+func (s *Service) showLevelStatistics(ctx context.Context, lvl *splitter.Level) {
+	ctx, span := s.tr.Start(ctx, "showLevelStatistics")
+	defer span.End()
+
+	filters := s.getPlayersFilters(ctx, lvl)
+	for _, filter := range filters {
+		res := ProcessArray(lvl.CombatLog.Damage, FilterPlayerDamage(filter), Sum)
+		if res > 0 {
+			fmt.Printf("%s: %f\n", filter.String(), res)
+		}
+	}
+}
+
+func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterConfig {
+	copyFilter := func(modifiers DamageModifiersMap) *PlayerDamageFilterConfig {
+		return &PlayerDamageFilterConfig{
+			InitiatorName:   filter.InitiatorName,
+			RecipientName:   filter.RecipientName,
+			RecipientObject: filter.RecipientObject,
+			DamageType:      filter.DamageType,
+			DamageModifiers: modifiers,
+		}
+	}
+	return []*PlayerDamageFilterConfig{
+		copyFilter(DamageModifiersMap{}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageCrit: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageExplosion: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageWeaponPrimary:   false,
+			parser.DamageWeaponSecondary: false,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageIgoreShield: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageCollision: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageTypeEMP: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageTypeKinetic: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageTypeThermal: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageTypeTrueDamage: true,
+		}),
+	}
+}
+
+func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (res []*PlayerDamageFilterConfig) {
+	ctx, span := s.tr.Start(ctx, "getPlayersFilters")
+	defer span.End()
+
+	for _, players := range lvl.Teams {
+		for _, player := range players {
+			var enemies []splitter.Player
+			for otherTeamID, enemyPlayers := range lvl.Teams {
+				if otherTeamID != player.TeamID {
+					enemies = append(enemies, enemyPlayers...)
+				}
+			}
+
+			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+				InitiatorName: player.Name,
+			})...)
+			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+				InitiatorName: player.Name,
+				DamageType:    DamageTypeShield,
+			})...)
+			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+				InitiatorName: player.Name,
+				DamageType:    DamageTypeHull,
+			})...)
+			for _, enemy := range enemies {
+				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+					InitiatorName: player.Name,
+					RecipientName: enemy.Name,
+				})...)
+				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+					InitiatorName: player.Name,
+					RecipientName: enemy.Name,
+					DamageType:    DamageTypeShield,
+				})...)
+				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+					InitiatorName: player.Name,
+					RecipientName: enemy.Name,
+					DamageType:    DamageTypeHull,
+				})...)
+			}
+		}
+	}
+
+	s.lg.For(ctx).Debugw("created filters for players damage", "count", len(res))
+	return res
 }
 
 func (s *Service) parseLevels(ctx context.Context) ([]*splitter.Level, error) {

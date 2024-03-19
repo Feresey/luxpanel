@@ -288,6 +288,7 @@ type CombatPlayers struct {
 }
 
 type DamageModifier string
+type DamageModifiersMap map[DamageModifier]struct{}
 
 const (
 	DamageTypeEMP         DamageModifier = "EMP"
@@ -308,11 +309,11 @@ const (
 type CombatLogLineDamage struct {
 	LogTime         time.Time
 	Players         CombatPlayers
-	DamageTotal     float64
-	DamageHull      float64
-	DamageShield    float64
+	DamageTotal     float32
+	DamageHull      float32
+	DamageShield    float32
 	DamageSource    string
-	DamageModifiers []DamageModifier
+	DamageModifiers DamageModifiersMap
 	IsFriendlyFire  bool
 }
 
@@ -363,14 +364,14 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 	if err != nil {
 		return err
 	}
-	c.DamageModifiers, err = ParseField(res[damageLineWeaponModifiers], "damage_modifiers", func(raw string) (res []DamageModifier, err error) {
+	c.DamageModifiers, err = ParseField(res[damageLineWeaponModifiers], "damage_modifiers", func(raw string) (res DamageModifiersMap, err error) {
 		parts := strings.Split(raw, "|")
 		if len(parts) == 0 {
 			return res, fmt.Errorf("wrong parts number")
 		}
-		res = make([]DamageModifier, 0, len(parts))
+		res = make(DamageModifiersMap, len(parts))
 		for _, p := range parts {
-			res = append(res, DamageModifier(p))
+			res[DamageModifier(p)] = struct{}{}
 		}
 		return res, nil
 	})
@@ -387,7 +388,7 @@ func (c *CombatLogLineDamage) Unmarshal(raw []byte, now time.Time) (err error) {
 type CombatLogLineHeal struct {
 	LogTime time.Time
 	Players CombatPlayers
-	Heal    float64
+	Heal    float32
 	Reason  string
 }
 

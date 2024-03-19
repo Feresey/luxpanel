@@ -193,8 +193,8 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageHull:   0,
 				DamageShield: 73.78,
 				DamageSource: "Weapon_PlasmaBursts_T5_Rel",
-				DamageModifiers: []parser.DamageModifier{
-					"EMP",
+				DamageModifiers: parser.DamageModifiersMap{
+					"EMP": {},
 				},
 			},
 		},
@@ -213,8 +213,8 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageHull:   0,
 				DamageShield: 0,
 				DamageSource: "",
-				DamageModifiers: []parser.DamageModifier{
-					"KINETIC",
+				DamageModifiers: parser.DamageModifiersMap{
+					"KINETIC": {},
 				},
 			},
 		},
@@ -234,8 +234,8 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				DamageShield:   0,
 				DamageSource:   "Weapon_OrbGun_T5_Epic",
 				IsFriendlyFire: true,
-				DamageModifiers: []parser.DamageModifier{
-					"EMP", "PRIMARY_WEAPON", "EXPLOSION",
+				DamageModifiers: parser.DamageModifiersMap{
+					"EMP": {}, "PRIMARY_WEAPON": {}, "EXPLOSION": {},
 				},
 			},
 		},
@@ -281,7 +281,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 			val, err := parser.ParseCombatLogLine([]byte(line), now)
 			r.NoError(err)
 
-			for _, m := range val.(*parser.CombatLogLineDamage).DamageModifiers {
+			for m := range val.(*parser.CombatLogLineDamage).DamageModifiers {
 				modifiers[m]++
 			}
 		}
