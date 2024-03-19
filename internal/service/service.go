@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/exp/maps"
 
 	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
@@ -54,35 +58,86 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 	}
 
-	for _, level := range levels {
-		s.showLevelStatistics(ctx, level)
-		fmt.Println("========")
+	if s.cfg.TextOut != "" {
+		if err := s.writeTextStatistics(ctx, levels); err != nil {
+			return fmt.Errorf("writeTextStatistics: %w", err)
+		}
 	}
 
 	return nil
 }
 
-func (s *Service) showLevelStatistics(ctx context.Context, lvl *splitter.Level) {
-	ctx, span := s.tr.Start(ctx, "showLevelStatistics")
+const fileModePerm = 0600
+
+func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Level) (err error) {
+	ctx, span := s.tr.Start(ctx, "writeTextStatistics")
+	defer span.End()
+	outFile, err := os.OpenFile(s.cfg.TextOut, os.O_CREATE|os.O_TRUNC|os.O_RDWR, fileModePerm)
+	if err != nil {
+		return fmt.Errorf("create output file: %w", err)
+	}
+	defer func() {
+		err = errors.Join(err, outFile.Close())
+	}()
+
+	s.lg.For(ctx).Warnw("write to file", "name", s.cfg.TextOut)
+
+	for _, level := range levels {
+		if err := s.writeLevelStatistics(ctx, level, outFile); err != nil {
+			return fmt.Errorf("writeLevelStatistics: %w", err)
+		}
+		_, err := fmt.Fprintln(outFile, "========")
+		if err != nil {
+			return fmt.Errorf("write: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) writeLevelStatistics(ctx context.Context, lvl *splitter.Level, w io.Writer) error {
+	ctx, span := s.tr.Start(ctx, "writeLevelStatistics")
 	defer span.End()
 
 	filters := s.getPlayersFilters(ctx, lvl)
 	for _, filter := range filters {
-		res := ProcessArray(lvl.CombatLog.Damage, FilterPlayerDamage(filter), Sum)
-		if res > 0 {
-			fmt.Printf("%s: %f\n", filter.String(), res)
+		res := ProcessArray(lvl.CombatLog.Damage, FilterPlayerDamage(filter), SummDamageBySource)
+		if res == nil || len(res.BySource) == 0 {
+			continue
+		}
+
+		if len(res.BySource) > 1 {
+			var total float32
+			keys := maps.Keys(res.BySource)
+			slices.Sort(keys)
+			for _, key := range keys {
+				total += res.BySource[key]
+			}
+			_, err := fmt.Fprintf(w, "%s: %f\n", filter.String(), total)
+			if err != nil {
+				return fmt.Errorf("write: %w", err)
+			}
+		}
+		for source, value := range res.BySource {
+			_, err := fmt.Fprintf(w, "%s: %s: %f\n", filter.String(), source, value)
+			if err != nil {
+				return fmt.Errorf("write: %w", err)
+			}
 		}
 	}
+
+	return nil
 }
 
 func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterConfig {
 	copyFilter := func(modifiers DamageModifiersMap) *PlayerDamageFilterConfig {
 		return &PlayerDamageFilterConfig{
-			InitiatorName:   filter.InitiatorName,
-			RecipientName:   filter.RecipientName,
-			RecipientObject: filter.RecipientObject,
-			DamageType:      filter.DamageType,
-			DamageModifiers: modifiers,
+			InitiatorName:    filter.InitiatorName,
+			RecipientName:    filter.RecipientName,
+			RecipientObject:  filter.RecipientObject,
+			DamageType:       filter.DamageType,
+			DamageModifiers:  modifiers,
+			FriendlyFireOnly: filter.FriendlyFireOnly,
 		}
 	}
 	return []*PlayerDamageFilterConfig{
@@ -91,11 +146,15 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 			parser.DamageCrit: true,
 		}),
 		copyFilter(DamageModifiersMap{
+			parser.DamageWeaponPrimary: true,
+		}),
+		copyFilter(DamageModifiersMap{
 			parser.DamageExplosion: true,
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageWeaponPrimary:   false,
 			parser.DamageWeaponSecondary: false,
+			parser.DamageCollision:       false,
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageIgoreShield: true,
@@ -111,9 +170,6 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageTypeThermal: true,
-		}),
-		copyFilter(DamageModifiersMap{
-			parser.DamageTypeTrueDamage: true,
 		}),
 	}
 }
@@ -135,12 +191,8 @@ func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (r
 				InitiatorName: player.Name,
 			})...)
 			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-				InitiatorName: player.Name,
-				DamageType:    DamageTypeShield,
-			})...)
-			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-				InitiatorName: player.Name,
-				DamageType:    DamageTypeHull,
+				InitiatorName:    player.Name,
+				FriendlyFireOnly: true,
 			})...)
 			for _, enemy := range enemies {
 				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
@@ -148,14 +200,9 @@ func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (r
 					RecipientName: enemy.Name,
 				})...)
 				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-					InitiatorName: player.Name,
-					RecipientName: enemy.Name,
-					DamageType:    DamageTypeShield,
-				})...)
-				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-					InitiatorName: player.Name,
-					RecipientName: enemy.Name,
-					DamageType:    DamageTypeHull,
+					InitiatorName:    player.Name,
+					RecipientName:    enemy.Name,
+					FriendlyFireOnly: true,
 				})...)
 			}
 		}

@@ -1,10 +1,12 @@
 package service
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/Feresey/luxpanel/internal/parser"
+	"golang.org/x/exp/maps"
 )
 
 //go:generate stringer -type=DamageType
@@ -19,11 +21,12 @@ const (
 type DamageModifiersMap map[parser.DamageModifier]bool
 
 type PlayerDamageFilterConfig struct {
-	InitiatorName   string
-	RecipientName   string
-	RecipientObject string
-	DamageType      DamageType
-	DamageModifiers DamageModifiersMap
+	InitiatorName    string
+	RecipientName    string
+	RecipientObject  string
+	DamageType       DamageType
+	DamageModifiers  DamageModifiersMap
+	FriendlyFireOnly bool
 }
 
 func (f *PlayerDamageFilterConfig) String() string {
@@ -41,6 +44,10 @@ func (f *PlayerDamageFilterConfig) String() string {
 		space()
 		sb.WriteString("initiator: " + f.InitiatorName)
 	}
+	if f.FriendlyFireOnly {
+		space()
+		sb.WriteString("friendly_fire")
+	}
 	if f.RecipientName != "" {
 		space()
 		sb.WriteString("recipient: " + f.RecipientName)
@@ -57,7 +64,11 @@ func (f *PlayerDamageFilterConfig) String() string {
 		space()
 		var needComma bool
 		sb.WriteRune('(')
-		for modifier, exists := range f.DamageModifiers {
+
+		keys := maps.Keys(f.DamageModifiers)
+		slices.Sort(keys)
+		for _, modifier := range keys {
+			exists := f.DamageModifiers[modifier]
 			if needComma {
 				sb.WriteRune(',')
 			}
@@ -70,36 +81,59 @@ func (f *PlayerDamageFilterConfig) String() string {
 	return sb.String()
 }
 
+type DamageResult struct {
+	BySource map[string]float32
+}
+
+func SummDamageBySource(res *DamageResult, elem *DamageWithSource) *DamageResult {
+	if res == nil {
+		res = new(DamageResult)
+		res.BySource = make(map[string]float32)
+	}
+
+	res.BySource[elem.Source] += elem.Value
+	return res
+}
+
+type DamageWithSource struct {
+	Source string
+	Value  float32
+}
+
 // FilterPlayerDamage суммирует урон игрока по указанным модификаторам
-func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*parser.CombatLogLineDamage, float32] {
-	return func(line *parser.CombatLogLineDamage) (res float32, ok bool) {
+func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*parser.CombatLogLineDamage, *DamageWithSource] {
+	return func(line *parser.CombatLogLineDamage) (res *DamageWithSource, ok bool) {
 		if filter.InitiatorName != "" && line.Players.Initiator != filter.InitiatorName {
-			return 0, false
+			return res, false
 		}
 		if filter.RecipientName != "" && line.Players.Recipient != filter.RecipientName {
-			return 0, false
+			return res, false
 		}
 		if filter.RecipientObject != "" && line.Players.RecipientObject != filter.RecipientObject {
-			return 0, false
+			return res, false
+		}
+
+		if filter.FriendlyFireOnly && !line.IsFriendlyFire {
+			return res, false
 		}
 
 		if filter.DamageModifiers != nil {
 			for wantModifier, exists := range filter.DamageModifiers {
 				if _, ok := line.DamageModifiers[wantModifier]; ok != exists {
-					return 0, false
+					return res, false
 				}
 			}
 		}
 
 		switch filter.DamageType {
 		case DamageTypeTotal:
-			return line.DamageTotal, true
+			return &DamageWithSource{Value: line.DamageTotal, Source: line.DamageSource}, true
 		case DamageTypeHull:
-			return line.DamageHull, true
+			return &DamageWithSource{Value: line.DamageHull, Source: line.DamageSource}, true
 		case DamageTypeShield:
-			return line.DamageShield, true
+			return &DamageWithSource{Value: line.DamageShield, Source: line.DamageSource}, true
 		default:
-			return 0, false
+			return res, false
 		}
 	}
 }
