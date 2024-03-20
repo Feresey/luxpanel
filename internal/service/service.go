@@ -155,6 +155,8 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 			parser.DamageWeaponPrimary:   false,
 			parser.DamageWeaponSecondary: false,
 			parser.DamageCollision:       false,
+			parser.DamageCrit:            false,
+			parser.DamageIgoreShield:     false,
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageIgoreShield: true,
@@ -170,6 +172,9 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageTypeThermal: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			parser.DamageModule: true,
 		}),
 	}
 }

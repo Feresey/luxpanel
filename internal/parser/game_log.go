@@ -208,12 +208,14 @@ type ConnectionClosedReason string
 const (
 	ConnectionClosedReasonGameFinished          ConnectionClosedReason = "DR_CLIENT_GAME_FINISHED"
 	ConnectionClosedReasonClientCouldNotConnect ConnectionClosedReason = "DR_CLIENT_COULD_NOT_CONNECT"
+	ConnectionClosedReasonClientQuit            ConnectionClosedReason = "DR_CLIENT_QUIT"
 )
 
 func (c ConnectionClosedReason) Validate() error {
 	switch c {
 	case ConnectionClosedReasonGameFinished:
 	case ConnectionClosedReasonClientCouldNotConnect:
+	case ConnectionClosedReasonClientQuit:
 	default:
 		return fmt.Errorf("undefined connection closed reason: %q", c)
 	}
