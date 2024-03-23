@@ -1,3 +1,5 @@
+// DO NOT EDIT. This file was auto-generated
+
 package {{ (index . 0).PackageName}}
 
 import (
@@ -29,8 +31,25 @@ func parseTime(nowTime time.Time) func(string) (time.Time, error) {
 	}
 }
 
+func parseSeconds(s string) (time.Duration, error) {
+	return time.ParseDuration(s+"s")
+}
+
 func parseBool(s string) (bool, error) {
 	return s != "", nil
+}
+
+func parseOptional[T any](parseFunc func(string) (T, error)) func(string) (*T, error) {
+	return func(s string) (res *T, err error) {
+		if s == "" {
+			return nil, nil
+		}
+		r, err := parseFunc(s)
+		if err != nil {
+			return nil, err
+		}
+		return &r, nil
+	}
 }
 
 func parseFloat(s string) (float32, error) {

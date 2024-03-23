@@ -1,28 +1,30 @@
+// DO NOT EDIT. This file was auto-generated
+
 package combat
 
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"strconv"
+	"time"
 )
 
 var reDamage = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Damage\s+(?P<Initiator>[a-zA-Z0-9_/-]+)\|(?P<InitiatorID>-?\d+)\s+->\s+((?P<Recipient>[a-zA-Z0-9_/-]+)|(?P<ObjectName>[a-zA-Z0-9_/-]+)\((?P<ObjectOwner>[a-zA-Z0-9_/-]+)\))\|(?P<RecipientID>-?\d+)\s+(?P<DamageTotal>-?\d+\.\d+)\s+\((h:(?P<DamageHull>-?\d+\.\d+))\s+(s:(?P<DamageShield>-?\d+\.\d+))\)\s+((?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?))?\s+(?P<DamageModifiers>[A-Z\|_]+)(\s+(?P<FriendlyFire><FriendlyFire>))?\s*$`)
 
 type Damage struct {
-	LogTime time.Time
-	Initiator string
-	InitiatorID int
-	Recipient string
-	ObjectName string
-	ObjectOwner string
-	RecipientID int
-	DamageTotal float32
-	DamageHull float32
-	DamageShield float32
-	ActionSource string
+	LogTime         time.Time
+	Initiator       string
+	InitiatorID     int
+	Recipient       string
+	ObjectName      string
+	ObjectOwner     string
+	RecipientID     int
+	DamageTotal     float32
+	DamageHull      float32
+	DamageShield    float32
+	ActionSource    string
 	DamageModifiers DamageModifiersMap
-	FriendlyFire bool
+	FriendlyFire    bool
 }
 
 func (c *Damage) Unmarhsal(src string, now time.Time) (err error) {

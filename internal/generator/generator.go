@@ -13,6 +13,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/iancoleman/strcase"
 	"gopkg.in/yaml.v2"
+
+	"golang.org/x/tools/imports"
 )
 
 //go:embed templates/combat.tpl
@@ -28,21 +30,27 @@ var typeByName = map[string]string{
 	"LogTime":         "time.Time",
 	"InitiatorID":     "int",
 	"RecipientID":     "int",
+	"WinnerTeamID":    "int",
+	"SessionID":       "int",
+	"ClientTeamID":    "*int",
 	"DamageModifiers": "DamageModifiersMap",
 	"FriendlyFire":    "bool",
 	"DamageTotal":     "float32",
 	"DamageHull":      "float32",
 	"DamageShield":    "float32",
 	"Heal":            "float32",
+	"GameTime":        "time.Duration",
 }
 
 var parserByType = map[string]string{
 	"time.Time":          "parseTime(now)",
 	"int":                "strconv.Atoi",
+	"*int":               "parseOptional(strconv.Atoi)",
 	"float32":            "parseFloat",
 	"bool":               "parseBool",
 	"string":             "",
 	"DamageModifiersMap": "parseDamageModifiers",
+	"time.Duration":      "parseSeconds",
 }
 
 type Generator struct {
@@ -184,13 +192,18 @@ type FieldType struct {
 	IsString  bool
 }
 
-func (g *Generator) GenerateFiles(configs []FileConfig) (map[string]string, error) {
-	res := make(map[string]string)
+func (g *Generator) GenerateFiles(configs []FileConfig) (map[string][]byte, error) {
+	res := make(map[string][]byte)
 	var buf bytes.Buffer
 	if err := g.commonGoTpl.Execute(&buf, configs); err != nil {
 		return nil, fmt.Errorf("generate common.go file: %w", err)
 	}
-	res["common.go"] = buf.String()
+
+	formatted, err := imports.Process("", buf.Bytes(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("format common.go file: %w", err)
+	}
+	res["common.go"] = formatted
 
 	for _, config := range configs {
 		var buf bytes.Buffer
@@ -199,7 +212,12 @@ func (g *Generator) GenerateFiles(configs []FileConfig) (map[string]string, erro
 			return nil, fmt.Errorf("generate config file(%s): %w", config.TypeName, err)
 		}
 
-		res[strcase.ToSnake(config.TypeName)+".go"] = buf.String()
+		fileName := strcase.ToSnake(config.TypeName) + ".go"
+		formatted, err := imports.Process("", buf.Bytes(), nil)
+		if err != nil {
+			return nil, fmt.Errorf("format %s file: %w", fileName, err)
+		}
+		res[fileName] = formatted
 	}
 
 	return res, nil
@@ -207,10 +225,10 @@ func (g *Generator) GenerateFiles(configs []FileConfig) (map[string]string, erro
 
 const filePerm = 0600
 
-func (g *Generator) WriteResults(files map[string]string) error {
+func (g *Generator) WriteResults(files map[string][]byte) error {
 	for name, contents := range files {
 		fileName := filepath.Join(g.cfg.OutputDir, name)
-		err := os.WriteFile(fileName, []byte(contents), filePerm)
+		err := os.WriteFile(fileName, contents, filePerm)
 		if err != nil {
 			return fmt.Errorf("write file(%s): %w", fileName, err)
 		}

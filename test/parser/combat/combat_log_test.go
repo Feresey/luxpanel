@@ -26,147 +26,151 @@ var (
 	finishedRaw string
 )
 
-// func TestCombatConnectUnmarshal(t *testing.T) {
-// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-// 	tests := []struct {
-// 		name      string
-// 		raw       string
-// 		want      *combat.LineConnectToGameSession
-// 		wantError bool
-// 	}{
-// 		{
-// 			name: "ok",
-// 			raw:  "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
-// 			want: &combat.LineConnectToGameSession{
-// 				LogTime:   time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
-// 				SessionID: 50419619,
-// 			},
-// 		},
-// 		{
-// 			name:      "cutted",
-// 			raw:       "19:32:58.666  CMBT   | ======= Connect to game session 50419619",
-// 			wantError: true,
-// 		},
-// 		{
-// 			name:      "empty",
-// 			raw:       "",
-// 			wantError: true,
-// 		},
-// 		{
-// 			name: "double",
-// 			raw: "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======\n" +
-// 				"19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
-// 			wantError: true,
-// 		},
-// 		{
-// 			name:      "wrong time",
-// 			raw:       "19:32:58.66  CMBT   | ======= Connect to game session 50419619 =======",
-// 			wantError: true,
-// 		},
-// 	}
+func TestCombatConnectUnmarshal(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
+	tests := []struct {
+		name      string
+		raw       string
+		want      combat.ConnectToGameSession
+		wantError bool
+	}{
+		{
+			name: "ok",
+			raw:  "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
+			want: combat.ConnectToGameSession{
+				LogTime:   time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
+				SessionID: 50419619,
+			},
+		},
+		{
+			name:      "cutted",
+			raw:       "19:32:58.666  CMBT   | ======= Connect to game session 50419619",
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			raw:       "",
+			wantError: true,
+		},
+		{
+			name:      "wrong time",
+			raw:       "19:32:58.66  CMBT   | ======= Connect to game session 50419619 =======",
+			wantError: true,
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		tt := tt
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			r := require.New(t)
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			r := require.New(t)
 
-// 			val, err := combat.ParseCombatLogLine([]byte(tt.raw), now)
-// 			if tt.wantError {
-// 				r.Error(err)
-// 				return
-// 			} else {
-// 				r.NoError(err)
-// 			}
+			var val combat.ConnectToGameSession
+			err := val.Unmarhsal(tt.raw, now)
+			if tt.wantError {
+				r.Error(err)
+				return
+			} else {
+				r.NoError(err)
+			}
+			r.Equal(tt.want, val)
+		})
+	}
 
-// 			r.Equal(tt.want, val)
-// 		})
-// 	}
+	t.Run("raw", func(t *testing.T) {
+		r := require.New(t)
+		lines := strings.Split(connectRaw, "\n")
 
-// 	t.Run("raw", func(t *testing.T) {
-// 		r := require.New(t)
-// 		lines := strings.Split(connectRaw, "\n")
-// 		for _, line := range lines {
-// 			if line == "" {
-// 				return
-// 			}
-// 			_, err := combat.ParseCombatLogLine([]byte(line), now)
-// 			r.NoError(err)
-// 		}
-// 	})
-// }
+		for _, line := range lines {
+			if line == "" {
+				return
+			}
+			var val combat.ConnectToGameSession
+			err := val.Unmarhsal(line, now)
+			r.NoError(err, line)
+		}
+	})
+}
 
-// func TestCombatStartGameplayUnmarshal(t *testing.T) {
-// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-// 	tests := []struct {
-// 		name      string
-// 		raw       string
-// 		want      *combat.LineStartGameplay
-// 		wantError bool
-// 	}{
-// 		{
-// 			name: "pve",
-// 			raw:  `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
-// 			want: &combat.LineStartGameplay{
-// 				LogTime:  time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
-// 				GameMode: "pve_raid_waterharvest_t5",
-// 				MapName:  "pve_raid_waterharvest",
-// 			},
-// 		},
-// 		{
-// 			name: "pvp",
-// 			raw:  `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
-// 			want: &combat.LineStartGameplay{
-// 				LogTime:  time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
-// 				GameMode: "CaptureTheBase",
-// 				MapName:  "s1420_ceres3_asteroidcity",
-// 			},
-// 		},
-// 		{
-// 			name:      "cutted",
-// 			raw:       "19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest'",
-// 			wantError: true,
-// 		},
-// 		{
-// 			name:      "empty",
-// 			raw:       "",
-// 			wantError: true,
-// 		},
-// 		{
-// 			name:      "wrong time",
-// 			raw:       `19:42:14.60  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
-// 			wantError: true,
-// 		},
-// 	}
+func New[T any](val T) *T {
+	return &val
+}
 
-// 	for _, tt := range tests {
-// 		tt := tt
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			r := require.New(t)
+func TestCombatStartGameplayUnmarshal(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
+	tests := []struct {
+		name      string
+		raw       string
+		want      combat.StartGameplay
+		wantError bool
+	}{
+		{
+			name: "pve",
+			raw:  `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
+			want: combat.StartGameplay{
+				LogTime:      time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
+				GameMode:     "pve_raid_waterharvest_t5",
+				MapName:      "pve_raid_waterharvest",
+				ClientTeamID: nil,
+			},
+		},
+		{
+			name: "pvp",
+			raw:  `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
+			want: combat.StartGameplay{
+				LogTime:      time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
+				GameMode:     "CaptureTheBase",
+				MapName:      "s1420_ceres3_asteroidcity",
+				ClientTeamID: New(1),
+			},
+		},
+		{
+			name:      "cutted",
+			raw:       "19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest'",
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			raw:       "",
+			wantError: true,
+		},
+		{
+			name:      "wrong time",
+			raw:       `19:42:14.60  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
+			wantError: true,
+		},
+	}
 
-// 			val, err := combat.ParseCombatLogLine([]byte(tt.raw), now)
-// 			if tt.wantError {
-// 				r.Error(err)
-// 				return
-// 			} else {
-// 				r.NoError(err)
-// 			}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			r := require.New(t)
 
-// 			r.Equal(tt.want, val)
-// 		})
-// 	}
+			var val combat.StartGameplay
+			err := val.Unmarhsal(tt.raw, now)
+			if tt.wantError {
+				r.Error(err)
+				return
+			} else {
+				r.NoError(err)
+			}
+			r.Equal(tt.want, val)
+		})
+	}
 
-// 	t.Run("raw", func(t *testing.T) {
-// 		r := require.New(t)
-// 		lines := strings.Split(startRaw, "\n")
-// 		for _, line := range lines {
-// 			if line == "" {
-// 				return
-// 			}
-// 			_, err := combat.ParseCombatLogLine([]byte(line), now)
-// 			r.NoError(err)
-// 		}
-// 	})
-// }
+	t.Run("raw", func(t *testing.T) {
+		r := require.New(t)
+		lines := strings.Split(startRaw, "\n")
+
+		for _, line := range lines {
+			if line == "" {
+				return
+			}
+			var val combat.StartGameplay
+			err := val.Unmarhsal(line, now)
+			r.NoError(err, line)
+		}
+	})
+}
 
 func TestCombatDamageUnmarshal(t *testing.T) {
 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
@@ -456,64 +460,65 @@ func TestCombatKillUnmarshal(t *testing.T) {
 	})
 }
 
-// func TestCombatGameFinishedUnmarshal(t *testing.T) {
-// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-// 	tests := []struct {
-// 		name      string
-// 		raw       string
-// 		want      *combat.GameFinished
-// 		wantError bool
-// 	}{
-// 		{
-// 			name: "ok",
-// 			raw:  `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
-// 			want: &combat.GameFinished{
-// 				LogTime:          time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
-// 				WinnerTeamID:     1,
-// 				WinnerTeamReason: "PVE_MISSION_COMPLETE_ALT_2",
-// 				FinishReason:     "Mission complete",
-// 				GameDuration:     (275 * time.Second) + 900*time.Millisecond,
-// 			},
-// 		},
-// 		{
-// 			name:      "cutted",
-// 			raw:       `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time`,
-// 			wantError: true,
-// 		},
-// 		{
-// 			name:      "empty",
-// 			raw:       "",
-// 			wantError: true,
-// 		},
-// 	}
+func TestCombatGameFinishedUnmarshal(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
+	tests := []struct {
+		name      string
+		raw       string
+		want      combat.FinishedGameplay
+		wantError bool
+	}{
+		{
+			name: "ok",
+			raw:  `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
+			want: combat.FinishedGameplay{
+				LogTime:      time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
+				WinnerTeamID: 1,
+				WinReason:    "PVE_MISSION_COMPLETE_ALT_2",
+				FinishReason: "Mission complete",
+				GameTime:     (275 * time.Second) + 900*time.Millisecond,
+			},
+		},
+		{
+			name:      "cutted",
+			raw:       `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time`,
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			raw:       "",
+			wantError: true,
+		},
+	}
 
-// 	for _, tt := range tests {
-// 		tt := tt
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			r := require.New(t)
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			r := require.New(t)
 
-// 			val, err := combat.ParseCombatLog([]byte(tt.raw), now)
-// 			if tt.wantError {
-// 				r.Error(err)
-// 				return
-// 			} else {
-// 				r.NoError(err)
-// 			}
+			var val combat.FinishedGameplay
+			err := val.Unmarhsal(tt.raw, now)
+			if tt.wantError {
+				r.Error(err)
+				return
+			} else {
+				r.NoError(err)
+			}
+			r.Equal(tt.want, val)
+		})
+	}
 
-// 			r.Equal(tt.want, val)
-// 		})
-// 	}
+	t.Run("raw", func(t *testing.T) {
+		r := require.New(t)
+		lines := strings.Split(finishedRaw, "\n")
 
-// 	t.Run("raw", func(t *testing.T) {
-// 		r := require.New(t)
-// 		lines := strings.Split(finishedRaw, "\n")
-
-// 		for _, line := range lines {
-// 			if line == "" {
-// 				return
-// 			}
-// 			_, err := combat.ParseCombatLog([]byte(line), now)
-// 			r.NoError(err)
-// 		}
-// 	})
-// }
+		for _, line := range lines {
+			if line == "" {
+				return
+			}
+			var val combat.FinishedGameplay
+			err := val.Unmarhsal(line, now)
+			r.NoError(err, line)
+		}
+	})
+}

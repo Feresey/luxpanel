@@ -7,6 +7,17 @@
 {{- $id := `-?\d+`}}
 {{- $float := `-?\d+\.\d+`}}
 
+connectToGameSession: >-
+    (?s){{$cmbt}} ======= Connect to game session {{wrap "SessionID" `\d+`}} =======\s*$
+
+startGameplay: >-
+    (?s){{$cmbt}} ======= Start .* '{{wrap "GameMode" ".+"}}' map '{{wrap "MapName" ".+"}}'(, local client team {{wrap "ClientTeamID" `\d+`}})?\s*=======\s*$
+
+finishedGameplay: >-
+    (?s){{$cmbt}}\s+Gameplay finished\. Winner team:\s+{{"" -}}
+{{wrap "WinnerTeamID" `\d+`}}\({{wrap "WinReason" `.*`}}\)\.\s+{{"" -}}
+Finish reason:\s+'{{wrap "FinishReason" `.*`}}'\.\s+{{"" -}}
+Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
 
 damage: >-
     (?s)^{{$damage}}

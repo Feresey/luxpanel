@@ -1,23 +1,25 @@
+// DO NOT EDIT. This file was auto-generated
+
 package combat
 
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"strconv"
+	"time"
 )
 
 var reHeal = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Heal\s+(?P<Initiator>[a-zA-Z0-9_/-]+)\|(?P<InitiatorID>-?\d+)\s+->\s+((?P<Recipient>[a-zA-Z0-9_/-]+)|(?P<ObjectName>[a-zA-Z0-9_/-]+)\((?P<ObjectOwner>[a-zA-Z0-9_/-]+)\))\|(?P<RecipientID>-?\d+)\s+(?P<Heal>-?\d+\.\d+)\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?)?\s*$`)
 
 type Heal struct {
-	LogTime time.Time
-	Initiator string
-	InitiatorID int
-	Recipient string
-	ObjectName string
-	ObjectOwner string
-	RecipientID int
-	Heal float32
+	LogTime      time.Time
+	Initiator    string
+	InitiatorID  int
+	Recipient    string
+	ObjectName   string
+	ObjectOwner  string
+	RecipientID  int
+	Heal         float32
 	ActionSource string
 }
 

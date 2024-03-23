@@ -16,6 +16,7 @@ require (
 	go.uber.org/fx v1.21.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f
+	golang.org/x/tools v0.18.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -43,6 +44,7 @@ require (
 	go.uber.org/dig v1.17.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
+	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

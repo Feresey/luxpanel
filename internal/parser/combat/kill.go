@@ -1,26 +1,28 @@
+// DO NOT EDIT. This file was auto-generated
+
 package combat
 
 import (
 	"fmt"
 	"regexp"
-	"time"
 	"strconv"
+	"time"
 )
 
 var reKill = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Killed\s+(((?P<RecipientName>[a-zA-Z0-9_/-]+)\s+(?P<RecipientShip>[a-zA-Z0-9_/-]+))|((?P<RecipientObject>[a-zA-Z0-9_/-]+)|(?P<RecipientObjectName>[a-zA-Z0-9_/-]+)\((?P<RecipientObjectOwner>[a-zA-Z0-9_/-]+)\)))\|(?P<RecipientID>-?\d+);\s+killer\s+(?P<Initiator>[a-zA-Z0-9_/-]+)\|(?P<InitiatorID>-?\d+)(\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?))?(\s+(?P<FriendlyFire><FriendlyFire>))?\s*$`)
 
 type Kill struct {
-	LogTime time.Time
-	RecipientName string
-	RecipientShip string
-	RecipientObject string
-	RecipientObjectName string
+	LogTime              time.Time
+	RecipientName        string
+	RecipientShip        string
+	RecipientObject      string
+	RecipientObjectName  string
 	RecipientObjectOwner string
-	RecipientID int
-	Initiator string
-	InitiatorID int
-	ActionSource string
-	FriendlyFire bool
+	RecipientID          int
+	Initiator            string
+	InitiatorID          int
+	ActionSource         string
+	FriendlyFire         bool
 }
 
 func (c *Kill) Unmarhsal(src string, now time.Time) (err error) {
