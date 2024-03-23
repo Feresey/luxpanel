@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"golang.org/x/exp/maps"
 )
 
@@ -18,7 +18,7 @@ const (
 	DamageTypeShield
 )
 
-type DamageModifiersMap map[parser.DamageModifier]bool
+type DamageModifiersMap map[combat.DamageModifier]bool
 
 type PlayerDamageFilterConfig struct {
 	InitiatorName    string
@@ -101,19 +101,19 @@ type DamageWithSource struct {
 }
 
 // FilterPlayerDamage суммирует урон игрока по указанным модификаторам
-func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*parser.CombatLogLineDamage, *DamageWithSource] {
-	return func(line *parser.CombatLogLineDamage) (res *DamageWithSource, ok bool) {
-		if filter.InitiatorName != "" && line.Players.Initiator != filter.InitiatorName {
+func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage, *DamageWithSource] {
+	return func(line *combat.Damage) (res *DamageWithSource, ok bool) {
+		if filter.InitiatorName != "" && line.Initiator != filter.InitiatorName {
 			return res, false
 		}
-		if filter.RecipientName != "" && line.Players.Recipient != filter.RecipientName {
+		if filter.RecipientName != "" && line.Recipient != filter.RecipientName {
 			return res, false
 		}
-		if filter.RecipientObject != "" && line.Players.RecipientObject != filter.RecipientObject {
+		if filter.RecipientObject != "" && line.ObjectName != filter.RecipientObject {
 			return res, false
 		}
 
-		if filter.FriendlyFireOnly && !line.IsFriendlyFire {
+		if filter.FriendlyFireOnly && !line.FriendlyFire {
 			return res, false
 		}
 
@@ -127,8 +127,13 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*parser.CombatL
 
 		switch filter.DamageType {
 		case DamageTypeTotal:
-			return &DamageWithSource{Value: line.DamageTotal, Source: line.DamageSource}, true
+			return &DamageWithSource{Value: line.DamageTotal, Source: line.ActionSource}, true
 		case DamageTypeHull:
-			return &DamageWithSource{Value: line.DamageHull, Source: line.DamageSource}, true
+			return &DamageWithSource{Value: line.DamageHull, Source: line.ActionSource}, true
 		case DamageTypeShield:
-			return &DamageWithSource{Value: line.DamageShield, Source: line.DamageSourc
+			return &DamageWithSource{Value: line.DamageShield, Source: line.ActionSource}, true
+		default:
+			return res, false
+		}
+	}
+}

@@ -11,7 +11,8 @@ import (
 	"golang.org/x/exp/maps"
 
 	"github.com/Feresey/luxpanel/internal/logger"
-	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/game"
 )
 
 var ErrLogsCorrupted = errors.New("logs corrupted")
@@ -25,7 +26,7 @@ func NewSplitter(lg logger.Factory, tr trace.TracerProvider) *Splitter {
 	return &Splitter{lg: lg, tr: tr.Tracer("splitter")}
 }
 
-func (f *Splitter) SplitLevels(ctx context.Context, gameLog []parser.GameLogLine, combatLog []parser.CombatLogLine) ([]*Level, error) {
+func (f *Splitter) SplitLevels(ctx context.Context, gameLog []game.LogLine, combatLog []combat.LogLine) ([]*Level, error) {
 	ctx, span := f.tr.Start(ctx, "SplitLevels")
 	defer span.End()
 
@@ -102,7 +103,7 @@ func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 		player := Player{
 			ID:      logPlayer.PlayerID,
 			Name:    logPlayer.PlayerName,
-			CorpTag: logPlayer.PlayerCorp,
+			CorpTag: logPlayer.PlayerCorpTag,
 			TeamID:  logPlayer.TeamID,
 		}
 		teamMap := playerTeamsMap[logPlayer.TeamID]
@@ -160,26 +161,26 @@ type Level struct {
 // TODO make timeline func for level
 
 type GameLogLevel struct {
-	Lines []parser.GameLogLine
+	Lines []game.LogLine
 
-	StartGameplay  *parser.GameLogLineConnected
-	AddPlayer      []*parser.GameLogLineAddPlayer
-	LeavePlayer    []*parser.GameLogLinePlayerLeave
-	FinishGameplay *parser.GameLogLineConnectionClosed
+	StartGameplay  *game.Connected
+	AddPlayer      []*game.AddPlayer
+	LeavePlayer    []*game.PlayerLeave
+	FinishGameplay *game.ConnectionClosed
 }
 
 type CombatLogLevel struct {
-	Lines []parser.CombatLogLine
+	Lines []combat.LogLine
 
-	Connect  *parser.CombatLogLineConnectToGameSession
-	Start    *parser.CombatLogLineStartGameplay
-	Damage   []*parser.CombatLogLineDamage
-	Heal     []*parser.CombatLogLineHeal
-	Kill     []*parser.CombatLogLineKill
-	Finished *parser.CombatLogLineGameFinished
+	Connect  *combat.ConnectToGameSession
+	Start    *combat.StartGameplay
+	Damage   []*combat.Damage
+	Heal     []*combat.Heal
+	Kill     []*combat.Kill
+	Finished *combat.FinishedGameplay
 }
 
-func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogLine) (res []*GameLogLevel) {
+func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []game.LogLine) (res []*GameLogLevel) {
 	ctx, span := f.tr.Start(ctx, "GetGameLogLevels")
 	defer span.End()
 
@@ -188,7 +189,7 @@ func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogL
 	for _, line := range lines {
 		currLevel.Lines = append(currLevel.Lines, line)
 		switch line := line.(type) {
-		case *parser.GameLogLineConnected:
+		case *game.Connected:
 			if currLevel.StartGameplay != nil {
 				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line,
 					"start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
@@ -196,20 +197,19 @@ func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogL
 				currLevel = new(GameLogLevel)
 			}
 			currLevel.StartGameplay = line
-		case *parser.GameLogLineAddPlayer:
+		case *game.AddPlayer:
 			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
-		case *parser.GameLogLineConnectionClosed:
+		case *game.ConnectionClosed:
 			currLevel.FinishGameplay = line
-			if line.Reason == parser.ConnectionClosedReasonClientCouldNotConnect {
+			if line.CloseReason == game.ConnectionClosedReasonClientCouldNotConnect {
 				f.lg.For(ctx).Infow("detected could not connect log", "line", line)
 				currLevel = new(GameLogLevel)
 				continue
 			}
 			res = append(res, currLevel)
 			currLevel = new(GameLogLevel)
-		case *parser.GameLogLinePlayerLeave:
+		case *game.PlayerLeave:
 			currLevel.LeavePlayer = append(currLevel.LeavePlayer, line)
-		case *parser.GameLogLineNetStat: // Я хз что с этим делать
 		}
 	}
 
@@ -217,7 +217,7 @@ func (f *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.GameLogL
 	return res
 }
 
-func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.CombatLogLine) (res []*CombatLogLevel) {
+func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLine) (res []*CombatLogLevel) {
 	ctx, span := f.tr.Start(ctx, "GetCombatLogLevels")
 	defer span.End()
 
@@ -226,7 +226,7 @@ func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.Combat
 	for _, line := range lines {
 		currLevel.Lines = append(currLevel.Lines, line)
 		switch line := line.(type) {
-		case *parser.CombatLogLineConnectToGameSession:
+		case *combat.ConnectToGameSession:
 			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
 				f.lg.For(ctx).Warnw("connect to game session twice",
 					"prev", currLevel.Connect, "next", line,
@@ -235,7 +235,7 @@ func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.Combat
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Connect = line
-		case *parser.CombatLogLineStartGameplay:
+		case *combat.StartGameplay:
 			if currLevel.Start != nil {
 				f.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.Start, "next", line,
 					"connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
@@ -243,11 +243,20 @@ func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.Combat
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Start = line
-		case *parser.CombatLogLineDamage:
+		case *combat.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)
-		case *parser.CombatLogLineHeal:
+		case *combat.Heal:
 			currLevel.Heal = append(currLevel.Heal, line)
-		case *parser.CombatLogLineKill:
+		case *combat.Kill:
 			currLevel.Kill = append(currLevel.Kill, line)
-		case *parser.CombatLogLineGameFinished:
-			currLev
+		case *combat.FinishedGameplay:
+			currLevel.Finished = line
+			// f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
+			res = append(res, currLevel)
+			currLevel = new(CombatLogLevel)
+		}
+	}
+
+	f.lg.For(ctx).Infow("got combat log levels", "count", len(res))
+	return res
+}
