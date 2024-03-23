@@ -1,0 +1,32 @@
+{{- $time := `(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+`}}
+{{- $name := `[a-zA-Z0-9_/-]+`}}
+{{- $emptyName := `[a-zA-Z0-9_/-]*`}}
+{{- $id := `-?\d+`}}
+{{- $int := `\d+`}}
+{{- $float := `-?\d+\.\d+`}}
+
+connected: >-
+    (?s){{$time}}client: connected to
+
+addPlayer: >-
+    (?s){{$time}}client: ADD_PLAYER {{wrap "SessionPlayerID" $int}}
+{{- `\s+\(` -}}
+{{wrap "PlayerName" $name -}}
+(
+{{- `\s+\[` -}}
+{{wrap "PlayerCorpTag" $emptyName}}
+{{- `\]` -}}
+)?,\s+{{"" -}}
+{{wrap "PlayerID" $int}}
+{{- `\)\s+` -}}
+status\s+{{wrap "ConnectionStatus" $int}}\s+{{"" -}}
+team\s+{{wrap "TeamID" $int -}}
+(\s+group\s+
+{{- wrap "GroupID" $int -}}
+)?\s*$
+
+playerLeave: >-
+    (?s){{$time}}client: player {{wrap "PlayerID" $int}} leave game\s*$
+
+connectionClosed: >-
+    (?s){{$time}}client: connection closed\. {{wrap "CloseReason" `[A-Z_]+`}}\s*$

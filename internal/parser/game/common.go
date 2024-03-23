@@ -1,13 +1,21 @@
 // DO NOT EDIT. This file was auto-generated
 
-package {{ (index . 0).PackageName}}
+package game
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
+)
+
+type GameLineType string
+
+const (
+	ConnectionClosedLineType = "ConnectionClosed"
+	ConnectedLineType        = "Connected"
+	AddPlayerLineType        = "AddPlayer"
+	PlayerLeaveLineType      = "PlayerLeave"
 )
 
 var (
@@ -32,7 +40,7 @@ func parseTime(nowTime time.Time) func(string) (time.Time, error) {
 }
 
 func parseSeconds(s string) (time.Duration, error) {
-	return time.ParseDuration(s+"s")
+	return time.ParseDuration(s + "s")
 }
 
 func parseBool(s string) (bool, error) {
@@ -85,41 +93,29 @@ func parseField[T any](raw string, fieldName string, convert func(raw string) (r
 	return res, nil
 }
 
-type DamageModifier string
-type DamageModifiersMap map[DamageModifier]struct{}
+type ConnectionClosedReason string
 
 const (
-	DamageTypeEMP         DamageModifier = "EMP"
-	DamageTypeKinetic     DamageModifier = "KINETIC"
-	DamageTypeThermal     DamageModifier = "THERMAL"
-	DamageTypeTrueDamage  DamageModifier = "TRUE_DAMAGE"
-	DamageUnintention     DamageModifier = "UNINTENTION"
-	DamageCrit            DamageModifier = "CRIT"
-	DamageExplosion       DamageModifier = "EXPLOSION"
-	DamageCollision       DamageModifier = "COLLISION"
-	DamageWeaponPrimary   DamageModifier = "PRIMARY_WEAPON"
-	DamageWeaponSecondary DamageModifier = "SECONDARY_WEAPON"
-	DamageIgnoreScale     DamageModifier = "IGNORE_DAMAGE_SCALE"
-	DamageIgoreShield     DamageModifier = "IGNORE_SHIELD"
-	DamageModule          DamageModifier = "MODULE"
+	ConnectionClosedReasonGameFinished          ConnectionClosedReason = "DR_CLIENT_GAME_FINISHED"
+	ConnectionClosedReasonClientCouldNotConnect ConnectionClosedReason = "DR_CLIENT_COULD_NOT_CONNECT"
+	ConnectionClosedReasonQuit                  ConnectionClosedReason = "DR_CLIENT_QUIT"
 )
 
-func parseDamageModifiers(raw string) (res DamageModifiersMap, err error) {
-	parts := strings.Split(raw, "|")
-	if len(parts) == 0 {
-		return res, fmt.Errorf("wrong parts number")
+func (c ConnectionClosedReason) Validate() error {
+	switch c {
+	case ConnectionClosedReasonGameFinished:
+	case ConnectionClosedReasonClientCouldNotConnect:
+	case ConnectionClosedReasonQuit:
+	default:
+		return fmt.Errorf("undefined connection closed reason: %q", c)
 	}
-	res = make(DamageModifiersMap, len(parts))
-	for _, p := range parts {
-		res[DamageModifier(p)] = struct{}{}
+	return nil
+}
+
+func parseConnectionClosedReason(s string) (res ConnectionClosedReason, err error) {
+	res = ConnectionClosedReason(s)
+	if err := res.Validate(); err != nil {
+		return res, err
 	}
 	return res, nil
 }
-
-type {{ (index . 0).PackageName | camelcase}}LineType string
-
-const (
-	{{- range $i, $type := .}}
-	{{$type.TypeName}}LineType = "{{$type.TypeName}}"
-	{{- end}}
-)

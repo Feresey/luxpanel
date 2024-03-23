@@ -1,0 +1,12 @@
+19:34:07.464         | client: connection closed. DR_CLIENT_QUIT
+19:47:31.186         | client: connection closed. DR_CLIENT_GAME_FINISHED
+20:01:18.086         | client: connection closed. DR_CLIENT_QUIT
+20:18:46.569         | client: connection closed. DR_CLIENT_GAME_FINISHED
+20:30:17.253         | client: connection closed. DR_CLIENT_GAME_FINISHED
+20:46:09.038         | client: connection closed. DR_CLIENT_GAME_FINISHED
+20:59:06.041         | client: connection closed. DR_CLIENT_GAME_FINISHED
+21:17:54.025         | client: connection closed. DR_CLIENT_GAME_FINISHED
+21:28:56.924         | client: connection closed. DR_CLIENT_GAME_FINISHED
+21:37:38.024         | client: connection closed. DR_CLIENT_GAME_FINISHED
+21:44:21.691         | client: connection closed. DR_CLIENT_GAME_FINISHED
+21:51:50.272         | client: connection closed. DR_CLIENT_GAME_FINISHED
