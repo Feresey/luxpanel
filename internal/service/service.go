@@ -16,6 +16,7 @@ import (
 	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
@@ -143,13 +144,13 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 	return []*PlayerDamageFilterConfig{
 		copyFilter(DamageModifiersMap{}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageCrit: true,
+			combat.DamageCrit: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageWeaponPrimary: true,
+			combat.DamageWeaponPrimary: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageExplosion: true,
+			combat.DamageExplosion: true,
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageWeaponPrimary:   false,
@@ -159,19 +160,19 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 			parser.DamageIgoreShield:     false,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageIgoreShield: true,
+			combat.DamageIgoreShield: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageCollision: true,
+			combat.DamageCollision: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageTypeEMP: true,
+			combat.DamageTypeEMP: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageTypeKinetic: true,
+			combat.DamageTypeKinetic: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			parser.DamageTypeThermal: true,
+			combat.DamageTypeThermal: true,
 		}),
 		copyFilter(DamageModifiersMap{
 			parser.DamageModule: true,

@@ -56,7 +56,7 @@ func TestConnectedUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val game.Connected
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -76,7 +76,7 @@ func TestConnectedUnmarshal(t *testing.T) {
 				return
 			}
 			var val game.Connected
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -150,7 +150,7 @@ func TestAddPlayerUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val game.AddPlayer
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -170,7 +170,7 @@ func TestAddPlayerUnmarshal(t *testing.T) {
 				return
 			}
 			var val game.AddPlayer
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -218,7 +218,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val game.ConnectionClosed
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -238,7 +238,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 				return
 			}
 			var val game.ConnectionClosed
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -278,7 +278,7 @@ func TestLeaveUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val game.PlayerLeave
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -298,7 +298,7 @@ func TestLeaveUnmarshal(t *testing.T) {
 				return
 			}
 			var val game.PlayerLeave
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})

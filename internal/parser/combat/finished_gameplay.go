@@ -19,10 +19,10 @@ type FinishedGameplay struct {
 	GameTime     time.Duration
 }
 
-func (c *FinishedGameplay) Unmarhsal(src string, now time.Time) (err error) {
+func (c *FinishedGameplay) Unmarshal(src string, now time.Time) (err error) {
 	res := reFinishedGameplay.FindStringSubmatch(src)
 	if len(res) != 6 {
-		return fmt.Errorf("%w: %d", ErrWrongLineFormat, len(res))
+		return fmt.Errorf("%w: %d", errWrongLineFormat, len(res))
 	}
 
 	c.LogTime, err = parseField(res[1], "LogTime", parseTime(now))

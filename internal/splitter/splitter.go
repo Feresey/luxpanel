@@ -250,13 +250,4 @@ func (f *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.Combat
 		case *parser.CombatLogLineKill:
 			currLevel.Kill = append(currLevel.Kill, line)
 		case *parser.CombatLogLineGameFinished:
-			currLevel.Finished = line
-			// f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
-			res = append(res, currLevel)
-			currLevel = new(CombatLogLevel)
-		}
-	}
-
-	f.lg.For(ctx).Infow("got combat log levels", "count", len(res))
-	return res
-}
+			currLev

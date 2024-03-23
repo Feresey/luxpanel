@@ -11,17 +11,43 @@ import (
 
 type GameLineType string
 
+func (s GameLineType) String() string { return string(s) }
+
 const (
+	PlayerLeaveLineType      = "PlayerLeave"
 	ConnectionClosedLineType = "ConnectionClosed"
 	ConnectedLineType        = "Connected"
 	AddPlayerLineType        = "AddPlayer"
-	PlayerLeaveLineType      = "PlayerLeave"
 )
 
-var (
-	ErrUndefinedLineType = errors.New("undefined line type")
-	ErrWrongLineFormat   = errors.New("wrong format")
-)
+type LogLine interface {
+	Type() GameLineType
+	Time() time.Time
+	Unmarshal(raw string, now time.Time) error
+}
+
+var errWrongLineFormat = errors.New("Game: wrong format")
+
+func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
+	switch {
+	case rePlayerLeave.MatchString(raw):
+		line = &PlayerLeave{}
+	case reConnectionClosed.MatchString(raw):
+		line = &ConnectionClosed{}
+	case reConnected.MatchString(raw):
+		line = &Connected{}
+	case reAddPlayer.MatchString(raw):
+		line = &AddPlayer{}
+	default:
+		return nil, false, nil
+	}
+
+	if err := line.Unmarshal(raw, now); err != nil {
+		return nil, true, fmt.Errorf("line matched to regex(%s), but failed to parse: %s: %s", line.Type().String(), raw, err.Error())
+	}
+
+	return line, true, nil
+}
 
 const timeFormat = "15:04:05.000"
 

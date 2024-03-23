@@ -9,9 +9,15 @@ import (
 	"regexp"
 	"time"
 
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/Feresey/luxpanel/internal/logger"
+	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/game"
+	"go.opentelemetry.io/otel/trace"
+)
+
+var (
+	ErrUndefinedLineType = errors.New("{{$packageNameCamel}}: undefined line type")
+	ErrWrongLineFormat   = errors.New("{{$packageNameCamel}}: wrong format")
 )
 
 func NewParser(lf logger.Factory, tr trace.TracerProvider) *Parser {
@@ -26,7 +32,14 @@ type Parser struct {
 	tr trace.Tracer
 }
 
-func parseLog[T any](ctx context.Context, p *Parser, r io.Reader, parse func([]byte, time.Time) (T, error)) ([]T, error) {
+type logLineParser[T any] func(string, time.Time) (T, bool, error)
+
+func parseLog[T any](
+	ctx context.Context,
+	p *Parser,
+	r io.Reader,
+	parse logLineParser[T],
+) ([]T, error) {
 	var res []T
 
 	rd := bufio.NewReader(r)
@@ -36,16 +49,25 @@ func parseLog[T any](ctx context.Context, p *Parser, r io.Reader, parse func([]b
 	}
 
 	for {
-		line, err := parseLogLine(ctx, p, rd, logTime, parse)
+		rawLine, isPrefix, err := rd.ReadLine()
 		if err != nil {
-			if !errors.Is(err, ErrUndefinedLineType) {
-				if errors.Is(err, io.EOF) {
-					p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
-					break
-				}
-				return nil, fmt.Errorf("parse: %w", err)
+			if errors.Is(err, io.EOF) {
+				p.lf.For(ctx).Debugw("EOF", "total_lines", len(res))
+				break
 			}
+			return nil, fmt.Errorf("read log: %w", err)
+		}
+		if isPrefix {
+			p.lf.For(ctx).Warnw("very long line. possible log corruption", "line", rawLine)
+			return nil, fmt.Errorf("very long line detected: %s", rawLine)
+		}
+
+		line, matched, err := parse(string(rawLine), logTime)
+		if !matched {
 			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("parse: %w", err)
 		}
 		res = append(res, line)
 	}
@@ -53,35 +75,18 @@ func parseLog[T any](ctx context.Context, p *Parser, r io.Reader, parse func([]b
 	return res, nil
 }
 
-func parseLogLine[T any](ctx context.Context, p *Parser, r *bufio.Reader, startTime time.Time, parseLogLine func([]byte, time.Time) (T, error)) (logLine T, err error) {
-	rawLine, isPrefix, err := r.ReadLine()
-	if err != nil {
-		return logLine, fmt.Errorf("read log: %w", err)
-	}
-	if isPrefix {
-		p.lf.For(ctx).Warnw("very long line. possible log corruption", "line", rawLine)
-		return logLine, fmt.Errorf("very long line detected: %s", rawLine)
-	}
-
-	line, err := parseLogLine(rawLine, startTime)
-	if err != nil {
-		return logLine, fmt.Errorf("parseLogLine: %w", err)
-	}
-	return line, nil
-}
-
-func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]GameLogLine, error) {
+func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]game.LogLine, error) {
 	ctx, trace := p.tr.Start(ctx, "ParseGameLog")
 	defer trace.End()
 
-	return parseLog(ctx, p, r, ParseGameLogLine)
+	return parseLog(ctx, p, r, game.ParseLogLine)
 }
 
-func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]CombatLogLine, error) {
+func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]combat.LogLine, error) {
 	ctx, trace := p.tr.Start(ctx, "ParseCombatLog")
 	defer trace.End()
 
-	return parseLog(ctx, p, r, ParseCombatLogLine)
+	return parseLog(ctx, p, r, combat.ParseLogLine)
 }
 
 var firstLogLineRe = regexp.MustCompile(`--- Date: (\d\d\d\d-\d\d-\d\d)`)

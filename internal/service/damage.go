@@ -131,9 +131,4 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*parser.CombatL
 		case DamageTypeHull:
 			return &DamageWithSource{Value: line.DamageHull, Source: line.DamageSource}, true
 		case DamageTypeShield:
-			return &DamageWithSource{Value: line.DamageShield, Source: line.DamageSource}, true
-		default:
-			return res, false
-		}
-	}
-}
+			return &DamageWithSource{Value: line.DamageShield, Source: line.DamageSourc

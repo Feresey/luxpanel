@@ -25,10 +25,10 @@ type Kill struct {
 	FriendlyFire         bool
 }
 
-func (c *Kill) Unmarhsal(src string, now time.Time) (err error) {
+func (c *Kill) Unmarshal(src string, now time.Time) (err error) {
 	res := reKill.FindStringSubmatch(src)
 	if len(res) != 17 {
-		return fmt.Errorf("%w: %d", ErrWrongLineFormat, len(res))
+		return fmt.Errorf("%w: %d", errWrongLineFormat, len(res))
 	}
 
 	c.LogTime, err = parseField(res[1], "LogTime", parseTime(now))

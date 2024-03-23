@@ -14,10 +14,10 @@ type Connected struct {
 	LogTime time.Time
 }
 
-func (c *Connected) Unmarhsal(src string, now time.Time) (err error) {
+func (c *Connected) Unmarshal(src string, now time.Time) (err error) {
 	res := reConnected.FindStringSubmatch(src)
 	if len(res) != 2 {
-		return fmt.Errorf("%w: %d", ErrWrongLineFormat, len(res))
+		return fmt.Errorf("%w: %d", errWrongLineFormat, len(res))
 	}
 
 	c.LogTime, err = parseField(res[1], "LogTime", parseTime(now))

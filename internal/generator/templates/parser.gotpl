@@ -17,10 +17,10 @@ type {{.TypeName}} struct {
 	{{- end}}
 }
 
-func (c *{{.TypeName}}) Unmarhsal(src string, now time.Time) (err error) {
+func (c *{{.TypeName}}) Unmarshal(src string, now time.Time) (err error) {
 	res := {{.Regexp.Name}}.FindStringSubmatch(src)
 	if len(res) != {{.Regexp.TotalMatches}} {
-		return fmt.Errorf("%w: %d", ErrWrongLineFormat, len(res))
+		return fmt.Errorf("%w: %d", errWrongLineFormat, len(res))
 	}
 {{range $i, $field := .Fields}}
 {{- if $field.Type.IsString}}

@@ -12,6 +12,8 @@ import (
 
 type CombatLineType string
 
+func (s CombatLineType) String() string { return string(s) }
+
 const (
 	ConnectToGameSessionLineType = "ConnectToGameSession"
 	StartGameplayLineType        = "StartGameplay"
@@ -21,10 +23,38 @@ const (
 	KillLineType                 = "Kill"
 )
 
-var (
-	ErrUndefinedLineType = errors.New("undefined line type")
-	ErrWrongLineFormat   = errors.New("wrong format")
-)
+type LogLine interface {
+	Type() CombatLineType
+	Time() time.Time
+	Unmarshal(raw string, now time.Time) error
+}
+
+var errWrongLineFormat = errors.New("Combat: wrong format")
+
+func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
+	switch {
+	case reConnectToGameSession.MatchString(raw):
+		line = &ConnectToGameSession{}
+	case reStartGameplay.MatchString(raw):
+		line = &StartGameplay{}
+	case reFinishedGameplay.MatchString(raw):
+		line = &FinishedGameplay{}
+	case reDamage.MatchString(raw):
+		line = &Damage{}
+	case reHeal.MatchString(raw):
+		line = &Heal{}
+	case reKill.MatchString(raw):
+		line = &Kill{}
+	default:
+		return nil, false, nil
+	}
+
+	if err := line.Unmarshal(raw, now); err != nil {
+		return nil, true, fmt.Errorf("line matched to regex(%s), but failed to parse: %s: %s", line.Type().String(), raw, err.Error())
+	}
+
+	return line, true, nil
+}
 
 const timeFormat = "15:04:05.000"
 

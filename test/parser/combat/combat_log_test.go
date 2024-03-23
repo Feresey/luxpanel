@@ -65,7 +65,7 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.ConnectToGameSession
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -85,7 +85,7 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.ConnectToGameSession
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -146,7 +146,7 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.StartGameplay
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -166,7 +166,7 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.StartGameplay
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -254,7 +254,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.Damage
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -276,7 +276,7 @@ func TestCombatDamageUnmarshal(t *testing.T) {
 				break
 			}
 			var val combat.Damage
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err)
 
 			for m := range val.DamageModifiers {
@@ -328,7 +328,7 @@ func TestCombatHealUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.Heal
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -349,7 +349,7 @@ func TestCombatHealUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.Heal
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err)
 		}
 	})
@@ -434,7 +434,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.Kill
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -454,7 +454,7 @@ func TestCombatKillUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.Kill
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
@@ -497,7 +497,7 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 			r := require.New(t)
 
 			var val combat.FinishedGameplay
-			err := val.Unmarhsal(tt.raw, now)
+			err := val.Unmarshal(tt.raw, now)
 			if tt.wantError {
 				r.Error(err)
 				return
@@ -517,7 +517,7 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.FinishedGameplay
-			err := val.Unmarhsal(line, now)
+			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}
 	})
