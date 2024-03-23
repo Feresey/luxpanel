@@ -170,6 +170,8 @@ func TestCombatStartGameplayUnmarshal(t *testing.T) {
 
 func TestCombatDamageUnmarshal(t *testing.T) {
 	println(parser.DamageLine)
+	println(parser.HealLine)
+	println(parser.KillLine)
 
 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
 	tests := []struct {
