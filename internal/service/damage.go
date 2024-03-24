@@ -9,7 +9,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-//go:generate stringer -type=DamageType
+//go:generate stringer -type=DamageType -trimprefix DamageType
 type DamageType int
 
 const (
@@ -83,27 +83,31 @@ func (f *PlayerDamageFilterConfig) String() string {
 
 type DamageResult struct {
 	BySource map[string]float32
+	ToObject map[string]float32
 }
 
-func SummDamageBySource(res *DamageResult, elem *DamageWithSource) *DamageResult {
+func SummDamageBySource(res *DamageResult, elem *DetailedDamage) *DamageResult {
 	if res == nil {
-		res = new(DamageResult)
-		res.BySource = make(map[string]float32)
+		res = &DamageResult{
+			BySource: make(map[string]float32),
+			ToObject: make(map[string]float32),
+		}
 	}
 
 	res.BySource[elem.Source] += elem.Damage
+	res.ToObject[elem.Object] += elem.Damage
 	return res
 }
 
-type DamageWithSource struct {
+type DetailedDamage struct {
 	Source string
 	Object string
 	Damage float32
 }
 
 // FilterPlayerDamage суммирует урон игрока по указанным модификаторам
-func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage, *DamageWithSource] {
-	return func(line *combat.Damage) (res *DamageWithSource, ok bool) {
+func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage, *DetailedDamage] {
+	return func(line *combat.Damage) (res *DetailedDamage, ok bool) {
 		if filter.InitiatorName != "" && line.Initiator != filter.InitiatorName {
 			return res, false
 		}
@@ -135,7 +139,7 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage,
 			}
 		}
 
-		res = &DamageWithSource{Source: line.ActionSource, Object: line.ObjectName}
+		res = &DetailedDamage{Source: line.ActionSource, Object: line.ObjectName}
 		switch filter.DamageType {
 		case DamageTypeTotal:
 			res.Damage = line.DamageTotal
@@ -144,7 +148,7 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage,
 		case DamageTypeShield:
 			res.Damage = line.DamageShield
 		}
-		return res, false
+		return res, true
 	}
 }
 
