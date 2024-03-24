@@ -81,7 +81,7 @@ func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Le
 		err = errors.Join(err, outFile.Close())
 	}()
 
-	s.lg.For(ctx).Warnw("write to file", "name", s.cfg.TextOut)
+	s.lg.For(ctx).Infow("write to file", "name", s.cfg.TextOut)
 
 	for _, level := range levels {
 		if err := s.writeLevelStatistics(ctx, level, outFile); err != nil {
@@ -133,12 +133,12 @@ func (s *Service) writeLevelStatistics(ctx context.Context, lvl *splitter.Level,
 func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterConfig {
 	copyFilter := func(modifiers DamageModifiersMap) *PlayerDamageFilterConfig {
 		return &PlayerDamageFilterConfig{
-			InitiatorName:    filter.InitiatorName,
-			RecipientName:    filter.RecipientName,
-			RecipientObject:  filter.RecipientObject,
-			DamageType:       filter.DamageType,
-			DamageModifiers:  modifiers,
-			FriendlyFireOnly: filter.FriendlyFireOnly,
+			InitiatorName:   filter.InitiatorName,
+			RecipientName:   filter.RecipientName,
+			DamageToObject:  filter.DamageToObject,
+			DamageType:      filter.DamageType,
+			DamageModifiers: modifiers,
+			FriendlyFire:    filter.FriendlyFire,
 		}
 	}
 	return []*PlayerDamageFilterConfig{
@@ -147,10 +147,19 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 			combat.DamageCrit: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageWeaponPrimary: true,
+			combat.DamageExplosion: true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageExplosion: true,
+			combat.DamageTypeEMP: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			combat.DamageTypeKinetic: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			combat.DamageTypeThermal: true,
+		}),
+		copyFilter(DamageModifiersMap{
+			combat.DamageWeaponPrimary: true,
 		}),
 		copyFilter(DamageModifiersMap{
 			combat.DamageWeaponPrimary:   false,
@@ -164,15 +173,6 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 		}),
 		copyFilter(DamageModifiersMap{
 			combat.DamageCollision: true,
-		}),
-		copyFilter(DamageModifiersMap{
-			combat.DamageTypeEMP: true,
-		}),
-		copyFilter(DamageModifiersMap{
-			combat.DamageTypeKinetic: true,
-		}),
-		copyFilter(DamageModifiersMap{
-			combat.DamageTypeThermal: true,
 		}),
 		copyFilter(DamageModifiersMap{
 			combat.DamageModule: true,
@@ -197,8 +197,8 @@ func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (r
 				InitiatorName: player.Name,
 			})...)
 			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-				InitiatorName:    player.Name,
-				FriendlyFireOnly: true,
+				InitiatorName: player.Name,
+				FriendlyFire:  true,
 			})...)
 			for _, enemy := range enemies {
 				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
@@ -206,9 +206,9 @@ func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (r
 					RecipientName: enemy.Name,
 				})...)
 				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-					InitiatorName:    player.Name,
-					RecipientName:    enemy.Name,
-					FriendlyFireOnly: true,
+					InitiatorName: player.Name,
+					RecipientName: enemy.Name,
+					FriendlyFire:  true,
 				})...)
 			}
 		}

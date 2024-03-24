@@ -20,6 +20,10 @@ type Aggregator[A, V any] func(agg A, val V) A
 
 type Filter[T, V any] func(val T) (res V, ok bool)
 
+func NoopFilter[T any](val T) (res T, ok bool) {
+	return val, true
+}
+
 func Sum(summ float32, val float32) float32 {
 	return summ + val
 }
