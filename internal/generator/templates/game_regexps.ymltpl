@@ -5,10 +5,12 @@
 {{- $int := `\d+`}}
 {{- $float := `-?\d+\.\d+`}}
 
-connected: >-
+regexps:
+- name: connected
+  value: >-
     (?s){{$time}}client: connected to
-
-addPlayer: >-
+- name: addPlayer
+  value: >-
     (?s){{$time}}client: ADD_PLAYER {{wrap "SessionPlayerID" $int}}
 {{- `\s+\(` -}}
 {{wrap "PlayerName" $name -}}
@@ -24,9 +26,9 @@ team\s+{{wrap "TeamID" $int -}}
 (\s+group\s+
 {{- wrap "GroupID" $int -}}
 )?\s*$
-
-playerLeave: >-
+- name: playerLeave
+  value: >-
     (?s){{$time}}client: player {{wrap "PlayerID" $int}} leave game\s*$
-
-connectionClosed: >-
+- name: connectionClosed
+  value: >-
     (?s){{$time}}client: connection closed\. {{wrap "CloseReason" `[A-Z_]+`}}\s*$

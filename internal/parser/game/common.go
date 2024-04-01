@@ -14,10 +14,10 @@ type GameLineType string
 func (s GameLineType) String() string { return string(s) }
 
 const (
-	PlayerLeaveLineType      = "PlayerLeave"
-	ConnectionClosedLineType = "ConnectionClosed"
-	ConnectedLineType        = "Connected"
 	AddPlayerLineType        = "AddPlayer"
+	ConnectedLineType        = "Connected"
+	ConnectionClosedLineType = "ConnectionClosed"
+	PlayerLeaveLineType      = "PlayerLeave"
 )
 
 type LogLine interface {
@@ -30,14 +30,14 @@ var errWrongLineFormat = errors.New("Game: wrong format")
 
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
 	switch {
-	case rePlayerLeave.MatchString(raw):
-		line = &PlayerLeave{}
-	case reConnectionClosed.MatchString(raw):
-		line = &ConnectionClosed{}
-	case reConnected.MatchString(raw):
-		line = &Connected{}
 	case reAddPlayer.MatchString(raw):
 		line = &AddPlayer{}
+	case reConnected.MatchString(raw):
+		line = &Connected{}
+	case reConnectionClosed.MatchString(raw):
+		line = &ConnectionClosed{}
+	case rePlayerLeave.MatchString(raw):
+		line = &PlayerLeave{}
 	default:
 		return nil, false, nil
 	}
@@ -125,23 +125,11 @@ const (
 	ConnectionClosedReasonGameFinished          ConnectionClosedReason = "DR_CLIENT_GAME_FINISHED"
 	ConnectionClosedReasonClientCouldNotConnect ConnectionClosedReason = "DR_CLIENT_COULD_NOT_CONNECT"
 	ConnectionClosedReasonQuit                  ConnectionClosedReason = "DR_CLIENT_QUIT"
+	ConnectionClosedReasonServerTransfer        ConnectionClosedReason = "DR_CLIENT_SERVER_TRANSFER"
+	ConnectionClosedReasonDockSpaceStation      ConnectionClosedReason = "DR_CLIENT_DOCK_SPACE_STATION"
+	ConnectionClosedReasonReturnSpaceStation    ConnectionClosedReason = "DR_CLIENT_RETURN_SPACE_STATION"
 )
 
-func (c ConnectionClosedReason) Validate() error {
-	switch c {
-	case ConnectionClosedReasonGameFinished:
-	case ConnectionClosedReasonClientCouldNotConnect:
-	case ConnectionClosedReasonQuit:
-	default:
-		return fmt.Errorf("undefined connection closed reason: %q", c)
-	}
-	return nil
-}
-
 func parseConnectionClosedReason(s string) (res ConnectionClosedReason, err error) {
-	res = ConnectionClosedReason(s)
-	if err := res.Validate(); err != nil {
-		return res, err
-	}
-	return res, nil
+	return ConnectionClosedReason(s), nil
 }

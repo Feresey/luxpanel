@@ -7,19 +7,21 @@
 {{- $id := `-?\d+`}}
 {{- $float := `-?\d+\.\d+`}}
 
-connectToGameSession: >-
+regexps:
+- name: connectToGameSession
+  value: >-
     (?s){{$cmbt}} ======= Connect to game session {{wrap "SessionID" `\d+`}} =======\s*$
-
-startGameplay: >-
+- name: startGameplay
+  value: >-
     (?s){{$cmbt}} ======= Start .* '{{wrap "GameMode" ".+"}}' map '{{wrap "MapName" ".+"}}'(, local client team {{wrap "ClientTeamID" `\d+`}})?\s*=======\s*$
-
-finishedGameplay: >-
+- name: finishedGameplay
+  value: >-
     (?s){{$cmbt}}\s+Gameplay finished\. Winner team:\s+{{"" -}}
 {{wrap "WinnerTeamID" `\d+`}}\({{wrap "WinReason" `.*`}}\)\.\s+{{"" -}}
 Finish reason:\s+'{{wrap "FinishReason" `.*`}}'\.\s+{{"" -}}
 Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
-
-damage: >-
+- name: damage
+  value: >-
     (?s)^{{$damage}}
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}\s+->\s+{{"" -}}
 ({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))\|{{wrap "RecipientID" $id -}}\s+
@@ -29,15 +31,15 @@ damage: >-
 ({{wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}})?\s+{{"" -}}
 {{wrap "DamageModifiers" `[A-Z\|_]+` -}}
 (\s+{{wrap "FriendlyFire" "<FriendlyFire>"}})?\s*$
-
-heal: >-
+- name: heal
+  value: >-
     (?s)^{{$heal}}
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}\s+->\s+{{"" -}}
 ({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))\|{{wrap "RecipientID" $id -}}\s+
 {{- wrap "Heal" $float}}\s+
 {{- wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}}?\s*$
-
-kill: >-
+- name: kill
+  value: >-
     (?s)^{{$kill -}}
 (
 {{- "" -}}

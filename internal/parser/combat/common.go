@@ -16,11 +16,11 @@ func (s CombatLineType) String() string { return string(s) }
 
 const (
 	ConnectToGameSessionLineType = "ConnectToGameSession"
-	StartGameplayLineType        = "StartGameplay"
-	FinishedGameplayLineType     = "FinishedGameplay"
 	DamageLineType               = "Damage"
+	FinishedGameplayLineType     = "FinishedGameplay"
 	HealLineType                 = "Heal"
 	KillLineType                 = "Kill"
+	StartGameplayLineType        = "StartGameplay"
 )
 
 type LogLine interface {
@@ -35,16 +35,16 @@ func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool
 	switch {
 	case reConnectToGameSession.MatchString(raw):
 		line = &ConnectToGameSession{}
-	case reStartGameplay.MatchString(raw):
-		line = &StartGameplay{}
-	case reFinishedGameplay.MatchString(raw):
-		line = &FinishedGameplay{}
 	case reDamage.MatchString(raw):
 		line = &Damage{}
+	case reFinishedGameplay.MatchString(raw):
+		line = &FinishedGameplay{}
 	case reHeal.MatchString(raw):
 		line = &Heal{}
 	case reKill.MatchString(raw):
 		line = &Kill{}
+	case reStartGameplay.MatchString(raw):
+		line = &StartGameplay{}
 	default:
 		return nil, false, nil
 	}

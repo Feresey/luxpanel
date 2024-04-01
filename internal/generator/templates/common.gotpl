@@ -159,24 +159,12 @@ const (
 	ConnectionClosedReasonGameFinished          ConnectionClosedReason = "DR_CLIENT_GAME_FINISHED"
 	ConnectionClosedReasonClientCouldNotConnect ConnectionClosedReason = "DR_CLIENT_COULD_NOT_CONNECT"
 	ConnectionClosedReasonQuit                  ConnectionClosedReason = "DR_CLIENT_QUIT"
+	ConnectionClosedReasonServerTransfer        ConnectionClosedReason = "DR_CLIENT_SERVER_TRANSFER"
+	ConnectionClosedReasonDockSpaceStation      ConnectionClosedReason = "DR_CLIENT_DOCK_SPACE_STATION"
+	ConnectionClosedReasonReturnSpaceStation    ConnectionClosedReason = "DR_CLIENT_RETURN_SPACE_STATION"
 )
 
-func (c ConnectionClosedReason) Validate() error {
-	switch c {
-	case ConnectionClosedReasonGameFinished:
-	case ConnectionClosedReasonClientCouldNotConnect:
-	case ConnectionClosedReasonQuit:
-	default:
-		return fmt.Errorf("undefined connection closed reason: %q", c)
-	}
-	return nil
-}
-
 func parseConnectionClosedReason(s string) (res ConnectionClosedReason, err error) {
-	res = ConnectionClosedReason(s)
-	if err := res.Validate(); err != nil {
-		return res, err
-	}
-	return res, nil
+	return ConnectionClosedReason(s), nil
 }
 {{end}}

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -14,6 +15,7 @@ import (
 	"github.com/iancoleman/strcase"
 	"gopkg.in/yaml.v2"
 
+	"golang.org/x/exp/maps"
 	"golang.org/x/tools/imports"
 )
 
@@ -111,17 +113,30 @@ func (g *Generator) GenerateRegexps(rawTpl string) (map[string]string, error) {
 		return nil, fmt.Errorf("template.Execute: %w", err)
 	}
 
-	var regexps map[string]string
-	err := yaml.Unmarshal(sb.Bytes(), &regexps)
+	var data struct {
+		Regexps []struct {
+			Name  string `yaml:"name"`
+			Value string `yaml:"value"`
+		} `yaml:"regexps"`
+	}
+	err := yaml.Unmarshal(sb.Bytes(), &data)
 	if err != nil {
 		println(sb.String())
 		return nil, fmt.Errorf("yaml.Unmarshal: %w", err)
+	}
+
+	regexps := make(map[string]string, len(data.Regexps))
+	for _, re := range data.Regexps {
+		regexps[re.Name] = re.Value
 	}
 	return regexps, nil
 }
 
 func (g *Generator) MakeConfigs(regexps map[string]string) (configs []FileConfig, err error) {
-	for reName, raw := range regexps {
+	keys := maps.Keys(regexps)
+	slices.Sort(keys)
+	for _, reName := range keys {
+		raw := regexps[reName]
 		re, err := regexp.Compile(raw)
 		if err != nil {
 			return nil, fmt.Errorf("compile regexp: %w", err)

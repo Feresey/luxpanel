@@ -24,7 +24,7 @@ func GetConfig() *Config {
 	flag.StringVar(&c.OutputDir, "o", "", "output directory")
 	flag.StringVar(&c.TextOut, "txt", "", "output to text file")
 	flag.StringVar(&c.Trace.ServiceName, "service", "lux-panel", "service name")
-	flag.BoolVar(&c.Trace.Enabled, "trace_enabled", true, "enable tracing")
+	flag.BoolVar(&c.Trace.Enabled, "trace", false, "enable tracing")
 	flag.Parse()
 
 	return &c
