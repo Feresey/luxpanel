@@ -10,8 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/Feresey/luxpanel/site"
 )
 
 func main() {
@@ -50,7 +48,7 @@ func run() error {
 		})
 	})
 	r.Use(mux.CORSMethodMiddleware(r))
-	r.PathPrefix("/").Handler(http.FileServer(http.FS(site.FS)))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(".")))
 
 	log.Info("serving", zap.Int("port", cfg.Port))
 

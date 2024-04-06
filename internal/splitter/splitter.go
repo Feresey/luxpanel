@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"slices"
 	"time"
 
@@ -98,25 +99,31 @@ func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 		lvl.EndLevelTime = combatLevel.Finished.LogTime
 	}
 
-	playerTeamsMap := make(map[int]map[string]Player)
+	playerTeamsMap := make(map[int]map[int]Player)
 	for _, logPlayer := range gameLevel.AddPlayer {
 		player := Player{
-			ID:      logPlayer.PlayerID,
-			Name:    logPlayer.PlayerName,
-			CorpTag: logPlayer.PlayerCorpTag,
-			TeamID:  logPlayer.TeamID,
+			PlayerID:        logPlayer.PlayerID,
+			SessionPlayerID: logPlayer.SessionPlayerID,
+			Name:            logPlayer.PlayerName,
+			CorpTag:         logPlayer.PlayerCorpTag,
+			TeamID:          logPlayer.TeamID,
 		}
 		teamMap := playerTeamsMap[logPlayer.TeamID]
 		if teamMap == nil {
-			teamMap = make(map[string]Player)
+			teamMap = make(map[int]Player)
 			playerTeamsMap[logPlayer.TeamID] = teamMap
 		}
 
-		teamMap[player.String()] = player
+		teamMap[player.SessionPlayerID] = player
 	}
 
 	teams := maps.Keys(playerTeamsMap)
 	slices.Sort(teams)
+	if os.Getenv("SHOW_WATCHERS") == "" {
+		if teams[0] == 0 {
+			teams = teams[1:]
+		}
+	}
 	f.lg.For(ctx).Debugw("level", "level", lvl.CombatLog.Start, "team_ids", teams)
 
 	lvl.Teams = make(map[int][]Player, len(playerTeamsMap))
@@ -127,7 +134,9 @@ func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 			playerNames = append(playerNames, p.String())
 		}
 		slices.Sort(playerNames)
-		f.lg.For(ctx).Debugw("team players", "team_id", teamID, "players", playerNames)
+		if os.Getenv("SHOW_WATCHERS") != "" && teamID == 0 {
+			f.lg.For(ctx).Debugw("team players", "team_id", teamID, "players", playerNames)
+		}
 		lvl.Teams[teamID] = players
 	}
 
@@ -139,14 +148,15 @@ func (f *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 }
 
 type Player struct {
-	ID      int
-	Name    string
-	CorpTag string
-	TeamID  int
+	PlayerID        int
+	SessionPlayerID int
+	Name            string
+	CorpTag         string
+	TeamID          int
 }
 
 func (p Player) String() string {
-	return fmt.Sprintf("%s [%s] (id: %d)", p.Name, p.CorpTag, p.ID)
+	return fmt.Sprintf("%s [%s] (id: %d)", p.Name, p.CorpTag, p.PlayerID)
 }
 
 type Level struct {

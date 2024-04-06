@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/maps"
@@ -84,12 +85,69 @@ func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Le
 	s.lg.For(ctx).Infow("write to file", "name", s.cfg.TextOut)
 
 	for _, level := range levels {
+		_, err := fmt.Fprintf(outFile, "\n===START  LEVEL=== time: %s, game_mode: %s, map: %s\n", level.StartLevelTime, level.CombatLog.Start.GameMode, level.CombatLog.Start.MapName)
+		if err != nil {
+			return fmt.Errorf("write: %w", err)
+		}
+		if err := s.writeTeams(ctx, level, outFile); err != nil {
+			return fmt.Errorf("writeTeams: %w", err)
+		}
 		if err := s.writeLevelStatistics(ctx, level, outFile); err != nil {
 			return fmt.Errorf("writeLevelStatistics: %w", err)
 		}
-		_, err := fmt.Fprintln(outFile, "========")
+		_, err = fmt.Fprintf(outFile, "\n===FINISH LEVEL=== time: %s, finish_reason: %s, win_reason: %s, winner_team_id: %d\n",
+			level.EndLevelTime,
+			level.CombatLog.Finished.FinishReason,
+			level.CombatLog.Finished.WinReason,
+			level.CombatLog.Finished.WinnerTeamID,
+		)
+
 		if err != nil {
 			return fmt.Errorf("write: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) writeTeams(ctx context.Context, lvl *splitter.Level, w io.Writer) error {
+	ctx, span := s.tr.Start(ctx, "writeTeams")
+	defer span.End()
+
+	teamIDs := maps.Keys(lvl.Teams)
+	slices.Sort(teamIDs)
+	if len(teamIDs) == 0 {
+		return nil
+	}
+	if watchers, ok := lvl.Teams[0]; ok {
+		if _, err := fmt.Fprintln(w, strings.Repeat(" ", len(watchers))); err != nil {
+			return err
+		}
+		if os.Getenv("SHOW_WATCHERS") != "" {
+			fmt.Fprintln(w, watchers)
+		}
+		teamIDs = teamIDs[1:]
+	} else {
+		if _, err := fmt.Fprintln(w, ""); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintf(w, "teams: %v\n", teamIDs); err != nil {
+		return err
+	}
+
+	for _, teamID := range teamIDs {
+		players := lvl.Teams[teamID]
+		if len(players) == 0 {
+			continue
+		}
+		if _, err := fmt.Fprintf(w, "team %d\n", teamID); err != nil {
+			return err
+		}
+		for _, player := range players {
+			if _, err := fmt.Fprintf(w, "team %d: %v\n", teamID, player); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -100,7 +158,7 @@ func (s *Service) writeLevelStatistics(ctx context.Context, lvl *splitter.Level,
 	ctx, span := s.tr.Start(ctx, "writeLevelStatistics")
 	defer span.End()
 
-	filters := s.getPlayersFilters(ctx, lvl)
+	filters := s.getDamageFilters(ctx, lvl)
 	for _, filter := range filters {
 		res := ProcessArray(lvl.CombatLog.Damage, FilterPlayerDamage(filter), SummDamageBySource)
 		if res == nil || len(res.BySource) == 0 {
@@ -180,8 +238,8 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 	}
 }
 
-func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (res []*PlayerDamageFilterConfig) {
-	ctx, span := s.tr.Start(ctx, "getPlayersFilters")
+func (s *Service) getDamageFilters(ctx context.Context, lvl *splitter.Level) (res []*PlayerDamageFilterConfig) {
+	ctx, span := s.tr.Start(ctx, "getDamageFilters")
 	defer span.End()
 
 	for _, players := range lvl.Teams {
@@ -193,23 +251,37 @@ func (s *Service) getPlayersFilters(ctx context.Context, lvl *splitter.Level) (r
 				}
 			}
 
-			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-				InitiatorName: player.Name,
-			})...)
-			res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
-				InitiatorName: player.Name,
-				FriendlyFire:  true,
-			})...)
-			for _, enemy := range enemies {
-				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+			filters := []*PlayerDamageFilterConfig{
+				{
 					InitiatorName: player.Name,
-					RecipientName: enemy.Name,
-				})...)
-				res = append(res, makeDamageFilters(&PlayerDamageFilterConfig{
+				},
+				{
 					InitiatorName: player.Name,
-					RecipientName: enemy.Name,
 					FriendlyFire:  true,
-				})...)
+				},
+			}
+
+			for _, enemy := range enemies {
+				filters = append(filters,
+					&PlayerDamageFilterConfig{
+						InitiatorName: player.Name,
+						RecipientName: enemy.Name,
+					},
+					&PlayerDamageFilterConfig{
+						InitiatorName: player.Name,
+						RecipientName: enemy.Name,
+						FriendlyFire:  true,
+					})
+			}
+
+			for _, filter := range filters {
+				if player := s.cfg.Player; player != "" {
+					if filter.InitiatorName != s.cfg.Player && filter.RecipientName != s.cfg.Player {
+						// s.lg.For(ctx).Debugw("filter does not match player criteria", "filter", filter, "player", s.cfg.Player, "res", filter.InitiatorName != s.cfg.Player, "res2", filter.RecipientName != s.cfg.Player)
+						continue
+					}
+				}
+				res = append(res, makeDamageFilters(filter)...)
 			}
 		}
 	}
