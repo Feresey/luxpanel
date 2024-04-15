@@ -25,7 +25,7 @@ const (
 
 type LogLine interface {
 	Type() CombatLineType
-	Time() time.Time
+	GetLogTime() time.Time
 	Unmarshal(raw string, now time.Time) error
 }
 

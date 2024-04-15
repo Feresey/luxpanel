@@ -58,6 +58,92 @@ func (c *Heal) Type() CombatLineType {
 	return HealLineType
 }
 
-func (c *Heal) Time() time.Time {
+var emptyHealLogTime time.Time
+
+func (c *Heal) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyHealLogTime {
+		return emptyHealLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyHealInitiator string
+
+func (c *Heal) GetInitiator() string {
+	if c == nil || c.Initiator == emptyHealInitiator {
+		return emptyHealInitiator
+	}
+	return c.Initiator
+
+}
+
+var emptyHealInitiatorID int
+
+func (c *Heal) GetInitiatorID() int {
+	if c == nil || c.InitiatorID == emptyHealInitiatorID {
+		return emptyHealInitiatorID
+	}
+	return c.InitiatorID
+
+}
+
+var emptyHealRecipient string
+
+func (c *Heal) GetRecipient() string {
+	if c == nil || c.Recipient == emptyHealRecipient {
+		return emptyHealRecipient
+	}
+	return c.Recipient
+
+}
+
+var emptyHealObjectName string
+
+func (c *Heal) GetObjectName() string {
+	if c == nil || c.ObjectName == emptyHealObjectName {
+		return emptyHealObjectName
+	}
+	return c.ObjectName
+
+}
+
+var emptyHealObjectOwner string
+
+func (c *Heal) GetObjectOwner() string {
+	if c == nil || c.ObjectOwner == emptyHealObjectOwner {
+		return emptyHealObjectOwner
+	}
+	return c.ObjectOwner
+
+}
+
+var emptyHealRecipientID int
+
+func (c *Heal) GetRecipientID() int {
+	if c == nil || c.RecipientID == emptyHealRecipientID {
+		return emptyHealRecipientID
+	}
+	return c.RecipientID
+
+}
+
+var emptyHealHeal float32
+
+func (c *Heal) GetHeal() float32 {
+	if c == nil || c.Heal == emptyHealHeal {
+		return emptyHealHeal
+	}
+	return c.Heal
+
+}
+
+var emptyHealActionSource string
+
+func (c *Heal) GetActionSource() string {
+	if c == nil || c.ActionSource == emptyHealActionSource {
+		return emptyHealActionSource
+	}
+	return c.ActionSource
+
 }

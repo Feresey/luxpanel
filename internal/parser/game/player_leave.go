@@ -38,6 +38,22 @@ func (c *PlayerLeave) Type() GameLineType {
 	return PlayerLeaveLineType
 }
 
-func (c *PlayerLeave) Time() time.Time {
+var emptyPlayerLeaveLogTime time.Time
+
+func (c *PlayerLeave) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyPlayerLeaveLogTime {
+		return emptyPlayerLeaveLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyPlayerLeavePlayerID int
+
+func (c *PlayerLeave) GetPlayerID() int {
+	if c == nil || c.PlayerID == emptyPlayerLeavePlayerID {
+		return emptyPlayerLeavePlayerID
+	}
+	return c.PlayerID
+
 }

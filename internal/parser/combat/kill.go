@@ -62,6 +62,112 @@ func (c *Kill) Type() CombatLineType {
 	return KillLineType
 }
 
-func (c *Kill) Time() time.Time {
+var emptyKillLogTime time.Time
+
+func (c *Kill) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyKillLogTime {
+		return emptyKillLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyKillRecipientName string
+
+func (c *Kill) GetRecipientName() string {
+	if c == nil || c.RecipientName == emptyKillRecipientName {
+		return emptyKillRecipientName
+	}
+	return c.RecipientName
+
+}
+
+var emptyKillRecipientShip string
+
+func (c *Kill) GetRecipientShip() string {
+	if c == nil || c.RecipientShip == emptyKillRecipientShip {
+		return emptyKillRecipientShip
+	}
+	return c.RecipientShip
+
+}
+
+var emptyKillRecipientObject string
+
+func (c *Kill) GetRecipientObject() string {
+	if c == nil || c.RecipientObject == emptyKillRecipientObject {
+		return emptyKillRecipientObject
+	}
+	return c.RecipientObject
+
+}
+
+var emptyKillRecipientObjectName string
+
+func (c *Kill) GetRecipientObjectName() string {
+	if c == nil || c.RecipientObjectName == emptyKillRecipientObjectName {
+		return emptyKillRecipientObjectName
+	}
+	return c.RecipientObjectName
+
+}
+
+var emptyKillRecipientObjectOwner string
+
+func (c *Kill) GetRecipientObjectOwner() string {
+	if c == nil || c.RecipientObjectOwner == emptyKillRecipientObjectOwner {
+		return emptyKillRecipientObjectOwner
+	}
+	return c.RecipientObjectOwner
+
+}
+
+var emptyKillRecipientID int
+
+func (c *Kill) GetRecipientID() int {
+	if c == nil || c.RecipientID == emptyKillRecipientID {
+		return emptyKillRecipientID
+	}
+	return c.RecipientID
+
+}
+
+var emptyKillInitiator string
+
+func (c *Kill) GetInitiator() string {
+	if c == nil || c.Initiator == emptyKillInitiator {
+		return emptyKillInitiator
+	}
+	return c.Initiator
+
+}
+
+var emptyKillInitiatorID int
+
+func (c *Kill) GetInitiatorID() int {
+	if c == nil || c.InitiatorID == emptyKillInitiatorID {
+		return emptyKillInitiatorID
+	}
+	return c.InitiatorID
+
+}
+
+var emptyKillActionSource string
+
+func (c *Kill) GetActionSource() string {
+	if c == nil || c.ActionSource == emptyKillActionSource {
+		return emptyKillActionSource
+	}
+	return c.ActionSource
+
+}
+
+var emptyKillFriendlyFire bool
+
+func (c *Kill) GetFriendlyFire() bool {
+	if c == nil || c.FriendlyFire == emptyKillFriendlyFire {
+		return emptyKillFriendlyFire
+	}
+	return c.FriendlyFire
+
 }

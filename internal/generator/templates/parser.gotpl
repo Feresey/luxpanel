@@ -40,6 +40,17 @@ func (c *{{.TypeName}}) Type() {{.PackageName | camelcase}}LineType {
 	return {{.TypeName}}LineType
 }
 
-func (c *{{.TypeName}}) Time() time.Time {
-	return c.LogTime
+{{- range $i, $field := .Fields}}
+{{- if or (eq $field.Name "DamageModifiers") (eq $field.Name "Time")}}
+{{- else}}
+var empty{{$.TypeName}}{{$field.Name}} {{$field.Type.Name}}
+
+func (c *{{$.TypeName}}) Get{{$field.Name}}() {{$field.Type.Name}} {
+	if c == nil || c.{{$field.Name}} == empty{{$.TypeName}}{{$field.Name}} {
+		return empty{{$.TypeName}}{{$field.Name}} 
+	}
+	return c.{{$field.Name}}
+
 }
+{{- end}}
+{{- end}}

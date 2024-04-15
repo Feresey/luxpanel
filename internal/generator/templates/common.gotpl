@@ -26,7 +26,7 @@ const (
 
 type LogLine interface {
 	Type() {{$packageNameCamel}}LineType
-	Time() time.Time
+	GetLogTime() time.Time
 	Unmarshal(raw string, now time.Time) error
 }
 

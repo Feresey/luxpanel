@@ -62,6 +62,82 @@ func (c *AddPlayer) Type() GameLineType {
 	return AddPlayerLineType
 }
 
-func (c *AddPlayer) Time() time.Time {
+var emptyAddPlayerLogTime time.Time
+
+func (c *AddPlayer) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyAddPlayerLogTime {
+		return emptyAddPlayerLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyAddPlayerSessionPlayerID int
+
+func (c *AddPlayer) GetSessionPlayerID() int {
+	if c == nil || c.SessionPlayerID == emptyAddPlayerSessionPlayerID {
+		return emptyAddPlayerSessionPlayerID
+	}
+	return c.SessionPlayerID
+
+}
+
+var emptyAddPlayerPlayerName string
+
+func (c *AddPlayer) GetPlayerName() string {
+	if c == nil || c.PlayerName == emptyAddPlayerPlayerName {
+		return emptyAddPlayerPlayerName
+	}
+	return c.PlayerName
+
+}
+
+var emptyAddPlayerPlayerCorpTag string
+
+func (c *AddPlayer) GetPlayerCorpTag() string {
+	if c == nil || c.PlayerCorpTag == emptyAddPlayerPlayerCorpTag {
+		return emptyAddPlayerPlayerCorpTag
+	}
+	return c.PlayerCorpTag
+
+}
+
+var emptyAddPlayerPlayerID int
+
+func (c *AddPlayer) GetPlayerID() int {
+	if c == nil || c.PlayerID == emptyAddPlayerPlayerID {
+		return emptyAddPlayerPlayerID
+	}
+	return c.PlayerID
+
+}
+
+var emptyAddPlayerConnectionStatus int
+
+func (c *AddPlayer) GetConnectionStatus() int {
+	if c == nil || c.ConnectionStatus == emptyAddPlayerConnectionStatus {
+		return emptyAddPlayerConnectionStatus
+	}
+	return c.ConnectionStatus
+
+}
+
+var emptyAddPlayerTeamID int
+
+func (c *AddPlayer) GetTeamID() int {
+	if c == nil || c.TeamID == emptyAddPlayerTeamID {
+		return emptyAddPlayerTeamID
+	}
+	return c.TeamID
+
+}
+
+var emptyAddPlayerGroupID *int
+
+func (c *AddPlayer) GetGroupID() *int {
+	if c == nil || c.GroupID == emptyAddPlayerGroupID {
+		return emptyAddPlayerGroupID
+	}
+	return c.GroupID
+
 }

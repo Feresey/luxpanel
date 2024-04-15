@@ -32,6 +32,12 @@ func (c *Connected) Type() GameLineType {
 	return ConnectedLineType
 }
 
-func (c *Connected) Time() time.Time {
+var emptyConnectedLogTime time.Time
+
+func (c *Connected) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyConnectedLogTime {
+		return emptyConnectedLogTime
+	}
 	return c.LogTime
+
 }

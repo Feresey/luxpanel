@@ -38,6 +38,22 @@ func (c *ConnectToGameSession) Type() CombatLineType {
 	return ConnectToGameSessionLineType
 }
 
-func (c *ConnectToGameSession) Time() time.Time {
+var emptyConnectToGameSessionLogTime time.Time
+
+func (c *ConnectToGameSession) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyConnectToGameSessionLogTime {
+		return emptyConnectToGameSessionLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyConnectToGameSessionSessionID int
+
+func (c *ConnectToGameSession) GetSessionID() int {
+	if c == nil || c.SessionID == emptyConnectToGameSessionSessionID {
+		return emptyConnectToGameSessionSessionID
+	}
+	return c.SessionID
+
 }

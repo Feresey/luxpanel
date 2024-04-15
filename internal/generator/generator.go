@@ -234,6 +234,7 @@ func (g *Generator) GenerateFiles(configs []FileConfig) (map[string][]byte, erro
 		fileName := strcase.ToSnake(config.TypeName) + ".go"
 		formatted, err := imports.Process("", buf.Bytes(), nil)
 		if err != nil {
+			println(buf.String())
 			return nil, fmt.Errorf("format %s file: %w", fileName, err)
 		}
 		res[fileName] = formatted

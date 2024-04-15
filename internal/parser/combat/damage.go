@@ -78,6 +78,122 @@ func (c *Damage) Type() CombatLineType {
 	return DamageLineType
 }
 
-func (c *Damage) Time() time.Time {
+var emptyDamageLogTime time.Time
+
+func (c *Damage) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyDamageLogTime {
+		return emptyDamageLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyDamageInitiator string
+
+func (c *Damage) GetInitiator() string {
+	if c == nil || c.Initiator == emptyDamageInitiator {
+		return emptyDamageInitiator
+	}
+	return c.Initiator
+
+}
+
+var emptyDamageInitiatorID int
+
+func (c *Damage) GetInitiatorID() int {
+	if c == nil || c.InitiatorID == emptyDamageInitiatorID {
+		return emptyDamageInitiatorID
+	}
+	return c.InitiatorID
+
+}
+
+var emptyDamageRecipient string
+
+func (c *Damage) GetRecipient() string {
+	if c == nil || c.Recipient == emptyDamageRecipient {
+		return emptyDamageRecipient
+	}
+	return c.Recipient
+
+}
+
+var emptyDamageObjectName string
+
+func (c *Damage) GetObjectName() string {
+	if c == nil || c.ObjectName == emptyDamageObjectName {
+		return emptyDamageObjectName
+	}
+	return c.ObjectName
+
+}
+
+var emptyDamageObjectOwner string
+
+func (c *Damage) GetObjectOwner() string {
+	if c == nil || c.ObjectOwner == emptyDamageObjectOwner {
+		return emptyDamageObjectOwner
+	}
+	return c.ObjectOwner
+
+}
+
+var emptyDamageRecipientID int
+
+func (c *Damage) GetRecipientID() int {
+	if c == nil || c.RecipientID == emptyDamageRecipientID {
+		return emptyDamageRecipientID
+	}
+	return c.RecipientID
+
+}
+
+var emptyDamageDamageTotal float32
+
+func (c *Damage) GetDamageTotal() float32 {
+	if c == nil || c.DamageTotal == emptyDamageDamageTotal {
+		return emptyDamageDamageTotal
+	}
+	return c.DamageTotal
+
+}
+
+var emptyDamageDamageHull float32
+
+func (c *Damage) GetDamageHull() float32 {
+	if c == nil || c.DamageHull == emptyDamageDamageHull {
+		return emptyDamageDamageHull
+	}
+	return c.DamageHull
+
+}
+
+var emptyDamageDamageShield float32
+
+func (c *Damage) GetDamageShield() float32 {
+	if c == nil || c.DamageShield == emptyDamageDamageShield {
+		return emptyDamageDamageShield
+	}
+	return c.DamageShield
+
+}
+
+var emptyDamageActionSource string
+
+func (c *Damage) GetActionSource() string {
+	if c == nil || c.ActionSource == emptyDamageActionSource {
+		return emptyDamageActionSource
+	}
+	return c.ActionSource
+
+}
+
+var emptyDamageFriendlyFire bool
+
+func (c *Damage) GetFriendlyFire() bool {
+	if c == nil || c.FriendlyFire == emptyDamageFriendlyFire {
+		return emptyDamageFriendlyFire
+	}
+	return c.FriendlyFire
+
 }

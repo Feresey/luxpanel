@@ -37,6 +37,22 @@ func (c *ConnectionClosed) Type() GameLineType {
 	return ConnectionClosedLineType
 }
 
-func (c *ConnectionClosed) Time() time.Time {
+var emptyConnectionClosedLogTime time.Time
+
+func (c *ConnectionClosed) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyConnectionClosedLogTime {
+		return emptyConnectionClosedLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyConnectionClosedCloseReason ConnectionClosedReason
+
+func (c *ConnectionClosed) GetCloseReason() ConnectionClosedReason {
+	if c == nil || c.CloseReason == emptyConnectionClosedCloseReason {
+		return emptyConnectionClosedCloseReason
+	}
+	return c.CloseReason
+
 }

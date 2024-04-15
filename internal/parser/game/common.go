@@ -22,7 +22,7 @@ const (
 
 type LogLine interface {
 	Type() GameLineType
-	Time() time.Time
+	GetLogTime() time.Time
 	Unmarshal(raw string, now time.Time) error
 }
 

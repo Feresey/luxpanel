@@ -49,7 +49,7 @@ func (s *Service) Run(ctx context.Context) error {
 	ctx, span := s.tr.Start(ctx, "Run")
 	defer span.End()
 
-	levels, err := s.parseLevels(ctx)
+	levels, err := s.splitter.SplitLevels(ctx, os.DirFS(s.cfg.InputDir))
 	if err != nil {
 		return fmt.Errorf("parseLevels: %w", err)
 	}
@@ -97,9 +97,9 @@ func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Le
 		}
 		_, err = fmt.Fprintf(outFile, "\n===FINISH LEVEL=== time: %s, finish_reason: %s, win_reason: %s, winner_team_id: %d\n",
 			level.EndLevelTime,
-			level.CombatLog.Finished.FinishReason,
-			level.CombatLog.Finished.WinReason,
-			level.CombatLog.Finished.WinnerTeamID,
+			level.CombatLog.Finished.GetFinishReason(),
+			level.CombatLog.Finished.GetWinReason(),
+			level.CombatLog.Finished.GetWinnerTeamID(),
 		)
 
 		if err != nil {
@@ -288,39 +288,6 @@ func (s *Service) getDamageFilters(ctx context.Context, lvl *splitter.Level) (re
 
 	s.lg.For(ctx).Debugw("created filters for players damage", "count", len(res))
 	return res
-}
-
-func (s *Service) parseLevels(ctx context.Context) ([]*splitter.Level, error) {
-	ctx, span := s.tr.Start(ctx, "parseLevels")
-	defer span.End()
-
-	combatLog, err := os.Open(filepath.Join(s.cfg.InputDir, "combat.log"))
-	if err != nil {
-		return nil, fmt.Errorf("os.Open(combat.log): %w", err)
-	}
-	defer combatLog.Close()
-
-	gameLog, err := os.Open(filepath.Join(s.cfg.InputDir, "game.log"))
-	if err != nil {
-		return nil, fmt.Errorf("os.Open(game.log): %w", err)
-	}
-	defer gameLog.Close()
-
-	combatLogLines, err := s.parser.ParseCombatLog(ctx, combatLog)
-	if err != nil {
-		return nil, fmt.Errorf("parser.ParseCombatLog: %w", err)
-	}
-	gameLogLines, err := s.parser.ParseGameLog(ctx, gameLog)
-	if err != nil {
-		return nil, fmt.Errorf("parser.ParseGameLog: %w", err)
-	}
-
-	levels, err := s.splitter.SplitLevels(ctx, gameLogLines, combatLogLines)
-	if err != nil {
-		return nil, fmt.Errorf("splitter.SplitLevels: %w", err)
-	}
-
-	return levels, nil
 }
 
 func (s *Service) saveToDir(ctx context.Context, levels []*splitter.Level) error {

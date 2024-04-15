@@ -47,6 +47,52 @@ func (c *FinishedGameplay) Type() CombatLineType {
 	return FinishedGameplayLineType
 }
 
-func (c *FinishedGameplay) Time() time.Time {
+var emptyFinishedGameplayLogTime time.Time
+
+func (c *FinishedGameplay) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyFinishedGameplayLogTime {
+		return emptyFinishedGameplayLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyFinishedGameplayWinnerTeamID int
+
+func (c *FinishedGameplay) GetWinnerTeamID() int {
+	if c == nil || c.WinnerTeamID == emptyFinishedGameplayWinnerTeamID {
+		return emptyFinishedGameplayWinnerTeamID
+	}
+	return c.WinnerTeamID
+
+}
+
+var emptyFinishedGameplayWinReason string
+
+func (c *FinishedGameplay) GetWinReason() string {
+	if c == nil || c.WinReason == emptyFinishedGameplayWinReason {
+		return emptyFinishedGameplayWinReason
+	}
+	return c.WinReason
+
+}
+
+var emptyFinishedGameplayFinishReason string
+
+func (c *FinishedGameplay) GetFinishReason() string {
+	if c == nil || c.FinishReason == emptyFinishedGameplayFinishReason {
+		return emptyFinishedGameplayFinishReason
+	}
+	return c.FinishReason
+
+}
+
+var emptyFinishedGameplayGameTime time.Duration
+
+func (c *FinishedGameplay) GetGameTime() time.Duration {
+	if c == nil || c.GameTime == emptyFinishedGameplayGameTime {
+		return emptyFinishedGameplayGameTime
+	}
+	return c.GameTime
+
 }

@@ -42,6 +42,42 @@ func (c *StartGameplay) Type() CombatLineType {
 	return StartGameplayLineType
 }
 
-func (c *StartGameplay) Time() time.Time {
+var emptyStartGameplayLogTime time.Time
+
+func (c *StartGameplay) GetLogTime() time.Time {
+	if c == nil || c.LogTime == emptyStartGameplayLogTime {
+		return emptyStartGameplayLogTime
+	}
 	return c.LogTime
+
+}
+
+var emptyStartGameplayGameMode string
+
+func (c *StartGameplay) GetGameMode() string {
+	if c == nil || c.GameMode == emptyStartGameplayGameMode {
+		return emptyStartGameplayGameMode
+	}
+	return c.GameMode
+
+}
+
+var emptyStartGameplayMapName string
+
+func (c *StartGameplay) GetMapName() string {
+	if c == nil || c.MapName == emptyStartGameplayMapName {
+		return emptyStartGameplayMapName
+	}
+	return c.MapName
+
+}
+
+var emptyStartGameplayClientTeamID *int
+
+func (c *StartGameplay) GetClientTeamID() *int {
+	if c == nil || c.ClientTeamID == emptyStartGameplayClientTeamID {
+		return emptyStartGameplayClientTeamID
+	}
+	return c.ClientTeamID
+
 }
