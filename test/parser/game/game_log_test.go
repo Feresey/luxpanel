@@ -202,7 +202,7 @@ func TestFinishedUnmarshal(t *testing.T) {
 		},
 		{
 			name:      "cutted",
-			raw:       "21:37:38.024         | client: connection closed. DR_CLIENT_GAME_FINISHE",
+			raw:       "21:37:38.024         | client: connection closed",
 			wantError: true,
 		},
 		{

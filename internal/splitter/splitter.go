@@ -331,9 +331,6 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLin
 			currLevel.Kill = append(currLevel.Kill, line)
 		case *combat.FinishedGameplay:
 			currLevel.Finished = line
-			// f.lg.For(ctx).Debugw("finished level", "connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
-			res = append(res, currLevel)
-			currLevel = new(CombatLogLevel)
 		}
 	}
 
