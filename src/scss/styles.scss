@@ -7,65 +7,41 @@
     align-items: center;
     padding: 1rem;
     background-color: #333;
-    // width: 100%;
+    width: 100%;
 }
 
 .buttons {
     display: contents;
     background-color: cyan;
-    // width: 100%;
+    width: 100%;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-content: center;
 }
 
 .content {
-    display: flex;
+    display: block;
     background-color: magenta;
     justify-content: space-between;
-    // flex-direction: row;
-    // flex-wrap: nowrap;
-    // width: 100%;
-    height: 100%;
-    min-width: 100%;
-    min-height: 100%;
     position: relative;
-    // border: 1rem;
-    // border-color: #fff;
-    // justify-content: space-between;
-    // align-items: stretch;
-    // flex: 1;
 }
 
 .graphs {
-    display: contents;
-    background-color: blue;
-    flex-direction: row;
+    display: flex;
+    position: relative;
     flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: center;
-    // flex: 1;
-    // border: 1rem;
-    // border-color: #fff;
-    // width: 100%;
-    // height: 90%;
+    flex-direction: row;
+    background-color: blue;
 }
-
-// canvas {
-//     display: inherit;
-//     border: 1rem;
-//     background-color: red;
-// }
 
 .graph {
     display: flex;
-    border-color: black;
-    border: black;
-    border-width: 20px;
+    border: 4px solid red;
     background-color: yellowgreen;
-    flex: 1;
-    flex-direction: row;
-    flex-grow: 1;
-    // width: 100%;
-    // height: 100%;
+    width: 100%;
+    height: 100%;
+}
+
+canvas {
+    border: 8px solid white;
 }

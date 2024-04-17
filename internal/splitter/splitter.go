@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
@@ -228,8 +229,31 @@ type CombatLogLevel struct {
 	Finished *combat.FinishedGameplay
 }
 
+func (g *CombatLogLevel) String() string {
+	if len(g.Lines) == 0 {
+		return "empty combat level"
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString("combat level: ")
+	fmt.Fprintf(&sb, "time: %s ", g.Lines[0].GetLogTime())
+	fmt.Fprintf(&sb, "lines: %d ", len(g.Lines))
+	if g.Connect != nil {
+		fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
+	}
+	if g.Start != nil {
+		fmt.Fprintf(&sb, "game_mode: %s map_name: %s ", g.Start.GameMode, g.Start.MapName)
+	}
+	if g.Finished != nil {
+		fmt.Fprintf(&sb, "finished: %s reason: %s game_time: %s", g.Finished.FinishReason, g.Finished.WinReason, g.Finished.GameTime)
+	}
+
+	return sb.String()
+}
+
 func (g *CombatLogLevel) IsEmpty() bool {
-	return len(g.Lines) == 0
+	return len(g.Lines) == 0 || (g.Connect == nil && g.Start == nil && g.Finished == nil)
 }
 
 func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []game.LogLine) (res []*GameLogLevel) {
@@ -314,6 +338,7 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLin
 	}
 
 	if !currLevel.IsEmpty() {
+		s.lg.For(ctx).Debugw("level", "level", currLevel.String())
 		res = append(res, currLevel)
 	}
 
