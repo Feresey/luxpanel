@@ -20,6 +20,7 @@ const (
 	FinishedGameplayLineType     = "FinishedGameplay"
 	HealLineType                 = "Heal"
 	KillLineType                 = "Kill"
+	RewardLineType               = "Reward"
 	StartGameplayLineType        = "StartGameplay"
 )
 
@@ -43,6 +44,8 @@ func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool
 		line = &Heal{}
 	case reKill.MatchString(raw):
 		line = &Kill{}
+	case reReward.MatchString(raw):
+		line = &Reward{}
 	case reStartGameplay.MatchString(raw):
 		line = &StartGameplay{}
 	default:

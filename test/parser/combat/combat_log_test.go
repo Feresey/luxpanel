@@ -24,6 +24,8 @@ var (
 	killRaw string
 	//go:embed testdata/finished.txt
 	finishedRaw string
+	//go:embed testdata/reward.txt
+	rewardRaw string
 )
 
 func TestCombatConnectUnmarshal(t *testing.T) {
@@ -517,6 +519,97 @@ func TestCombatGameFinishedUnmarshal(t *testing.T) {
 				return
 			}
 			var val combat.FinishedGameplay
+			err := val.Unmarshal(line, now)
+			r.NoError(err, line)
+		}
+	})
+}
+
+func TestCombatRewardUnmarshal(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
+	tests := []struct {
+		name      string
+		raw       string
+		want      combat.Reward
+		wantError bool
+	}{
+		{
+			name: "heal",
+			raw:  `19:42:59.796  CMBT   | Reward idanceandkillyou Ship_Race3_L_T5_Faction1        	   1 experience                for heal Feresey`,
+			want: combat.Reward{
+				LogTime:    time.Date(2023, 1, 0, 19, 42, 59, 796000000, time.Local),
+				Recipient:  "idanceandkillyou",
+				Ship:       "Ship_Race3_L_T5_Faction1",
+				Reward:     1,
+				RewardType: "experience",
+				Reason:     "heal Feresey",
+			},
+		},
+		{
+			name: "kill",
+			raw:  `21:51:39.757  CMBT   | Reward        Gladiator Ship_Race5_H_OVERSEER_Rank15_13 	  46 effective points          for kill Khushal64n6`,
+			want: combat.Reward{
+				LogTime:    time.Date(2023, 1, 0, 21, 51, 39, 757000000, time.Local),
+				Recipient:  "Gladiator",
+				Ship:       "Ship_Race5_H_OVERSEER_Rank15_13",
+				Reward:     46,
+				RewardType: "effective points",
+				Reason:     "kill Khushal64n6",
+			},
+		},
+		{
+			name: "victory",
+			raw:  `21:51:41.115  CMBT   | Reward          Jigolee	722906 credits                   for victory`,
+			want: combat.Reward{
+				LogTime:    time.Date(2023, 1, 0, 21, 51, 41, 115000000, time.Local),
+				Recipient:  "Jigolee",
+				Ship:       "",
+				Reward:     722906,
+				RewardType: "credits",
+				Reason:     "victory",
+			},
+		},
+
+		{
+			name: "strange kill",
+			raw:  `21:51:31.180  CMBT   | Reward    PomogitePsixy Ship_Race2_M_T5_CraftUniq       	   9 effective points          for damage assist to kill `,
+			want: combat.Reward{
+				LogTime:    time.Date(2023, 1, 0, 21, 51, 31, 180000000, time.Local),
+				Recipient:  "PomogitePsixy",
+				Ship:       "Ship_Race2_M_T5_CraftUniq",
+				Reward:     9,
+				RewardType: "effective points",
+				Reason:     "damage assist to kill ",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			r := require.New(t)
+
+			var val combat.Reward
+			err := val.Unmarshal(tt.raw, now)
+			if tt.wantError {
+				r.Error(err, "line: %s", tt.raw)
+				return
+			} else {
+				r.NoError(err, "line: %s", tt.raw)
+			}
+			r.Equal(tt.want, val)
+		})
+	}
+
+	t.Run("raw", func(t *testing.T) {
+		r := require.New(t)
+		lines := strings.Split(rewardRaw, "\n")
+
+		for _, line := range lines {
+			if line == "" {
+				return
+			}
+			var val combat.Reward
 			err := val.Unmarshal(line, now)
 			r.NoError(err, line)
 		}

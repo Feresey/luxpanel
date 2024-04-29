@@ -11,14 +11,14 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-//go:embed testdata/parser
+//go:embed testdata
 var parserFS embed.FS
 
 func (s *Suite) TestParseGameLog() {
 	r := s.Require()
 	ctx := context.Background()
 
-	gameLog, err := parserFS.Open("testdata/parser/game.log")
+	gameLog, err := parserFS.Open("testdata/game.log")
 	r.NoError(err)
 
 	res, err := s.parser.ParseGameLog(ctx, gameLog)
@@ -34,7 +34,7 @@ func BenchmarkParseGameLog(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			gameLog, err := parserFS.Open("testdata/parser/game.log")
+			gameLog, err := parserFS.Open("testdata/game.log")
 			r.NoError(err)
 
 			p.ParseGameLog(context.TODO(), gameLog)
@@ -46,7 +46,7 @@ func (s *Suite) TestParseCombatLog() {
 	r := s.Require()
 	ctx := context.Background()
 
-	gameLog, err := parserFS.Open("testdata/parser/combat.log")
+	gameLog, err := parserFS.Open("testdata/combat.log")
 	r.NoError(err)
 
 	res, err := s.parser.ParseCombatLog(ctx, gameLog)
@@ -62,7 +62,7 @@ func BenchmarkCombatGameLog(b *testing.B) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			gameLog, err := parserFS.Open("testdata/parser/combat.log")
+			gameLog, err := parserFS.Open("testdata/combat.log")
 			r.NoError(err)
 
 			p.ParseCombatLog(context.TODO(), gameLog)

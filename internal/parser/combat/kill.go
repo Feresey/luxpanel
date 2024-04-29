@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var reKill = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Killed\s+(((?P<RecipientName>[a-zA-Z0-9_/-]+)\s+(?P<RecipientShip>[a-zA-Z0-9_/-]+))|((?P<RecipientObject>[a-zA-Z0-9_/-]+)|(?P<RecipientObjectName>[a-zA-Z0-9_/-]+)\((?P<RecipientObjectOwner>[a-zA-Z0-9_/-]+)\)))\|(?P<RecipientID>-?\d+);\s+killer\s+(?P<Initiator>[a-zA-Z0-9_/-]+)\|(?P<InitiatorID>-?\d+)(\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?))?(\s+(?P<FriendlyFire><FriendlyFire>))?\s*$`)
+var reKill = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Killed\s+(((?P<RecipientName>[a-zA-Z][a-zA-Z0-9_/-]*)\s+(?P<RecipientShip>[a-zA-Z][a-zA-Z0-9_/-]*))|((?P<RecipientObject>[a-zA-Z][a-zA-Z0-9_/-]*)|(?P<RecipientObjectName>[a-zA-Z][a-zA-Z0-9_/-]*)\((?P<RecipientObjectOwner>[a-zA-Z][a-zA-Z0-9_/-]*)\)))\|(?P<RecipientID>-?\d+);\s+killer\s+(?P<Initiator>[a-zA-Z][a-zA-Z0-9_/-]*)\|(?P<InitiatorID>-?\d+)(\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?))?(\s+(?P<FriendlyFire><FriendlyFire>))?\s*$`)
 
 type Kill struct {
 	LogTime              time.Time

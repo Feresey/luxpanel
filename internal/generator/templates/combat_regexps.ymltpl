@@ -3,9 +3,11 @@
 {{- $damage := printf "%s%s" $cmbt `\s+Damage\s+`}}
 {{- $heal := printf "%s%s" $cmbt `\s+Heal\s+`}}
 {{- $kill := printf "%s%s" $cmbt `\s+Killed\s+`}}
-{{- $name := `[a-zA-Z0-9_/-]+`}}
+{{- $reward := printf "%s%s" $cmbt `\s+Reward\s+`}}
+{{- $name := `[a-zA-Z][a-zA-Z0-9_/-]*`}}
 {{- $id := `-?\d+`}}
 {{- $float := `-?\d+\.\d+`}}
+{{- $int := `\d+`}}
 
 regexps:
 - name: connectToGameSession
@@ -53,3 +55,9 @@ Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}
 (\s+{{wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}})?{{"" -}}
 (\s+{{wrap "FriendlyFire" "<FriendlyFire>"}})?\s*$
+- name: reward
+  value: >-
+    (?s)^{{$reward}}
+{{- wrap "Recipient" $name}}(\s{{wrap "Ship" $name}})?\s*\t\s*
+{{- wrap "Reward" $int}}\s+{{wrap "RewardType" "((experience)|(credits)|(effective points))"}}\s+{{"" -}}
+for\s{{wrap "Reason" ".+"}}\s*$
