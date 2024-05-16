@@ -1,22 +1,16 @@
 package service
 
-// type PlayerToPlayer struct {
-// }
-
-// type PlayerDamage struct {
-// 	TotalDamage        float32
-// 	HullDamage         float32
-// 	ShieldDamage       float32
-// 	ExplosionDamage    float32
-// 	CritDamage         float32
-// 	ThermalDamage      float32
-// 	KineticDamage      float32
-// 	FriendlyFire       float32
-// 	CollisionDamage    float32
-// 	IgnoreShieldDamage float32
-// }
+import (
+	"fmt"
+	"regexp"
+)
 
 type Aggregator[A, V any] func(agg A, val V) A
+
+type AggCount[T any] struct {
+	Value T
+	Count int
+}
 
 type Filter[T, V any] func(val T) (res V, ok bool)
 
@@ -46,4 +40,53 @@ func ProcessArray[T, A, E any](
 		}
 	}
 	return res
+}
+
+type ValueFilter[T any] interface {
+	Filter(T) bool
+	fmt.Stringer
+}
+
+type RegexpFilter struct {
+	*regexp.Regexp
+}
+
+func (r *RegexpFilter) UnmarshalText(raw []byte) error {
+	rw, err := MakeRegexpFilter(string(raw))
+	if err != nil {
+		return err
+	}
+
+	*r = rw
+	return nil
+}
+
+func MakeRegexpFilter(re string) (RegexpFilter, error) {
+	r, err := regexp.Compile(re)
+	return RegexpFilter{Regexp: r}, err
+}
+
+func MustRegexpFilter(re string) RegexpFilter {
+	r, err := MakeRegexpFilter(re)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+func (r RegexpFilter) Filter(s string) bool {
+	return r.Regexp.MatchString(s)
+}
+
+type StringFilter string
+
+func (ss StringFilter) String() string { return string(ss) }
+
+func (ss *StringFilter) UnmarshalText(raw []byte) error {
+	*ss = StringFilter(raw)
+	return nil
+}
+
+func (ss StringFilter) Filter(s string) bool {
+	return s == string(ss)
 }

@@ -308,17 +308,12 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLin
 		switch line := line.(type) {
 		case *combat.ConnectToGameSession:
 			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
-				s.lg.For(ctx).Warnw("connect to game session twice",
-					"prev", currLevel.Connect, "next", line,
-					"connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Connect = line
 		case *combat.StartGameplay:
 			if currLevel.Start != nil {
-				s.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.Start, "next", line,
-					"connect", currLevel.Connect, "start", currLevel.Start, "end", currLevel.Finished)
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}

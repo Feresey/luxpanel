@@ -9,7 +9,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-//go:generate stringer -type=DamageType -trimprefix DamageType
+//go:generate go run github.com/alvaroloes/enumer -type DamageType -trimprefix DamageType -text -transform snake
 type DamageType int
 
 const (
@@ -21,12 +21,12 @@ const (
 type DamageModifiersMap map[combat.DamageModifier]bool
 
 type PlayerDamageFilterConfig struct {
-	InitiatorName   string
-	RecipientName   string
-	DamageToObject  bool
-	DamageType      DamageType
-	DamageModifiers DamageModifiersMap
-	FriendlyFire    bool
+	InitiatorName   string             `json:"initiator_name,omitempty"`
+	RecipientName   string             `json:"recipient_name,omitempty"`
+	DamageToObject  bool               `json:"damage_to_object,omitempty"`
+	DamageType      DamageType         `json:"damage_type,omitempty"`
+	DamageModifiers DamageModifiersMap `json:"damage_modifiers,omitempty"`
+	FriendlyFire    bool               `json:"friendly_fire,omitempty"`
 }
 
 func (f *PlayerDamageFilterConfig) String() string {
@@ -82,20 +82,28 @@ func (f *PlayerDamageFilterConfig) String() string {
 }
 
 type DamageResult struct {
-	BySource map[string]float32
-	ToObject map[string]float32
+	BySource map[string]AggCount[float32]
+	ToObject map[string]AggCount[float32]
 }
 
 func SummDamageBySource(res *DamageResult, elem *DetailedDamage) *DamageResult {
 	if res == nil {
 		res = &DamageResult{
-			BySource: make(map[string]float32),
-			ToObject: make(map[string]float32),
+			BySource: make(map[string]AggCount[float32]),
+			ToObject: make(map[string]AggCount[float32]),
 		}
 	}
 
-	res.BySource[elem.Source] += elem.Damage
-	res.ToObject[elem.Object] += elem.Damage
+	src := res.BySource[elem.Source]
+	src.Count++
+	src.Value += elem.Damage
+	res.BySource[elem.Source] = src
+
+	obj := res.ToObject[elem.Object]
+	obj.Count++
+	obj.Value += elem.Damage
+	res.ToObject[elem.Object] = obj
+
 	return res
 }
 
@@ -151,63 +159,3 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage,
 		return res, true
 	}
 }
-
-// type PlayerDamage struct {
-// 	Player string
-
-// 	Total       float32
-// 	HullTotal   float32
-// 	ShieldTotal float32
-
-// 	ByModifiers map[combat.DamageModifier][]*combat.Damage
-// 	BySource    map[string][]*combat.Damage
-
-// 	ToPlayer        map[string][]*combat.Damage
-// 	ToObject        map[string][]*combat.Damage
-// 	ToPlayerObjects map[string][]*combat.Damage
-
-// 	FriendlyFireTotal    float32
-// 	FriendlyFireByPlayer map[string][]*combat.Damage
-// }
-
-// func addMap[K comparable, V any, M ~map[K][]V](m M, key K, val V) {
-// 	m[key] = append(m[key], val)
-// }
-
-// func AggregatePlayerDamage() Aggregator[map[string]PlayerDamage, *combat.Damage] {
-// 	return func(agg map[string]PlayerDamage, line *combat.Damage) map[string]PlayerDamage {
-// 		if agg == nil {
-// 			agg = make(map[string]PlayerDamage)
-// 		}
-
-// 		playerData, ok := agg[line.Initiator]
-// 		if !ok {
-// 			playerData = PlayerDamage{
-// 				Player:               line.Initiator,
-// 				ByModifiers:          make(map[combat.DamageModifier][]*combat.Damage),
-// 				BySource:             make(map[string][]*combat.Damage),
-// 				ToPlayer:             make(map[string][]*combat.Damage),
-// 				ToObject:             make(map[string][]*combat.Damage),
-// 				ToPlayerObjects:      make(map[string][]*combat.Damage),
-// 				FriendlyFireByPlayer: make(map[string][]*combat.Damage),
-// 			}
-// 			agg[line.Initiator] = playerData
-// 		}
-
-// 		playerData.Total += line.DamageTotal
-// 		playerData.HullTotal += line.DamageHull
-// 		playerData.ShieldTotal += line.DamageShield
-// 		if line.FriendlyFire {
-// 			playerData.FriendlyFireTotal += line.DamageTotal
-// 			addMap(playerData.FriendlyFireByPlayer, line.Recipient, line)
-// 		}
-// 		for modifier := range line.DamageModifiers {
-// 			addMap(playerData.ByModifiers, modifier, line)
-// 		}
-// 		addMap(playerData.BySource, line.ActionSource, line)
-// 		addMap(playerData.ToObject, line.ObjectName, line)
-// 		addMap(playerData.ToPlayerObjects, line.ObjectOwner+" "+line.ObjectName, line)
-
-// 		return agg
-// 	}
-// }

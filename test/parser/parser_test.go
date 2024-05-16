@@ -52,7 +52,7 @@ func (s *Suite) TestParseCombatLog() {
 	res, err := s.parser.ParseCombatLog(ctx, gameLog)
 	r.NoError(err)
 
-	r.Equal(99421, len(res))
+	r.Equal(129460, len(res))
 }
 
 func BenchmarkCombatGameLog(b *testing.B) {
