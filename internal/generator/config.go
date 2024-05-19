@@ -7,6 +7,7 @@ type Config struct {
 
 var typeByName = map[string]string{
 	"LogTime":          "time.Time",
+	"AuraID":           "int",
 	"InitiatorID":      "int",
 	"RecipientID":      "int",
 	"WinnerTeamID":     "int",

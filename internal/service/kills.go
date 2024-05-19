@@ -83,6 +83,10 @@ func FilterPlayerKills(filter *PlayerKillsFilterConfig) Filter[*combat.Kill, *De
 			return res, false
 		}
 
+		if !filter.DestroyObject && line.RecipientName == "" {
+			return res, false
+		}
+
 		if filter.DestroyObject {
 			if line.RecipientObjectName == "" {
 				return res, false

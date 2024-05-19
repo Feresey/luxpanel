@@ -81,6 +81,10 @@ func FilterPlayerHeal(filter *PlayerHealFilterConfig) Filter[*combat.Heal, *Deta
 			return res, false
 		}
 
+		if !filter.HealToObject && line.Recipient == "" {
+			return res, false
+		}
+
 		if filter.HealToObject {
 			if line.ObjectName == "" {
 				return res, false

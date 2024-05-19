@@ -15,6 +15,7 @@ type CombatLineType string
 func (s CombatLineType) String() string { return string(s) }
 
 const (
+	ApplyAuraLineType            = "ApplyAura"
 	ConnectToGameSessionLineType = "ConnectToGameSession"
 	DamageLineType               = "Damage"
 	FinishedGameplayLineType     = "FinishedGameplay"
@@ -34,6 +35,8 @@ var errWrongLineFormat = errors.New("Combat: wrong format")
 
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
 	switch {
+	case reApplyAura.MatchString(raw):
+		line = &ApplyAura{}
 	case reConnectToGameSession.MatchString(raw):
 		line = &ConnectToGameSession{}
 	case reDamage.MatchString(raw):
