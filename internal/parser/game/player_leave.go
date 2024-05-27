@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var rePlayerLeave = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: player (?P<PlayerID>\d+) leave game\s*$`)
+var (
+	rePlayerLeave      = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: player (?P<PlayerID>\d+) leave game\s*$`)
+	shortRePlayerLeave = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: player (?P<PlayerID>\d+) leave game\s*$`)
+)
 
 type PlayerLeave struct {
 	LogTime  time.Time

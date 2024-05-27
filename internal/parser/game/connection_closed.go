@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-var reConnectionClosed = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connection closed\. (?P<CloseReason>[A-Z_]+)\s*$`)
+var (
+	reConnectionClosed      = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connection closed\. (?P<CloseReason>[A-Z_]+)\s*$`)
+	shortReConnectionClosed = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connection closed\. (?P<CloseReason>[A-Z_]+)\s*$`)
+)
 
 type ConnectionClosed struct {
 	LogTime     time.Time

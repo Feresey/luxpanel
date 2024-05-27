@@ -30,13 +30,13 @@ var errWrongLineFormat = errors.New("Game: wrong format")
 
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
 	switch {
-	case reAddPlayer.MatchString(raw):
+	case shortReAddPlayer.MatchString(raw):
 		line = &AddPlayer{}
-	case reConnected.MatchString(raw):
+	case shortReConnected.MatchString(raw):
 		line = &Connected{}
-	case reConnectionClosed.MatchString(raw):
+	case shortReConnectionClosed.MatchString(raw):
 		line = &ConnectionClosed{}
-	case rePlayerLeave.MatchString(raw):
+	case shortRePlayerLeave.MatchString(raw):
 		line = &PlayerLeave{}
 	default:
 		return nil, false, nil

@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var reConnectToGameSession = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| ======= Connect to game session (?P<SessionID>\d+) =======\s*$`)
+var (
+	reConnectToGameSession      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| ======= Connect to game session (?P<SessionID>\d+) =======\s*$`)
+	shortReConnectToGameSession = regexp.MustCompile(`Connect to game session`)
+)
 
 type ConnectToGameSession struct {
 	LogTime   time.Time

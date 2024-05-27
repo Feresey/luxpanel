@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -65,7 +66,14 @@ func (g *Generator) Generate(rawTpl string) error {
 	return nil
 }
 
-func (g *Generator) GenerateRegexps(rawTpl string) (map[string]string, error) {
+type Regexps struct {
+	Full  string
+	Short string
+}
+
+type RegexpsMap map[string]Regexps
+
+func (g *Generator) GenerateRegexps(rawTpl string) (RegexpsMap, error) {
 	tpl := template.Must(
 		template.New("").
 			Funcs(template.FuncMap{
@@ -82,28 +90,37 @@ func (g *Generator) GenerateRegexps(rawTpl string) (map[string]string, error) {
 	var data struct {
 		Regexps []struct {
 			Name  string `yaml:"name"`
-			Value string `yaml:"value"`
+			Full  string `yaml:"full"`
+			Short string `yaml:"short"`
 		} `yaml:"regexps"`
 	}
 	err := yaml.Unmarshal(sb.Bytes(), &data)
 	if err != nil {
-		println(sb.String())
+		for idx, line := range strings.Split(sb.String(), "\n") {
+			fmt.Printf("%3d | %s\n", idx, line)
+		}
 		return nil, fmt.Errorf("yaml.Unmarshal: %w", err)
 	}
 
-	regexps := make(map[string]string, len(data.Regexps))
+	regexps := make(RegexpsMap, len(data.Regexps))
 	for _, re := range data.Regexps {
-		regexps[re.Name] = re.Value
+		if re.Short == "" {
+			re.Short = re.Full
+		}
+		regexps[re.Name] = Regexps{
+			Full:  re.Full,
+			Short: re.Short,
+		}
 	}
 	return regexps, nil
 }
 
-func (g *Generator) MakeConfigs(regexps map[string]string) (configs []FileConfig, err error) {
+func (g *Generator) MakeConfigs(regexps RegexpsMap) (configs []FileConfig, err error) {
 	keys := maps.Keys(regexps)
 	slices.Sort(keys)
 	for _, reName := range keys {
 		raw := regexps[reName]
-		re, err := regexp.Compile(raw)
+		re, err := regexp.Compile(raw.Full)
 		if err != nil {
 			return nil, fmt.Errorf("compile regexp: %w", err)
 		}
@@ -143,7 +160,8 @@ func (g *Generator) MakeConfigs(regexps map[string]string) (configs []FileConfig
 			TypeName:    strcase.ToCamel(reName),
 			Regexp: RegexpParams{
 				Name:         "re" + strcase.ToCamel(reName),
-				Value:        re.String(),
+				ShortName:    "shortRe" + strcase.ToCamel(reName),
+				Value:        raw,
 				TotalMatches: re.NumSubexp() + 1,
 			},
 			Fields: fields,
@@ -161,7 +179,8 @@ type FileConfig struct {
 
 type RegexpParams struct {
 	Name         string
-	Value        string
+	ShortName    string
+	Value        Regexps
 	TotalMatches int
 }
 

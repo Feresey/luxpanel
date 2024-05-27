@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var reFinishedGameplay = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Gameplay finished\. Winner team:\s+(?P<WinnerTeamID>\d+)\((?P<WinReason>.*)\)\.\s+Finish reason:\s+'(?P<FinishReason>.*)'\.\s+Actual game time\s+(?P<GameTime>-?\d+\.\d+)\s+sec\s*$`)
+var (
+	reFinishedGameplay      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Gameplay finished\. Winner team:\s+(?P<WinnerTeamID>\d+)\((?P<WinReason>.*)\)\.\s+Finish reason:\s+'(?P<FinishReason>.*)'\.\s+Actual game time\s+(?P<GameTime>-?\d+\.\d+)\s+sec\s*$`)
+	shortReFinishedGameplay = regexp.MustCompile(`Gameplay finished`)
+)
 
 type FinishedGameplay struct {
 	LogTime      time.Time

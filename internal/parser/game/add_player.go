@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var reAddPlayer = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: ADD_PLAYER (?P<SessionPlayerID>\d+)\s+\((?P<PlayerName>[a-zA-Z0-9_/-]+)(\s+\[(?P<PlayerCorpTag>[a-zA-Z0-9_/-]*)\])?,\s+(?P<PlayerID>\d+)\)\s+status\s+(?P<ConnectionStatus>\d+)\s+team\s+(?P<TeamID>\d+)(\s+group\s+(?P<GroupID>\d+))?\s*$`)
+var (
+	reAddPlayer      = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: ADD_PLAYER (?P<SessionPlayerID>\d+)\s+\((?P<PlayerName>[a-zA-Z0-9_/-]+)(\s+\[(?P<PlayerCorpTag>[a-zA-Z0-9_/-]*)\])?,\s+(?P<PlayerID>\d+)\)\s+status\s+(?P<ConnectionStatus>\d+)\s+team\s+(?P<TeamID>\d+)(\s+group\s+(?P<GroupID>\d+))?\s*$`)
+	shortReAddPlayer = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: ADD_PLAYER (?P<SessionPlayerID>\d+)\s+\((?P<PlayerName>[a-zA-Z0-9_/-]+)(\s+\[(?P<PlayerCorpTag>[a-zA-Z0-9_/-]*)\])?,\s+(?P<PlayerID>\d+)\)\s+status\s+(?P<ConnectionStatus>\d+)\s+team\s+(?P<TeamID>\d+)(\s+group\s+(?P<GroupID>\d+))?\s*$`)
+)
 
 type AddPlayer struct {
 	LogTime          time.Time

@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-var reConnected = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connected to`)
+var (
+	reConnected      = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connected to`)
+	shortReConnected = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+\|\s+client: connected to`)
+)
 
 type Connected struct {
 	LogTime time.Time

@@ -35,21 +35,21 @@ var errWrongLineFormat = errors.New("Combat: wrong format")
 
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
 	switch {
-	case reApplyAura.MatchString(raw):
+	case shortReApplyAura.MatchString(raw):
 		line = &ApplyAura{}
-	case reConnectToGameSession.MatchString(raw):
+	case shortReConnectToGameSession.MatchString(raw):
 		line = &ConnectToGameSession{}
-	case reDamage.MatchString(raw):
+	case shortReDamage.MatchString(raw):
 		line = &Damage{}
-	case reFinishedGameplay.MatchString(raw):
+	case shortReFinishedGameplay.MatchString(raw):
 		line = &FinishedGameplay{}
-	case reHeal.MatchString(raw):
+	case shortReHeal.MatchString(raw):
 		line = &Heal{}
-	case reKill.MatchString(raw):
+	case shortReKill.MatchString(raw):
 		line = &Kill{}
-	case reReward.MatchString(raw):
+	case shortReReward.MatchString(raw):
 		line = &Reward{}
-	case reStartGameplay.MatchString(raw):
+	case shortReStartGameplay.MatchString(raw):
 		line = &StartGameplay{}
 	default:
 		return nil, false, nil

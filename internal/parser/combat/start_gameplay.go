@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var reStartGameplay = regexp.MustCompile(`(?s)(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| ======= Start .* '(?P<GameMode>.+)' map '(?P<MapName>.+)'(, local client team (?P<ClientTeamID>\d+))?\s*=======\s*$`)
+var (
+	reStartGameplay      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\| ======= Start .* '(?P<GameMode>.+)' map '(?P<MapName>.+)'(, local client team (?P<ClientTeamID>\d+))?\s*=======\s*$`)
+	shortReStartGameplay = regexp.MustCompile(`======= Start`)
+)
 
 type StartGameplay struct {
 	LogTime      time.Time

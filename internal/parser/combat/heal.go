@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var reHeal = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Heal\s+(?P<Initiator>[a-zA-Z][a-zA-Z0-9_/-]*)\|(?P<InitiatorID>-?\d+)\s+->\s+((?P<Recipient>[a-zA-Z][a-zA-Z0-9_/-]*)|(?P<ObjectName>[a-zA-Z][a-zA-Z0-9_/-]*)\((?P<ObjectOwner>[a-zA-Z][a-zA-Z0-9_/-]*)\))\|(?P<RecipientID>-?\d+)\s+(?P<Heal>-?\d+\.\d+)\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?)?\s*$`)
+var (
+	reHeal      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Heal\s+(?P<Initiator>[a-zA-Z][a-zA-Z0-9_/-]*)\|(?P<InitiatorID>-?\d+)\s+->\s+((?P<Recipient>[a-zA-Z][a-zA-Z0-9_/-]*)|(?P<ObjectName>[a-zA-Z][a-zA-Z0-9_/-]*)\((?P<ObjectOwner>[a-zA-Z][a-zA-Z0-9_/-]*)\))\|(?P<RecipientID>-?\d+)\s+(?P<Heal>-?\d+\.\d+)\s+(?P<ActionSource>\(?[a-zA-Z0-9_/-]+\)?)?\s*$`)
+	shortReHeal = regexp.MustCompile(`^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Heal\s+`)
+)
 
 type Heal struct {
 	LogTime      time.Time

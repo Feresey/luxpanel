@@ -1,5 +1,5 @@
 {{- $time := `(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})`}}
-{{- $cmbt := printf "%s%s" $time `\s+CMBT\s+\|`}}
+{{- $cmbt := printf "^%s%s" $time `\s+CMBT\s+\|`}}
 {{- $damage := printf "%s%s" $cmbt `\s+Damage\s+`}}
 {{- $heal := printf "%s%s" $cmbt `\s+Heal\s+`}}
 {{- $kill := printf "%s%s" $cmbt `\s+Killed\s+`}}
@@ -12,20 +12,26 @@
 
 regexps:
 - name: connectToGameSession
-  value: >-
+  full: >-
     (?s){{$cmbt}} ======= Connect to game session {{wrap "SessionID" `\d+`}} =======\s*$
+  short: >-
+    Connect to game session
 - name: startGameplay
-  value: >-
+  full: >-
     (?s){{$cmbt}} ======= Start .* '{{wrap "GameMode" ".+"}}' map '{{wrap "MapName" ".+"}}'(, local client team {{wrap "ClientTeamID" `\d+`}})?\s*=======\s*$
+  short: >-
+    ======= Start
 - name: finishedGameplay
-  value: >-
+  full: >-
     (?s){{$cmbt}}\s+Gameplay finished\. Winner team:\s+{{"" -}}
 {{wrap "WinnerTeamID" `\d+`}}\({{wrap "WinReason" `.*`}}\)\.\s+{{"" -}}
 Finish reason:\s+'{{wrap "FinishReason" `.*`}}'\.\s+{{"" -}}
 Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
+  short: >-
+    Gameplay finished
 - name: damage
-  value: >-
-    (?s)^{{$damage}}
+  full: >-
+    (?s){{$damage}}
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}\s+->\s+{{"" -}}
 ({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))\|{{wrap "RecipientID" $id -}}\s+
 {{- wrap "DamageTotal" $float}}\s+{{`\(` -}}
@@ -34,16 +40,20 @@ Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
 ({{wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}})?\s+{{"" -}}
 {{wrap "DamageModifiers" `[A-Z\|_]+` -}}
 (\s+{{wrap "FriendlyFire" "<FriendlyFire>"}})?\s*$
+  short: >-
+    {{$damage}}
 - name: heal
-  value: >-
-    (?s)^{{$heal}}
+  full: >-
+    (?s){{$heal}}
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}\s+->\s+{{"" -}}
 ({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))\|{{wrap "RecipientID" $id -}}\s+
 {{- wrap "Heal" $float}}\s+
 {{- wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}}?\s*$
+  short: >-
+    {{$heal}}
 - name: kill
-  value: >-
-    (?s)^{{$kill -}}
+  full: >-
+    (?s){{$kill -}}
 (
 {{- "" -}}
     ({{wrap "RecipientName" $name}}\s+{{wrap "RecipientShip" $name}})
@@ -56,14 +66,20 @@ Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
 {{- wrap "Initiator" $name}}\|{{wrap "InitiatorID" $id -}}
 (\s+{{wrap "ActionSource" `\(?[a-zA-Z0-9_/-]+\)?`}})?{{"" -}}
 (\s+{{wrap "FriendlyFire" "<FriendlyFire>"}})?\s*$
+  short: >-
+    {{$kill}}
 - name: reward
-  value: >-
-    (?s)^{{$reward}}
+  full: >-
+    (?s){{$reward}}
 {{- wrap "Recipient" $name}}(\s{{wrap "Ship" $name}})?\s*\t\s*
 {{- wrap "Reward" $int}}\s+{{wrap "RewardType" "((experience)|(credits)|(effective points))"}}\s+{{"" -}}
 for\s{{wrap "Reason" ".+"}}\s*$
+  short: >-
+    {{$reward}}
 - name: apply_aura
-  value: >-
-    (?s)^{{$applyAura}}'
+  full: >-
+    (?s){{$applyAura}}'
 {{- wrap "AuraName" $name}}'\s+id\s+{{wrap "AuraID" $int}}\s+type\s+
 {{- wrap "AuraType" "[A-Z0-9_]+"}}\s+to\s+'({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))'\s*$
+  short: >-
+    {{$applyAura}}

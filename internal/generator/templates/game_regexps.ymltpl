@@ -7,10 +7,10 @@
 
 regexps:
 - name: connected
-  value: >-
+  full: >-
     (?s){{$time}}client: connected to
 - name: addPlayer
-  value: >-
+  full: >-
     (?s){{$time}}client: ADD_PLAYER {{wrap "SessionPlayerID" $int}}
 {{- `\s+\(` -}}
 {{wrap "PlayerName" $name -}}
@@ -27,8 +27,8 @@ team\s+{{wrap "TeamID" $int -}}
 {{- wrap "GroupID" $int -}}
 )?\s*$
 - name: playerLeave
-  value: >-
+  full: >-
     (?s){{$time}}client: player {{wrap "PlayerID" $int}} leave game\s*$
 - name: connectionClosed
-  value: >-
+  full: >-
     (?s){{$time}}client: connection closed\. {{wrap "CloseReason" `[A-Z_]+`}}\s*$

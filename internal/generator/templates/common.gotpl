@@ -35,7 +35,7 @@ var errWrongLineFormat = errors.New("{{$packageNameCamel}}: wrong format")
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool,err error) {
 	switch {
 	{{- range $i, $cfg := $root}}
-	case {{$cfg.Regexp.Name}}.MatchString(raw):
+	case {{$cfg.Regexp.ShortName}}.MatchString(raw):
 		line = &{{$cfg.TypeName}}{}
 	{{- end}}
 	default:

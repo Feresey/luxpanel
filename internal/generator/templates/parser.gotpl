@@ -9,7 +9,10 @@ import (
 	"strconv"
 )
 
-var {{.Regexp.Name}} = regexp.MustCompile(`{{.Regexp.Value}}`)
+var (
+	{{.Regexp.Name}} = regexp.MustCompile(`{{.Regexp.Value.Full}}`)
+	{{.Regexp.ShortName}} = regexp.MustCompile(`{{.Regexp.Value.Short}}`)
+)
 
 type {{.TypeName}} struct {
 	{{- range $i, $field := .Fields}}

@@ -18,6 +18,9 @@ func (s *Suite) TestParseGameLog() {
 	r.NoError(err)
 
 	for _, day := range days {
+		if !day.IsDir() {
+			continue
+		}
 		f, err := fs.Sub(daysFS, filepath.Join("testdata", day.Name()))
 		r.NoError(err)
 
