@@ -168,7 +168,7 @@ start: lines {
 lines: lines line { $$ = append($1, $2)} | line { $$ = append($$, $1)} | EOL {};
 
 line: TIME COMBAT combat_line EOL {
-	println($1.String())
+	// println($1.String())
 	$$ = &LogLine[*CombatLine]{
 		LogTime: $1,
 		Line: $3,
@@ -248,7 +248,7 @@ kill: player_or_object ';' '\t' STRING object kill_sucks {
 	}
 }
 
-kill_sucks: source FRIENDLY_FIRE {
+kill_sucks: source friendly_fire {
 	$$.Source =  $1
 	$$.FriendlyFire = $2
 } | friendly_fire { $$.FriendlyFire = $1}
