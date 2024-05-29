@@ -55,6 +55,7 @@ type Kill struct {
 	Killed Object
 	Killer Object
 	Source string
+	FriendlyFire bool
 }
 
 type PlayerObject struct {
@@ -93,6 +94,11 @@ type damageSucks struct {
 	Modifiers DamageModifiersMap
 }
 
+type killSucks struct {
+	Source string
+	FriendlyFire bool
+}
+
 %}
 
 %union {
@@ -115,16 +121,17 @@ type damageSucks struct {
 
 	Heal *Heal
 	Kill *Kill
+	KillSucks killSucks
 }
 
 %token COMBAT GAME EOL
-%token ARROW LBRACE RBRACE VSLASH
+%token ARROW
 
 %token DAMAGE DAMAGE_HULL_START DAMAGE_SHIELD_START
 %token HEAL
 %token KILL
 
-%token CONNECT_TO_GAME_SESSION_PREFIX EQ_DELIM QUOTE COMMA LOCAL_CLIENT_TEAM START
+%token CONNECT_TO_GAME_SESSION_PREFIX EQ_DELIM LOCAL_CLIENT_TEAM START
 
 %token <Float> FLOAT
 %token <Int> INT
@@ -140,10 +147,12 @@ type damageSucks struct {
 
 %type <Damage> damage
 %type <Object> object
+%type <Object> player_or_object
 %type <Bool> friendly_fire
 %type <DamageModifiers> damage_modifiers
 %type <String> source
 %type <DamageSucks> damage_sucks
+%type <KillSucks> kill_sucks
 %type <Int> local_client_team
 %type <Strings> strings
 
@@ -159,7 +168,7 @@ start: lines {
 lines: lines line { $$ = append($1, $2)} | line { $$ = append($$, $1)} | EOL {};
 
 line: TIME COMBAT combat_line EOL {
-	// println($1.String())
+	println($1.String())
 	$$ = &LogLine[*CombatLine]{
 		LogTime: $1,
 		Line: $3,
@@ -185,7 +194,7 @@ combat_line: DAMAGE damage {
 	$$ = &CombatLine{
 		ConnectToGameSession: &ConnectToGameSession{SessionID: $3},
 	}
-} | EQ_DELIM START strings QUOTE STRING QUOTE STRING QUOTE STRING QUOTE local_client_team EQ_DELIM {
+} | EQ_DELIM START strings '\'' STRING '\'' STRING '\'' STRING '\'' local_client_team EQ_DELIM {
 	$$ = &CombatLine{
 		Start: &Start{
 			What: strings.Join($3, " "),
@@ -198,10 +207,10 @@ combat_line: DAMAGE damage {
 
 strings: STRING { $$ = append($$, $1) } | strings STRING { $$ = append($1, $2) }
 
-local_client_team: COMMA LOCAL_CLIENT_TEAM INT { $$ = $3 } | /*empty*/ {}
+local_client_team: ',' LOCAL_CLIENT_TEAM INT { $$ = $3 } | /*empty*/ {}
 
 // 21:41:15.644  CMBT   | Damage         aSpectro|0000002757 ->          Nafalar|0000002677 117.55 (h:0.00 s:117.55) Weapon_KineticStkBomb_T5_Epic KINETIC|PRIMARY_WEAPON|CRIT  
-damage: object ARROW object FLOAT LBRACE DAMAGE_HULL_START FLOAT DAMAGE_SHIELD_START FLOAT RBRACE damage_sucks friendly_fire {
+damage: object ARROW object FLOAT '(' DAMAGE_HULL_START FLOAT DAMAGE_SHIELD_START FLOAT ')' damage_sucks friendly_fire {
 	$$ = &Damage{
 		Initiator: $1,
 		Recipient: $3,
@@ -225,24 +234,44 @@ heal: object ARROW object FLOAT STRING {
 }
 
 // 23:04:35.283  CMBT   | Killed Ship_Bot_ClanShipDroneBig_Empire|0000001860;	 killer Feresey|0000002076 Weapon_Plasmagun_Heavy_T5_Pirate 
-kill: object ';' '\t' STRING object STRING {
+// 19:33:59.527  CMBT   | Killed Py6Jl	 Ship_Race3_M_T2_Pirate|0000000248;	 killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate 
+// 19:44:55.746  CMBT   | Killed SwarmPack2(georgeatg)|0000001044;	 killer georgeatg|0000001044 (suicide) <FriendlyFire>
+kill: player_or_object ';' '\t' STRING object kill_sucks {
 	if $4 != "killer" {
 		yylex.Error("not a killer")
 	}
 	$$ = &Kill{
 		Killed: $1,
 		Killer: $5,
-		Source: $6,
+		Source: $6.Source,
+		FriendlyFire: $6.FriendlyFire,
 	}
 }
 
-object: STRING VSLASH INT {
+kill_sucks: source FRIENDLY_FIRE {
+	$$.Source =  $1
+	$$.FriendlyFire = $2
+} | friendly_fire { $$.FriendlyFire = $1}
+
+player_or_object: STRING '\t' object {
+	$$ = Object{
+		Name: $1,
+		PlayerObject: PlayerObject{
+			ObjectName: $3.Name,
+		},
+		ObjectID: $3.ObjectID,
+	}
+} | object {
+	$$ = $1
+}
+
+object: STRING '|' INT {
 	$$ = Object{
 		Name: $1,
 		ObjectID: $3,
 	}
 }
-| STRING LBRACE STRING RBRACE VSLASH INT {
+| STRING '(' STRING ')' '|' INT {
 	$$ = Object{
 		PlayerObject: PlayerObject{
 			ObjectName: $1,
@@ -259,13 +288,13 @@ damage_sucks: source damage_modifiers {
 	$$.Modifiers = $1
 }
 
-source: STRING { $$ = $1} | LBRACE STRING RBRACE { $$ = $2}
+source: STRING { $$ = $1} | '(' STRING ')' { $$ = $2}
 
 damage_modifiers: STRING {
 	$$ = DamageModifiersMap{
 		DamageModifier($1): {},
 	}
-} | damage_modifiers VSLASH STRING {
+} | damage_modifiers '|' STRING {
 	$$[DamageModifier($3)] = struct{}{}
 }
 

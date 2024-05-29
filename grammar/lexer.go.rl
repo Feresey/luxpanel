@@ -71,19 +71,20 @@ func (lex *lexer) Lex(out *yySymType) int {
         main := |*
             ' CMBT   | ' => {tok = COMBAT; fbreak;};
             '=======' => {tok = EQ_DELIM; fbreak;};
-            "'" => {tok = QUOTE; fbreak;};
-            "," => {tok = COMMA; fbreak;};
+            "'" => {tok = int('\''); fbreak;};
+            "," => {tok = int(','); fbreak;};
             ";" => {tok = int(';'); fbreak;};
             "\t" => {tok = int('\t'); fbreak;};
+            '(' => {tok = int('('); fbreak;};
+            '|' => {tok = int('|'); fbreak;};
+            ')' => {tok = int(')'); fbreak;};
             'Connect to game session' => {tok = CONNECT_TO_GAME_SESSION_PREFIX; fbreak;};
             'local client team' => {tok = LOCAL_CLIENT_TEAM; fbreak;};
             'Start' => {tok = START; fbreak;};
             'Damage' => {tok = DAMAGE; fbreak;};
+            'Killed' => {tok = KILL; fbreak;};
             'Heal' => {tok = HEAL; fbreak;};
             '->' => {tok = ARROW; fbreak;};
-            '(' => {tok = LBRACE; fbreak;};
-            '|' => {tok = VSLASH; fbreak;};
-            ')' => {tok = RBRACE; fbreak;};
             'h:' => {tok = DAMAGE_HULL_START; fbreak;};
             's:' => {tok = DAMAGE_SHIELD_START; fbreak;};
             '<FriendlyFire>' => {tok = FRIENDLY_FIRE; out.Bool = true; fbreak;};
