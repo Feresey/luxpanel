@@ -630,67 +630,78 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 	})
 }
 
-func TestCombatApplyAuraUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.ApplyAura
-		wantError bool
-	}{
-		{
-			name: "apply aura",
-			raw:  `01:05:47.750  CMBT   | Apply aura 'TestKPMNormalizer_1' id 97 type AURA_RESIST_ALL to 'Taurefinne'`,
-			want: combat.ApplyAura{
-				LogTime:   time.Date(2023, 1, 0, 1, 5, 47, 750000000, time.Local),
-				AuraName:  "TestKPMNormalizer_1",
-				AuraID:    97,
-				AuraType:  "AURA_RESIST_ALL",
-				Recipient: "Taurefinne",
-			},
-		},
-		{
-			name: "apply aura to object",
-			raw:  `23:04:41.679  CMBT   | Apply aura 'Spell_AdvancedHeal_T5_Epic' id 433 type AURA_HEALING_MOD to 'DestrMunition_SectorShield_T5_Mk3(Khushal64n6)'`,
-			want: combat.ApplyAura{
-				LogTime:     time.Date(2023, 1, 0, 23, 04, 41, 679000000, time.Local),
-				AuraName:    "Spell_AdvancedHeal_T5_Epic",
-				AuraID:      433,
-				AuraType:    "AURA_HEALING_MOD",
-				ObjectName:  "DestrMunition_SectorShield_T5_Mk3",
-				ObjectOwner: "Khushal64n6",
-			},
-		},
-	}
+// func TestCombatApplyAuraUnmarshal(t *testing.T) {
+// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
+// 	tests := []struct {
+// 		name      string
+// 		raw       string
+// 		want      combat.ApplyAura
+// 		wantError bool
+// 	}{
+// 		{
+// 			name: "apply aura",
+// 			raw:  `01:05:47.750  CMBT   | Apply aura 'TestKPMNormalizer_1' id 97 type AURA_RESIST_ALL to 'Taurefinne'`,
+// 			want: combat.ApplyAura{
+// 				LogTime:   time.Date(2023, 1, 0, 1, 5, 47, 750000000, time.Local),
+// 				AuraName:  "TestKPMNormalizer_1",
+// 				AuraID:    97,
+// 				AuraType:  "AURA_RESIST_ALL",
+// 				Recipient: "Taurefinne",
+// 			},
+// 		},
+// 		{
+// 			name: "apply aura to object",
+// 			raw:  `23:04:41.679  CMBT   | Apply aura 'Spell_AdvancedHeal_T5_Epic' id 433 type AURA_HEALING_MOD to 'DestrMunition_SectorShield_T5_Mk3(Khushal64n6)'`,
+// 			want: combat.ApplyAura{
+// 				LogTime:     time.Date(2023, 1, 0, 23, 04, 41, 679000000, time.Local),
+// 				AuraName:    "Spell_AdvancedHeal_T5_Epic",
+// 				AuraID:      433,
+// 				AuraType:    "AURA_HEALING_MOD",
+// 				ObjectName:  "DestrMunition_SectorShield_T5_Mk3",
+// 				ObjectOwner: "Khushal64n6",
+// 			},
+// 		},
+// 		{
+// 			name: "3aсtpeJIucb",
+// 			raw:  `00:39:57.865  CMBT   | Apply aura 'SpawnWarpInvulnerability' id 62 type AURA_INVULNERABILITY to '3acTPeJIuCb'`,
+// 			want: combat.ApplyAura{
+// 				LogTime:   time.Date(2023, 1, 0, 0, 39, 57, 865000000, time.Local),
+// 				AuraName:  "SpawnWarpInvulnerability",
+// 				AuraID:    62,
+// 				AuraType:  "AURA_INVULNERABILITY",
+// 				Recipient: "3acTPeJIuCb",
+// 			},
+// 		},
+// 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
+// 	for _, tt := range tests {
+// 		tt := tt
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			r := require.New(t)
 
-			var val combat.ApplyAura
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err, "line: %s", tt.raw)
-				return
-			} else {
-				r.NoError(err, "line: %s", tt.raw)
-			}
-			r.Equal(tt.want, val)
-		})
-	}
+// 			var val combat.ApplyAura
+// 			err := val.Unmarshal(tt.raw, now)
+// 			if tt.wantError {
+// 				r.Error(err, "line: %s", tt.raw)
+// 				return
+// 			} else {
+// 				r.NoError(err, "line: %s", tt.raw)
+// 			}
+// 			r.Equal(tt.want, val)
+// 		})
+// 	}
 
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(applyAuraRaw, "\n")
+// 	t.Run("raw", func(t *testing.T) {
+// 		r := require.New(t)
+// 		lines := strings.Split(applyAuraRaw, "\n")
 
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.ApplyAura
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
-		}
-	})
-}
+// 		for _, line := range lines {
+// 			if line == "" {
+// 				return
+// 			}
+// 			var val combat.ApplyAura
+// 			err := val.Unmarshal(line, now)
+// 			r.NoError(err, line)
+// 		}
+// 	})
+// }

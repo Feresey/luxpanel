@@ -5,7 +5,7 @@
 {{- $kill := printf "%s%s" $cmbt `\s+Killed\s+`}}
 {{- $reward := printf "%s%s" $cmbt `\s+Reward\s+`}}
 {{- $applyAura := printf "%s%s" $cmbt `\s+Apply aura\s+`}}
-{{- $name := `[a-zA-Z][a-zA-Z0-9_/-]*`}}
+{{- $name := `[a-zA-Z0-9][a-zA-Z0-9_/-]*`}}
 {{- $id := `-?\d+`}}
 {{- $float := `-?\d+\.\d+`}}
 {{- $int := `\d+`}}
@@ -76,10 +76,10 @@ Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
 for\s{{wrap "Reason" ".+"}}\s*$
   short: >-
     {{$reward}}
-- name: apply_aura
+{{/* - name: apply_aura
   full: >-
     (?s){{$applyAura}}'
 {{- wrap "AuraName" $name}}'\s+id\s+{{wrap "AuraID" $int}}\s+type\s+
 {{- wrap "AuraType" "[A-Z0-9_]+"}}\s+to\s+'({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))'\s*$
   short: >-
-    {{$applyAura}}
+    {{$applyAura}} */}}

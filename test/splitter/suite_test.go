@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
+	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/mytrace"
 	"github.com/Feresey/luxpanel/internal/parser"
@@ -23,7 +23,7 @@ type Suite struct {
 
 	app *fxtest.App
 
-	cfg      *config.Config
+	cfg      config.Config
 	splitter *splitter.Splitter
 }
 
@@ -35,7 +35,7 @@ func (s *Suite) SetupSuite() {
 	logConfig := zap.NewDevelopmentConfig()
 	logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	s.cfg = &config.Config{}
+	s.cfg = config.Config{}
 
 	s.app = fxtest.New(
 		s.T(),

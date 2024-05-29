@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
+	"github.com/Feresey/luxpanel/config"
 	otlgrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.uber.org/fx"
 
@@ -20,19 +20,26 @@ type FxConfig struct {
 	fx.In
 
 	LC     fx.Lifecycle
-	Config *config.Config
+	Config *config.TraceConfig
 }
 
 func NewTraceProvider(cfg FxConfig) trace.TracerProvider {
-	if !cfg.Config.Trace.Enabled {
+	if !cfg.Config.Enabled {
 		return noop.NewTracerProvider()
 	}
-	exp := otlgrpc.NewUnstarted(otlgrpc.WithInsecure())
+
+	var opts []otlgrpc.Option
+	opts = append(opts, otlgrpc.WithInsecure())
+	if cfg.Config.Addr != "" {
+		opts = append(opts, otlgrpc.WithEndpoint(cfg.Config.Addr))
+	}
+
+	exp := otlgrpc.NewUnstarted(opts...)
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(cfg.Config.Trace.ServiceName),
+			semconv.ServiceNameKey.String(cfg.Config.ServiceName),
 			semconv.DeploymentEnvironmentKey.String("production"),
 			// TODO service version
 		)),
