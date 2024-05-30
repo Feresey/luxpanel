@@ -23,7 +23,9 @@ import (
 
 type lexer struct {
     nowTime time.Time
-    res []*LogLine[*CombatLine]
+    res CombatLine
+
+    errors []string
 
     // It must be an array containting the data to process.
     data string
@@ -79,10 +81,14 @@ func (lex *lexer) Lex(out *yySymType) int {
             '|' => {tok = int('|'); fbreak;};
             ')' => {tok = int(')'); fbreak;};
             'Connect to game session' => {tok = CONNECT_TO_GAME_SESSION_PREFIX; fbreak;};
+            'Gameplay finished. Winner team: ' => {tok = GAMEPLAY_FINISHED; fbreak;};
+            '. Finish reason: ' => {tok = FINISH_REASON; fbreak;};
+            '. Actual game time ' => {tok = ACTUAL_GAME_TIME; fbreak;};
             'local client team' => {tok = LOCAL_CLIENT_TEAM; fbreak;};
             'Start' => {tok = START; fbreak;};
             'Damage' => {tok = DAMAGE; fbreak;};
             'Killed' => {tok = KILL; fbreak;};
+            'Participant' => {tok = PARTICIPANT; fbreak;};
             'Heal' => {tok = HEAL; fbreak;};
             '->' => {tok = ARROW; fbreak;};
             'h:' => {tok = DAMAGE_HULL_START; fbreak;};
@@ -138,8 +144,16 @@ func (lex *lexer) Lex(out *yySymType) int {
 }
 
 func (lex *lexer) Error(e string) {
-    fmt.Println("error:", e)
+    lex.errors = append(lex.errors, e)
 }
+
+func (lex *lexer) Err() error {
+    if len(lex.errors) != 0 {
+        return fmt.Errorf("%v", lex.errors)
+    }
+    return nil
+}
+
 
 const timeFormat = "15:04:05.000"
 

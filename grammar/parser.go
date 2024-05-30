@@ -12,31 +12,51 @@ import (
 	"time"
 )
 
-type LogLine[T any] struct {
-	LogTime time.Time
-	Line    T
-}
-
 type CombatLine struct {
 	*Damage
 	*Heal
+	*Kill
+	*Participant
 	*ConnectToGameSession
 	*Start
-	*Kill
+	*Finished
+	*Reward
 }
 
 type ConnectToGameSession struct {
+	Time      time.Time
 	SessionID int
 }
 
 type Start struct {
+	Time              time.Time
 	What              string
 	GameMode          string
 	MapName           string
 	LocalClientTeamID int
 }
 
+type Finished struct {
+	Time time.Time
+
+	WinnerTeamID int
+	WinReason    string
+	FinishReason string
+	GameTime     float32
+}
+
+type Reward struct {
+	Time time.Time
+
+	Recipient  string
+	Ship       string
+	Reward     int
+	RewardType string
+	Reason     string
+}
+
 type Damage struct {
+	Time      time.Time
 	Initiator Object
 	Recipient Object
 	Source    string
@@ -50,6 +70,7 @@ type Damage struct {
 }
 
 type Heal struct {
+	Time      time.Time
 	Initiator Object
 	Recipient Object
 	Source    string
@@ -58,10 +79,26 @@ type Heal struct {
 }
 
 type Kill struct {
+	Time         time.Time
 	Killed       Object
 	Killer       Object
 	Source       string
 	FriendlyFire bool
+}
+
+type Participant struct {
+	Time           time.Time
+	Name           string
+	Ship           string
+	Damage         float32
+	MostDamageWith string
+	BuffDebuff
+	FriendlyFire bool
+}
+
+type BuffDebuff struct {
+	IsBuff   bool
+	IsDebuff bool
 }
 
 type PlayerObject struct {
@@ -95,89 +132,110 @@ const (
 	DamageModule          DamageModifier = "MODULE"
 )
 
-type damageSucks struct {
+type DamageSucks struct {
 	Source    string
 	Modifiers DamageModifiersMap
 }
 
-type killSucks struct {
+type KillSucks struct {
 	Source       string
 	FriendlyFire bool
 }
 
-//line gramma.y:104
+type (
+	Int     = int
+	String  = string
+	Strings = []string
+	Float   = float32
+	Bool    = bool
+	Time    = time.Time
+)
+
+//line gramma.y:150
 type yySymType struct {
-	yys     int
-	String  string
-	Strings []string
-	Int     int
-	Float   float32
-	Bool    bool
-
-	Time time.Time
-
-	CombatLine  *LogLine[*CombatLine]
-	CombatLines []*LogLine[*CombatLine]
-	Combat      *CombatLine
-
-	Damage          *Damage
-	DamageSucks     damageSucks
-	DamageModifiers DamageModifiersMap
-	Object          Object
-
-	Heal      *Heal
-	Kill      *Kill
-	KillSucks killSucks
+	yys int
+	String
+	Strings
+	Int
+	Float
+	Bool
+	Time
+	Damage
+	DamageSucks
+	DamageModifiersMap
+	Object
+	Heal
+	Kill
+	KillSucks
+	Participant
+	BuffDebuff
+	ConnectToGameSession
+	Start
+	CombatLine
+	Finished
+	Reward
 }
 
 const COMBAT = 57346
-const GAME = 57347
-const EOL = 57348
-const ARROW = 57349
-const DAMAGE = 57350
-const DAMAGE_HULL_START = 57351
-const DAMAGE_SHIELD_START = 57352
-const HEAL = 57353
-const KILL = 57354
-const CONNECT_TO_GAME_SESSION_PREFIX = 57355
-const EQ_DELIM = 57356
-const LOCAL_CLIENT_TEAM = 57357
-const START = 57358
-const FLOAT = 57359
-const INT = 57360
-const STRING = 57361
-const FRIENDLY_FIRE = 57362
-const TIME = 57363
+const EOL = 57347
+const ARROW = 57348
+const FLOAT = 57349
+const INT = 57350
+const STRING = 57351
+const FRIENDLY_FIRE = 57352
+const TIME = 57353
+const DAMAGE = 57354
+const DAMAGE_HULL_START = 57355
+const DAMAGE_SHIELD_START = 57356
+const HEAL = 57357
+const KILL = 57358
+const PARTICIPANT = 57359
+const BUFF = 57360
+const DEBUFF = 57361
+const CONNECT_TO_GAME_SESSION_PREFIX = 57362
+const EQ_DELIM = 57363
+const LOCAL_CLIENT_TEAM = 57364
+const START = 57365
+const GAMEPLAY_FINISHED = 57366
+const ACTUAL_GAME_TIME = 57367
+const FINISH_REASON = 57368
+const REWARD = 57369
 
 var yyToknames = [...]string{
 	"$end",
 	"error",
 	"$unk",
 	"COMBAT",
-	"GAME",
 	"EOL",
 	"ARROW",
-	"DAMAGE",
-	"DAMAGE_HULL_START",
-	"DAMAGE_SHIELD_START",
-	"HEAL",
-	"KILL",
-	"CONNECT_TO_GAME_SESSION_PREFIX",
-	"EQ_DELIM",
-	"LOCAL_CLIENT_TEAM",
-	"START",
 	"FLOAT",
 	"INT",
 	"STRING",
 	"FRIENDLY_FIRE",
 	"TIME",
-	"'\\''",
-	"','",
+	"DAMAGE",
+	"DAMAGE_HULL_START",
+	"DAMAGE_SHIELD_START",
+	"HEAL",
+	"KILL",
+	"PARTICIPANT",
+	"BUFF",
+	"DEBUFF",
+	"CONNECT_TO_GAME_SESSION_PREFIX",
+	"EQ_DELIM",
+	"LOCAL_CLIENT_TEAM",
+	"START",
+	"GAMEPLAY_FINISHED",
+	"ACTUAL_GAME_TIME",
+	"FINISH_REASON",
+	"REWARD",
 	"'('",
 	"')'",
+	"'|'",
 	"';'",
 	"'\\t'",
-	"'|'",
+	"'\\''",
+	"','",
 }
 
 var yyStatenames = [...]string{}
@@ -186,108 +244,139 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line gramma.y:303
+//line gramma.y:498
 
 //line yacctab:1
-var yyExca = [...]int8{
+var yyExca = [...]int16{
 	-1, 1,
 	1, -1,
 	-2, 0,
-	-1, 77,
-	19, 26,
-	-2, 28,
+	-1, 112,
+	9, 20,
+	-2, 48,
+	-1, 129,
+	9, 21,
+	-2, 30,
 }
 
 const yyPrivate = 57344
 
-const yyLast = 90
+const yyLast = 147
 
-var yyAct = [...]int8{
-	76, 56, 57, 15, 27, 27, 83, 30, 26, 26,
-	49, 38, 58, 60, 18, 22, 29, 59, 77, 71,
-	67, 44, 48, 59, 73, 42, 70, 65, 41, 34,
-	52, 4, 37, 5, 39, 60, 85, 82, 68, 64,
-	61, 16, 50, 47, 69, 46, 5, 36, 33, 21,
-	51, 84, 54, 35, 31, 62, 45, 43, 23, 63,
-	9, 24, 79, 10, 11, 78, 12, 40, 66, 53,
-	28, 25, 13, 75, 7, 3, 81, 80, 6, 1,
-	19, 17, 32, 72, 55, 74, 20, 14, 8, 2,
+var yyAct = [...]uint8{
+	94, 128, 93, 67, 24, 132, 77, 77, 45, 130,
+	44, 124, 50, 14, 119, 116, 15, 16, 17, 103,
+	27, 31, 22, 102, 19, 20, 76, 70, 21, 137,
+	117, 78, 64, 82, 52, 138, 109, 49, 45, 129,
+	44, 95, 97, 122, 114, 79, 73, 81, 60, 56,
+	88, 121, 63, 41, 54, 65, 140, 139, 96, 71,
+	96, 36, 99, 100, 113, 90, 11, 97, 141, 136,
+	125, 133, 12, 123, 120, 115, 112, 68, 110, 107,
+	84, 89, 87, 86, 25, 83, 75, 69, 66, 62,
+	58, 40, 33, 104, 106, 30, 142, 91, 80, 108,
+	61, 59, 38, 118, 105, 101, 74, 111, 72, 47,
+	43, 57, 55, 53, 51, 48, 46, 42, 34, 13,
+	1, 2, 9, 39, 8, 127, 37, 134, 7, 135,
+	35, 131, 10, 18, 98, 85, 6, 32, 92, 5,
+	28, 4, 26, 126, 3, 23, 29,
 }
 
 var yyPact = [...]int16{
-	25, -1000, 12, -1000, -1000, 70, -1000, 52, 66, 22,
-	22, 30, 45, -1000, -1000, 64, -19, -1000, 63, -1000,
-	-10, -20, -1000, 36, 29, 22, 35, 28, 22, -16,
-	22, 53, 6, -1000, 40, -1000, -4, 39, 26, -1000,
-	-1000, 24, -1000, -2, -18, 23, 22, 8, 60, 34,
-	-1000, -7, 21, 38, -1000, -1000, 15, -1000, -1000, 20,
-	-1000, 5, 58, -1000, -5, 19, 27, -1000, 4, -6,
-	1, -1, 51, 47, 15, 18, -22, -1000, -1000, 33,
-	-1000, -22, -1000, 17, -1000, -1000,
+	61, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, 115, 1, 75, 75, 86, 83, 113, 40,
+	94, 82, 33, 112, 104, 10, 111, 103, 110, 6,
+	-20, -1000, 109, 2, -1000, 108, 31, 107, 21, 106,
+	81, 93, -1000, 75, 92, 80, -1000, 75, -1000, 0,
+	75, -1000, 79, -1000, 68, -1000, 78, -1000, -5, 38,
+	101, -1000, 17, 99, 77, -1000, -6, -2, -1000, 16,
+	90, -1000, 19, 3, 76, 75, 74, -1000, 73, 24,
+	72, 52, 89, -1000, 32, 44, 98, -10, -14, 68,
+	97, -1000, -1000, 57, -1000, -1000, 70, -1000, 57, -1000,
+	-1000, 5, 69, 68, 67, 50, -1000, 15, -1000, 66,
+	-18, -3, -1000, 96, -1000, -19, 65, 26, 14, 64,
+	-22, 63, 30, -24, -29, 62, 57, 60, -1, -1000,
+	4, 36, 34, -1000, -1000, -1, -1000, 59, -1000, -1000,
+	88, -1000, -1000,
 }
 
-var yyPgo = [...]int8{
-	0, 89, 75, 88, 87, 3, 86, 2, 0, 1,
-	85, 84, 83, 82, 81, 80, 79,
+var yyPgo = [...]uint8{
+	0, 2, 3, 4, 146, 0, 145, 144, 1, 143,
+	142, 141, 140, 139, 138, 137, 136, 135, 134, 133,
+	132, 131, 130, 128, 126, 124, 123, 122, 121, 120,
 }
 
 var yyR1 = [...]int8{
-	0, 16, 1, 1, 1, 2, 3, 3, 3, 3,
-	3, 13, 13, 12, 12, 4, 14, 15, 11, 11,
-	6, 6, 5, 5, 10, 10, 9, 9, 8, 8,
-	7, 7,
+	0, 29, 28, 28, 28, 28, 28, 28, 28, 28,
+	28, 7, 11, 13, 16, 20, 23, 25, 27, 2,
+	2, 1, 1, 3, 3, 5, 5, 6, 9, 9,
+	8, 8, 10, 12, 14, 14, 4, 4, 18, 18,
+	15, 17, 17, 21, 21, 22, 19, 24, 26,
 }
 
 var yyR2 = [...]int8{
-	0, 1, 2, 1, 1, 4, 2, 2, 2, 4,
-	12, 1, 2, 3, 0, 12, 5, 6, 2, 1,
-	3, 1, 3, 6, 2, 1, 1, 3, 1, 3,
-	1, 0,
+	0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 5, 5, 5, 5, 4, 5, 5, 5, 1,
+	2, 1, 3, 3, 6, 1, 0, 12, 2, 1,
+	1, 3, 5, 6, 2, 1, 3, 1, 1, 1,
+	7, 8, 0, 3, 0, 12, 4, 11, 7,
 }
 
 var yyChk = [...]int16{
-	-1000, -16, -1, -2, 6, 21, -2, 4, -3, 8,
-	11, 12, 14, 6, -4, -5, 19, -14, -5, -15,
-	-6, 19, -5, 13, 16, 7, 28, 24, 7, 26,
-	27, 18, -13, 19, -5, 18, 19, -5, 27, -5,
-	14, 22, 19, 17, 25, 17, 19, 19, 24, 28,
-	19, -5, 22, 9, 18, -11, -9, -7, 19, 24,
-	20, 19, 17, -7, 19, 22, 10, 25, 19, 17,
-	22, 25, -12, 23, -10, -9, -8, 19, 14, 15,
-	-7, -8, 19, 28, 18, 19,
+	-1000, -29, -28, -7, -11, -13, -16, -23, -25, -27,
+	-20, 5, 11, 4, 12, 15, 16, 17, -19, 23,
+	24, 27, 21, -6, -3, 9, -10, -3, -12, -4,
+	9, -3, -15, 9, 5, -22, 21, -24, 8, -26,
+	9, 20, 5, 6, 30, 28, 5, 6, 5, 31,
+	32, 5, 32, 5, 23, 5, 28, 5, 9, 8,
+	-3, 8, 9, -3, 32, -3, 9, -2, 9, 9,
+	32, 21, 7, 29, 7, 9, 32, 9, 33, 29,
+	8, 28, 30, 9, -3, -17, 9, 9, 26, 9,
+	13, 8, -14, -1, -5, 9, 28, 10, -18, 18,
+	19, 7, 33, 33, -2, 7, -5, 9, -5, 31,
+	9, -2, 9, 14, 29, 9, 33, 33, 7, 33,
+	9, 25, 29, 9, 33, 7, -9, -1, -8, 9,
+	33, -21, 34, 9, -5, -8, 9, 30, 31, 21,
+	22, 9, 8,
 }
 
 var yyDef = [...]int8{
-	0, -2, 1, 3, 4, 0, 2, 0, 0, 0,
-	0, 0, 0, 5, 6, 0, 0, 7, 0, 8,
-	0, 0, 21, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 11, 0, 22, 0, 0, 0, 20,
-	9, 0, 12, 0, 0, 0, 0, 0, 0, 0,
-	16, 31, 0, 0, 23, 17, 31, 19, 26, 0,
-	30, 0, 0, 18, 0, 0, 0, 27, 0, 0,
-	14, 0, 0, 0, 31, 0, 25, -2, 10, 0,
-	15, 24, 28, 0, 13, 29,
+	0, -2, 1, 2, 3, 4, 5, 6, 7, 8,
+	9, 10, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 37, 0, 0, 15, 0, 0, 0, 0, 0,
+	0, 0, 11, 0, 0, 0, 12, 0, 13, 0,
+	0, 14, 0, 16, 0, 17, 0, 18, 0, 0,
+	0, 23, 0, 0, 0, 36, 0, 0, 19, 0,
+	0, 46, 0, 0, 0, 0, 42, 20, 0, 0,
+	0, 0, 0, 32, 26, 0, 0, 0, 0, 0,
+	0, 24, 33, 26, 35, 21, 0, 25, 26, 38,
+	39, 0, 0, 0, 0, 0, 34, 0, 40, 0,
+	0, 0, -2, 0, 22, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 44, 0, 26, 0, 29, -2,
+	0, 0, 0, 47, 27, 28, 30, 0, 41, 45,
+	0, 31, 43,
 }
 
 var yyTok1 = [...]int8{
-	1, 3, 3, 3, 3, 3, 3, 3, 3, 27,
+	1, 3, 3, 3, 3, 3, 3, 3, 3, 32,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 22,
-	24, 25, 3, 3, 23, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 26,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 33,
+	28, 29, 3, 3, 34, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 31,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 28,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 30,
 }
 
 var yyTok2 = [...]int8{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+	22, 23, 24, 25, 26, 27,
 }
 
 var yyTok3 = [...]int8{
@@ -633,110 +722,179 @@ yydefault:
 
 	case 1:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:164
+//line gramma.y:259
 		{
-			yylex.(*lexer).res = yyDollar[1].CombatLines
+			yylex.(*lexer).res = yyDollar[1].CombatLine
 		}
 	case 2:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:168
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:264
 		{
-			yyVAL.CombatLines = append(yyDollar[1].CombatLines, yyDollar[2].CombatLine)
+			yyVAL.CombatLine.Damage = &yyDollar[1].Damage
 		}
 	case 3:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:168
+//line gramma.y:267
 		{
-			yyVAL.CombatLines = append(yyVAL.CombatLines, yyDollar[1].CombatLine)
+			yyVAL.CombatLine.Heal = &yyDollar[1].Heal
 		}
 	case 4:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:168
+//line gramma.y:270
 		{
+			yyVAL.CombatLine.Kill = &yyDollar[1].Kill
 		}
 	case 5:
-		yyDollar = yyS[yypt-4 : yypt+1]
-//line gramma.y:170
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:273
 		{
-			// println($1.String())
-			yyVAL.CombatLine = &LogLine[*CombatLine]{
-				LogTime: yyDollar[1].Time,
-				Line:    yyDollar[3].Combat,
-			}
+			yyVAL.CombatLine.Participant = &yyDollar[1].Participant
 		}
 	case 6:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:181
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:276
 		{
-			yyVAL.Combat = &CombatLine{
-				Damage: yyDollar[2].Damage,
-			}
+			yyVAL.CombatLine.Start = &yyDollar[1].Start
 		}
 	case 7:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:185
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:279
 		{
-			yyVAL.Combat = &CombatLine{
-				Heal: yyDollar[2].Heal,
-			}
+			yyVAL.CombatLine.Finished = &yyDollar[1].Finished
 		}
 	case 8:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:189
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:282
 		{
-			yyVAL.Combat = &CombatLine{
-				Kill: yyDollar[2].Kill,
-			}
+			yyVAL.CombatLine.Reward = &yyDollar[1].Reward
 		}
 	case 9:
-		yyDollar = yyS[yypt-4 : yypt+1]
-//line gramma.y:193
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:285
 		{
-			yyVAL.Combat = &CombatLine{
-				ConnectToGameSession: &ConnectToGameSession{SessionID: yyDollar[3].Int},
-			}
+			yyVAL.CombatLine.ConnectToGameSession = &yyDollar[1].ConnectToGameSession
 		}
 	case 10:
-		yyDollar = yyS[yypt-12 : yypt+1]
-//line gramma.y:197
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:287
 		{
-			yyVAL.Combat = &CombatLine{
-				Start: &Start{
-					What:              strings.Join(yyDollar[3].Strings, " "),
-					GameMode:          yyDollar[5].String,
-					MapName:           yyDollar[9].String,
-					LocalClientTeamID: yyDollar[11].Int,
-				},
-			}
 		}
 	case 11:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:291
+		{
+			yyVAL.Damage = yyDollar[4].Damage
+			yyVAL.Damage.Time = yyDollar[1].Time
+		}
+	case 12:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:296
+		{
+			yyVAL.Heal = yyDollar[4].Heal
+			yyVAL.Heal.Time = yyDollar[1].Time
+		}
+	case 13:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:301
+		{
+			yyVAL.Kill = yyDollar[4].Kill
+			yyVAL.Kill.Time = yyDollar[1].Time
+		}
+	case 14:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:306
+		{
+			yyVAL.Participant = yyDollar[4].Participant
+			yyVAL.Participant.Time = yyDollar[1].Time
+		}
+	case 15:
+		yyDollar = yyS[yypt-4 : yypt+1]
+//line gramma.y:311
+		{
+			yyVAL.ConnectToGameSession = yyDollar[3].ConnectToGameSession
+			yyVAL.ConnectToGameSession.Time = yyDollar[1].Time
+		}
+	case 16:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:316
+		{
+			yyVAL.Start = yyDollar[4].Start
+			yyVAL.Start.Time = yyDollar[1].Time
+		}
+	case 17:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:321
+		{
+			yyVAL.Finished = yyDollar[4].Finished
+			yyVAL.Finished.Time = yyDollar[1].Time
+		}
+	case 18:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:326
+		{
+
+		}
+	case 19:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:208
+//line gramma.y:334
 		{
 			yyVAL.Strings = append(yyVAL.Strings, yyDollar[1].String)
 		}
-	case 12:
+	case 20:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:208
+//line gramma.y:334
 		{
 			yyVAL.Strings = append(yyDollar[1].Strings, yyDollar[2].String)
 		}
-	case 13:
+	case 21:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:335
+		{
+			yyVAL.String = yyDollar[1].String
+		}
+	case 22:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line gramma.y:210
+//line gramma.y:335
 		{
-			yyVAL.Int = yyDollar[3].Int
+			yyVAL.String = yyDollar[2].String
 		}
-	case 14:
+	case 23:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line gramma.y:337
+		{
+			yyVAL.Object = Object{
+				Name:     yyDollar[1].String,
+				ObjectID: yyDollar[3].Int,
+			}
+		}
+	case 24:
+		yyDollar = yyS[yypt-6 : yypt+1]
+//line gramma.y:343
+		{
+			yyVAL.Object = Object{
+				PlayerObject: PlayerObject{
+					ObjectName:  yyDollar[1].String,
+					ObjectOwner: yyDollar[3].String,
+				},
+				ObjectID: yyDollar[6].Int,
+			}
+		}
+	case 25:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:353
+		{
+			yyVAL.Bool = true
+		}
+	case 26:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line gramma.y:210
+//line gramma.y:353
 		{
 		}
-	case 15:
+	case 27:
 		yyDollar = yyS[yypt-12 : yypt+1]
-//line gramma.y:213
+//line gramma.y:358
 		{
-			yyVAL.Damage = &Damage{
+			yyVAL.Damage = Damage{
 				Initiator:       yyDollar[1].Object,
 				Recipient:       yyDollar[3].Object,
 				DamageFull:      yyDollar[4].Float,
@@ -747,47 +905,74 @@ yydefault:
 				FriendlyFire:    yyDollar[12].Bool,
 			}
 		}
-	case 16:
-		yyDollar = yyS[yypt-5 : yypt+1]
-//line gramma.y:227
+	case 28:
+		yyDollar = yyS[yypt-2 : yypt+1]
+//line gramma.y:371
 		{
-			yyVAL.Heal = &Heal{
+			yyVAL.DamageSucks.Source = yyDollar[1].String
+			yyVAL.DamageSucks.Modifiers = yyDollar[2].DamageModifiersMap
+		}
+	case 29:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:374
+		{
+			yyVAL.DamageSucks.Modifiers = yyDollar[1].DamageModifiersMap
+		}
+	case 30:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:378
+		{
+			yyVAL.DamageModifiersMap = DamageModifiersMap{
+				DamageModifier(yyDollar[1].String): {},
+			}
+		}
+	case 31:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line gramma.y:382
+		{
+			yyVAL.DamageModifiersMap[DamageModifier(yyDollar[3].String)] = struct{}{}
+		}
+	case 32:
+		yyDollar = yyS[yypt-5 : yypt+1]
+//line gramma.y:389
+		{
+			yyVAL.Heal = Heal{
 				Initiator: yyDollar[1].Object,
 				Recipient: yyDollar[3].Object,
 				Heal:      yyDollar[4].Float,
 				Source:    yyDollar[5].String,
 			}
 		}
-	case 17:
+	case 33:
 		yyDollar = yyS[yypt-6 : yypt+1]
-//line gramma.y:239
+//line gramma.y:403
 		{
 			if yyDollar[4].String != "killer" {
 				yylex.Error("not a killer")
 			}
-			yyVAL.Kill = &Kill{
+			yyVAL.Kill = Kill{
 				Killed:       yyDollar[1].Object,
 				Killer:       yyDollar[5].Object,
 				Source:       yyDollar[6].KillSucks.Source,
 				FriendlyFire: yyDollar[6].KillSucks.FriendlyFire,
 			}
 		}
-	case 18:
+	case 34:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:251
+//line gramma.y:415
 		{
 			yyVAL.KillSucks.Source = yyDollar[1].String
 			yyVAL.KillSucks.FriendlyFire = yyDollar[2].Bool
 		}
-	case 19:
+	case 35:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:254
+//line gramma.y:418
 		{
 			yyVAL.KillSucks.FriendlyFire = yyDollar[1].Bool
 		}
-	case 20:
+	case 36:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line gramma.y:256
+//line gramma.y:420
 		{
 			yyVAL.Object = Object{
 				Name: yyDollar[1].String,
@@ -797,82 +982,93 @@ yydefault:
 				ObjectID: yyDollar[3].Object.ObjectID,
 			}
 		}
-	case 21:
+	case 37:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:264
+//line gramma.y:428
 		{
 			yyVAL.Object = yyDollar[1].Object
 		}
-	case 22:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line gramma.y:268
+	case 38:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:433
 		{
-			yyVAL.Object = Object{
-				Name:     yyDollar[1].String,
-				ObjectID: yyDollar[3].Int,
+			yyVAL.BuffDebuff.IsBuff = true
+		}
+	case 39:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line gramma.y:433
+		{
+			yyVAL.BuffDebuff.IsDebuff = true
+		}
+	case 40:
+		yyDollar = yyS[yypt-7 : yypt+1]
+//line gramma.y:440
+		{
+			yyVAL.Participant = Participant{
+				Name:           yyDollar[1].String,
+				Ship:           yyDollar[3].String,
+				Damage:         yyDollar[5].Participant.Damage,
+				MostDamageWith: yyDollar[5].Participant.MostDamageWith,
+				BuffDebuff:     yyDollar[6].BuffDebuff,
+				FriendlyFire:   yyDollar[7].Bool,
 			}
 		}
-	case 23:
-		yyDollar = yyS[yypt-6 : yypt+1]
-//line gramma.y:274
+	case 41:
+		yyDollar = yyS[yypt-8 : yypt+1]
+//line gramma.y:451
 		{
-			yyVAL.Object = Object{
-				PlayerObject: PlayerObject{
-					ObjectName:  yyDollar[1].String,
-					ObjectOwner: yyDollar[3].String,
-				},
-				ObjectID: yyDollar[6].Int,
-			}
+			yyVAL.Participant.Damage = yyDollar[2].Float
+			yyVAL.Participant.MostDamageWith = yyDollar[6].String
 		}
-	case 24:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line gramma.y:284
-		{
-			yyVAL.DamageSucks.Source = yyDollar[1].String
-			yyVAL.DamageSucks.Modifiers = yyDollar[2].DamageModifiers
-		}
-	case 25:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:287
-		{
-			yyVAL.DamageSucks.Modifiers = yyDollar[1].DamageModifiers
-		}
-	case 26:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:291
-		{
-			yyVAL.String = yyDollar[1].String
-		}
-	case 27:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line gramma.y:291
-		{
-			yyVAL.String = yyDollar[2].String
-		}
-	case 28:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:293
-		{
-			yyVAL.DamageModifiers = DamageModifiersMap{
-				DamageModifier(yyDollar[1].String): {},
-			}
-		}
-	case 29:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line gramma.y:297
-		{
-			yyVAL.DamageModifiers[DamageModifier(yyDollar[3].String)] = struct{}{}
-		}
-	case 30:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line gramma.y:301
-		{
-			yyVAL.Bool = true
-		}
-	case 31:
+	case 42:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line gramma.y:301
+//line gramma.y:454
 		{
+		}
+	case 43:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line gramma.y:458
+		{
+			yyVAL.Int = yyDollar[3].Int
+		}
+	case 44:
+		yyDollar = yyS[yypt-0 : yypt+1]
+//line gramma.y:458
+		{
+		}
+	case 45:
+		yyDollar = yyS[yypt-12 : yypt+1]
+//line gramma.y:462
+		{
+			yyVAL.Start = Start{
+				What:              strings.Join(yyDollar[3].Strings, " "),
+				GameMode:          yyDollar[5].String,
+				MapName:           yyDollar[9].String,
+				LocalClientTeamID: yyDollar[11].Int,
+			}
+		}
+	case 46:
+		yyDollar = yyS[yypt-4 : yypt+1]
+//line gramma.y:474
+		{
+			yyVAL.ConnectToGameSession.SessionID = yyDollar[3].Int
+		}
+	case 47:
+		yyDollar = yyS[yypt-11 : yypt+1]
+//line gramma.y:482
+		{
+			yyVAL.Finished = Finished{
+				WinnerTeamID: yyDollar[1].Int,
+				WinReason:    yyDollar[3].String,
+				FinishReason: strings.Join(yyDollar[7].Strings, " "),
+				GameTime:     yyDollar[10].Float,
+			}
+		}
+	case 48:
+		yyDollar = yyS[yypt-7 : yypt+1]
+//line gramma.y:494
+		{
+
 		}
 	}
 	goto yystack /* stack new state and value */

@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 )
@@ -17,17 +21,32 @@ const data = `19:33:59.527  CMBT   | Killed Py6Jl	 Ship_Race3_M_T2_Pirate|000000
 func main() {
 	// yyDebug = 3
 	p := yyNewParser()
-	raw, err := os.ReadFile("/Users/pavelmilko/Desktop/my/sclogparser/test/parser/combat/testdata/kill.txt")
+	raw, err := os.ReadFile("/Users/pavelmilko/Desktop/my/sclogparser/test/parser/combat/testdata/finished.txt")
 	_ = raw
 	_ = err
 	// raw = []byte(data)
-	l := newLexer(string(raw), time.Now())
+	rd := bufio.NewReader(bytes.NewReader(raw))
+	for {
+		line, err := rd.ReadString('\n')
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			fmt.Printf("%q\n", err)
+			break
+		}
+		fmt.Printf("%q\n", line)
 
-	_ = p.Parse(l)
+		l := newLexer(string(line), time.Now())
 
-	fmt.Println(len(l.res))
+		_ = p.Parse(l)
+		if err := l.Err(); err != nil {
+			fmt.Printf("%q\n", err.Error())
+			break
+		}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	// enc.Encode(l.res)
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		// enc.Encode(l.res)
+	}
 }
