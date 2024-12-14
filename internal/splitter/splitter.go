@@ -48,11 +48,11 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 		for i := range mx {
 			if i < len(gameLevels) {
 				gm := gameLevels[i]
-				s.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay, "end", gm.FinishGameplay)
+				s.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay.GetLogTime(), "end", gm.FinishGameplay.GetLogTime())
 			}
 			if i < len(combatLevels) {
 				cm := combatLevels[i]
-				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start, "end", cm.Finished)
+				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.GetLogTime(), "end", cm.Finished.GetLogTime())
 			}
 		}
 		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
@@ -313,10 +313,10 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLin
 			}
 			currLevel.Connect = line
 		case *combat.StartGameplay:
-			if currLevel.Start != nil {
-				res = append(res, currLevel)
-				currLevel = new(CombatLogLevel)
-			}
+			// if currLevel.Start != nil {
+			// 	res = append(res, currLevel)
+			// 	currLevel = new(CombatLogLevel)
+			// }
 			currLevel.Start = line
 		case *combat.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)

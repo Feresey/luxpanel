@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	reReward      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Reward\s+(?P<Recipient>[a-zA-Z][a-zA-Z0-9_/-]*)(\s(?P<Ship>[a-zA-Z][a-zA-Z0-9_/-]*))?\s*\t\s*(?P<Reward>\d+)\s+(?P<RewardType>((experience)|(credits)|(effective points)))\s+for\s(?P<Reason>.+)\s*$`)
+	reReward      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Reward\s+(?P<Recipient>[a-zA-Z0-9_/-]*)(\s(?P<Ship>[a-zA-Z0-9_/-]*))?\s*\t\s*(?P<Reward>\d+)\s+(?P<RewardType>((experience)|(credits)|(effective points)))\s+for\s(?P<Reason>.+)\s*$`)
 	shortReReward = regexp.MustCompile(`^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Reward\s+`)
 )
 

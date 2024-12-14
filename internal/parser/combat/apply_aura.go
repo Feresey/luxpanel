@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	reApplyAura      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Apply aura\s+'(?P<AuraName>[a-zA-Z][a-zA-Z0-9_/-]*)'\s+id\s+(?P<AuraID>\d+)\s+type\s+(?P<AuraType>[A-Z0-9_]+)\s+to\s+'((?P<Recipient>[a-zA-Z][a-zA-Z0-9_/-]*)|(?P<ObjectName>[a-zA-Z][a-zA-Z0-9_/-]*)\((?P<ObjectOwner>[a-zA-Z][a-zA-Z0-9_/-]*)\))'\s*$`)
+	reApplyAura      = regexp.MustCompile(`(?s)^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Apply aura\s+'(?P<AuraName>[a-zA-Z0-9_/-]*)'\s+id\s+(?P<AuraID>\d+)\s+type\s+(?P<AuraType>[A-Z0-9_]+)\s+to\s+'((?P<Recipient>[a-zA-Z0-9_/-]*)|(?P<ObjectName>[a-zA-Z0-9_/-]*)\((?P<ObjectOwner>[a-zA-Z0-9_/-]*)\))'\s*$`)
 	shortReApplyAura = regexp.MustCompile(`^(?P<LogTime>\d{2}:\d{2}:\d{2}\.\d{3})\s+CMBT\s+\|\s+Apply aura\s+`)
 )
 
