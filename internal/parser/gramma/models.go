@@ -2,24 +2,25 @@ package gramma
 
 import "time"
 
-type CombatLine struct {
-	*Damage
-	*Heal
-	*Kill
-	*Participant
-	*ConnectToGameSession
-	*Start
-	*Finished
-	*Reward
+type combatLineImpl struct {
+	Time time.Time
+}
+
+func (combatLineImpl) combatLine() {}
+
+type CombatLine interface {
+	combatLine()
 }
 
 type ConnectToGameSession struct {
-	Time      time.Time
+	combatLineImpl
+
 	SessionID int
 }
 
 type Start struct {
-	Time              time.Time
+	combatLineImpl
+
 	What              string
 	GameMode          string
 	MapName           string
@@ -27,7 +28,7 @@ type Start struct {
 }
 
 type Finished struct {
-	Time time.Time
+	combatLineImpl
 
 	WinnerTeamID int
 	WinReason    string
@@ -36,7 +37,7 @@ type Finished struct {
 }
 
 type Reward struct {
-	Time time.Time
+	combatLineImpl
 
 	Recipient  string
 	Ship       string
@@ -46,7 +47,8 @@ type Reward struct {
 }
 
 type Damage struct {
-	Time      time.Time
+	combatLineImpl
+
 	Initiator Object
 	Recipient Object
 	Source    string
@@ -57,10 +59,12 @@ type Damage struct {
 	DamageModifiers DamageModifiersMap
 
 	FriendlyFire bool
+	Rocket       int
 }
 
 type Heal struct {
-	Time      time.Time
+	combatLineImpl
+
 	Initiator Object
 	Recipient Object
 	Source    string
@@ -69,7 +73,8 @@ type Heal struct {
 }
 
 type Kill struct {
-	Time         time.Time
+	combatLineImpl
+
 	Killed       Object
 	Killer       Object
 	Source       string
@@ -77,7 +82,8 @@ type Kill struct {
 }
 
 type Participant struct {
-	Time           time.Time
+	combatLineImpl
+
 	Name           string
 	Ship           string
 	Damage         float32
@@ -87,6 +93,8 @@ type Participant struct {
 }
 
 type BuffDebuff struct {
+	combatLineImpl
+
 	IsBuff   bool
 	IsDebuff bool
 }
@@ -122,15 +130,19 @@ const (
 	DamageModule          DamageModifier = "MODULE"
 )
 
-type GameLine struct {
-	*ClientAddPlayer
-	*ClientPlayerLeave
-	*ClientConnected
-	*ClientConnectionClosed
+type gameLineImpl struct {
+	Time time.Time
+}
+
+func (gameLineImpl) gameLine() {}
+
+type GameLine interface {
+	gameLine()
 }
 
 type ClientAddPlayer struct {
-	Time           time.Time
+	gameLineImpl
+
 	InGamePlayerID int
 	Name           string
 	ClanTag        String
@@ -141,17 +153,25 @@ type ClientAddPlayer struct {
 }
 
 type ClientPlayerLeave struct {
-	Time           time.Time
+	gameLineImpl
+
 	InGamePlayerID int
 }
 
 type ClientConnected struct {
-	Time       time.Time
+	gameLineImpl
+
 	ServerAddr string
 	MTU        int
 }
 
 type ClientConnectionClosed struct {
-	Time   time.Time
+	gameLineImpl
+
 	Reason String
+}
+
+type LogLine struct {
+	Combat CombatLine
+	Game   GameLine
 }

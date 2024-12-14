@@ -12,9 +12,9 @@ import (
 )
 
 
-//line tokenizer.go:16
+//line tokenizer.go:14
 const logparser_start int = 1
-const logparser_first_final int = 680
+const logparser_first_final int = 678
 const logparser_error int = 0
 
 const logparser_en_main int = 1
@@ -62,7 +62,7 @@ func (e state) Error() string {
 	return e.String()
 }
 
-type Tokenizer struct {
+type tokenizer struct {
 	nowTime time.Time
 	tokens []Token
 	errors []error
@@ -70,23 +70,21 @@ type Tokenizer struct {
 }
 
 
+//line tokenizer.go.rl:210
 
 
-//line tokenizer.go.rl:209
-
-
-func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
+func (t *tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 	var parseErr error
 	var temp yySymType
 
 	t.state = state{}
 	
-//line tokenizer.go:85
+//line tokenizer.go:78
 	{
 	 t.cs = logparser_start
 	}
 
-//line tokenizer.go.rl:217
+//line tokenizer.go.rl:218
 
 	t.prev = 0
 	t.pe = len(data)
@@ -97,7 +95,7 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 	t.errors = nil
 
 	
-//line tokenizer.go:101
+//line tokenizer.go:92
 	{
 	if ( t.p) == ( t.pe) {
 		goto _test_eof
@@ -235,8 +233,6 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_64
 	case 65:
 		goto st_case_65
-	case 680:
-		goto st_case_680
 	case 66:
 		goto st_case_66
 	case 67:
@@ -247,6 +243,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_69
 	case 70:
 		goto st_case_70
+	case 678:
+		goto st_case_678
 	case 71:
 		goto st_case_71
 	case 72:
@@ -263,6 +261,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_77
 	case 78:
 		goto st_case_78
+	case 679:
+		goto st_case_679
 	case 79:
 		goto st_case_79
 	case 80:
@@ -375,6 +375,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_133
 	case 134:
 		goto st_case_134
+	case 680:
+		goto st_case_680
 	case 135:
 		goto st_case_135
 	case 136:
@@ -415,6 +417,10 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_153
 	case 154:
 		goto st_case_154
+	case 681:
+		goto st_case_681
+	case 682:
+		goto st_case_682
 	case 155:
 		goto st_case_155
 	case 156:
@@ -613,6 +619,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_252
 	case 253:
 		goto st_case_253
+	case 683:
+		goto st_case_683
 	case 254:
 		goto st_case_254
 	case 255:
@@ -787,6 +795,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_339
 	case 340:
 		goto st_case_340
+	case 684:
+		goto st_case_684
 	case 341:
 		goto st_case_341
 	case 342:
@@ -815,6 +825,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_353
 	case 354:
 		goto st_case_354
+	case 685:
+		goto st_case_685
 	case 355:
 		goto st_case_355
 	case 356:
@@ -1087,10 +1099,20 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_489
 	case 490:
 		goto st_case_490
+	case 686:
+		goto st_case_686
 	case 491:
 		goto st_case_491
 	case 492:
 		goto st_case_492
+	case 687:
+		goto st_case_687
+	case 688:
+		goto st_case_688
+	case 689:
+		goto st_case_689
+	case 690:
+		goto st_case_690
 	case 493:
 		goto st_case_493
 	case 494:
@@ -1171,6 +1193,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_531
 	case 532:
 		goto st_case_532
+	case 691:
+		goto st_case_691
 	case 533:
 		goto st_case_533
 	case 534:
@@ -1199,6 +1223,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_545
 	case 546:
 		goto st_case_546
+	case 692:
+		goto st_case_692
 	case 547:
 		goto st_case_547
 	case 548:
@@ -1239,6 +1265,10 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_565
 	case 566:
 		goto st_case_566
+	case 693:
+		goto st_case_693
+	case 694:
+		goto st_case_694
 	case 567:
 		goto st_case_567
 	case 568:
@@ -1249,6 +1279,10 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_570
 	case 571:
 		goto st_case_571
+	case 695:
+		goto st_case_695
+	case 696:
+		goto st_case_696
 	case 572:
 		goto st_case_572
 	case 573:
@@ -1327,6 +1361,8 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_609
 	case 610:
 		goto st_case_610
+	case 697:
+		goto st_case_697
 	case 611:
 		goto st_case_611
 	case 612:
@@ -1461,10 +1497,6 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 		goto st_case_676
 	case 677:
 		goto st_case_677
-	case 678:
-		goto st_case_678
-	case 679:
-		goto st_case_679
 	}
 	goto st_out
 	st_case_1:
@@ -1477,9 +1509,11 @@ st_case_0:
 		 t.cs = 0
 		goto _out
 tr0:
-//line tokenizer.go.rl:105
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st2
@@ -1488,7 +1522,7 @@ tr0:
 			goto _test_eof2
 		}
 	st_case_2:
-//line tokenizer.go:1492
+//line tokenizer.go:1519
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st3
 		}
@@ -1593,11 +1627,11 @@ tr0:
 		}
 		goto st0
 tr13:
-//line tokenizer.go.rl:97
+//line tokenizer.go.rl:95
 
 		temp.Time, parseErr = t.parseTime(t.data[t.prev:t.p])
 		if parseErr != nil {
-			t.err(fmt.Errorf("parseTime: %w", parseErr))
+			t.err(ParseTokenError{TokType: TIME, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("parseTime: %w", parseErr)})
 			{( t.p)++;  t.cs = 14; goto _out }
 		}
 		t.tokval(TimeTok(temp.Time))
@@ -1608,20 +1642,23 @@ tr13:
 			goto _test_eof14
 		}
 	st_case_14:
-//line tokenizer.go:1612
+//line tokenizer.go:1639
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st14
-		case 67:
 			goto tr15
-		case 71:
+		case 67:
 			goto tr16
 		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto tr14
+		}
 		goto st0
-tr15:
-//line tokenizer.go.rl:105
+tr14:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st15
@@ -1630,17 +1667,28 @@ tr15:
 			goto _test_eof15
 		}
 	st_case_15:
-//line tokenizer.go:1634
-		if ( t.data)[( t.p)] == 77 {
-			goto st16
+//line tokenizer.go:1664
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st15
+		case 124:
+			goto tr18
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st15
 		}
 		goto st0
+tr18:
+//line tokenizer.go.rl:118
+ t.tok(GAME) 
+	goto st16
 	st16:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof16
 		}
 	st_case_16:
-		if ( t.data)[( t.p)] == 66 {
+//line tokenizer.go:1684
+		if ( t.data)[( t.p)] == 32 {
 			goto st17
 		}
 		goto st0
@@ -1649,16 +1697,29 @@ tr15:
 			goto _test_eof17
 		}
 	st_case_17:
-		if ( t.data)[( t.p)] == 84 {
-			goto st18
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st17
+		case 99:
+			goto tr20
 		}
 		goto st0
+tr20:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st18
 	st18:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof18
 		}
 	st_case_18:
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:1715
+		if ( t.data)[( t.p)] == 108 {
 			goto st19
 		}
 		goto st0
@@ -1667,7 +1728,7 @@ tr15:
 			goto _test_eof19
 		}
 	st_case_19:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st20
 		}
 		goto st0
@@ -1676,7 +1737,7 @@ tr15:
 			goto _test_eof20
 		}
 	st_case_20:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st21
 		}
 		goto st0
@@ -1685,21 +1746,16 @@ tr15:
 			goto _test_eof21
 		}
 	st_case_21:
-		if ( t.data)[( t.p)] == 124 {
-			goto tr23
+		if ( t.data)[( t.p)] == 110 {
+			goto st22
 		}
 		goto st0
-tr23:
-//line tokenizer.go.rl:117
- t.tok(COMBAT) 
-	goto st22
 	st22:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof22
 		}
 	st_case_22:
-//line tokenizer.go:1702
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st23
 		}
 		goto st0
@@ -1708,39 +1764,16 @@ tr23:
 			goto _test_eof23
 		}
 	st_case_23:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st23
-		case 61:
-			goto tr25
-		case 68:
-			goto tr26
-		case 71:
-			goto tr27
-		case 72:
-			goto tr28
-		case 75:
-			goto tr29
-		case 80:
-			goto tr30
-		case 82:
-			goto tr31
+		if ( t.data)[( t.p)] == 58 {
+			goto st24
 		}
 		goto st0
-tr25:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st24
 	st24:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof24
 		}
 	st_case_24:
-//line tokenizer.go:1743
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st25
 		}
 		goto st0
@@ -1749,8 +1782,13 @@ tr25:
 			goto _test_eof25
 		}
 	st_case_25:
-		if ( t.data)[( t.p)] == 61 {
+		switch ( t.data)[( t.p)] {
+		case 65:
 			goto st26
+		case 99:
+			goto st81
+		case 112:
+			goto st155
 		}
 		goto st0
 	st26:
@@ -1758,7 +1796,7 @@ tr25:
 			goto _test_eof26
 		}
 	st_case_26:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 68 {
 			goto st27
 		}
 		goto st0
@@ -1767,7 +1805,7 @@ tr25:
 			goto _test_eof27
 		}
 	st_case_27:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 68 {
 			goto st28
 		}
 		goto st0
@@ -1776,7 +1814,7 @@ tr25:
 			goto _test_eof28
 		}
 	st_case_28:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 95 {
 			goto st29
 		}
 		goto st0
@@ -1785,7 +1823,7 @@ tr25:
 			goto _test_eof29
 		}
 	st_case_29:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 80 {
 			goto st30
 		}
 		goto st0
@@ -1794,7 +1832,7 @@ tr25:
 			goto _test_eof30
 		}
 	st_case_30:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 76 {
 			goto st31
 		}
 		goto st0
@@ -1803,11 +1841,8 @@ tr25:
 			goto _test_eof31
 		}
 	st_case_31:
-		switch ( t.data)[( t.p)] {
-		case 67:
+		if ( t.data)[( t.p)] == 65 {
 			goto st32
-		case 83:
-			goto st66
 		}
 		goto st0
 	st32:
@@ -1815,7 +1850,7 @@ tr25:
 			goto _test_eof32
 		}
 	st_case_32:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 89 {
 			goto st33
 		}
 		goto st0
@@ -1824,7 +1859,7 @@ tr25:
 			goto _test_eof33
 		}
 	st_case_33:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 69 {
 			goto st34
 		}
 		goto st0
@@ -1833,7 +1868,7 @@ tr25:
 			goto _test_eof34
 		}
 	st_case_34:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 82 {
 			goto st35
 		}
 		goto st0
@@ -1842,7 +1877,7 @@ tr25:
 			goto _test_eof35
 		}
 	st_case_35:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st36
 		}
 		goto st0
@@ -1851,43 +1886,124 @@ tr25:
 			goto _test_eof36
 		}
 	st_case_36:
-		if ( t.data)[( t.p)] == 99 {
-			goto st37
+		if ( t.data)[( t.p)] == 45 {
+			goto tr41
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr42
 		}
 		goto st0
+tr41:
+//line tokenizer.go.rl:178
+t.tok(CLIENT_ADD_PLAYER)
+	goto st37
 	st37:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof37
 		}
 	st_case_37:
-		if ( t.data)[( t.p)] == 116 {
-			goto st38
+//line tokenizer.go:1899
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr43
 		}
 		goto st0
+tr43:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st38
+tr42:
+//line tokenizer.go.rl:178
+t.tok(CLIENT_ADD_PLAYER)
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st38
 	st38:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof38
 		}
 	st_case_38:
-		if ( t.data)[( t.p)] == 32 {
-			goto st39
+//line tokenizer.go:1929
+		if ( t.data)[( t.p)] == 40 {
+			goto tr44
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st38
 		}
 		goto st0
+tr44:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 39; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st39
 	st39:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof39
 		}
 	st_case_39:
-		if ( t.data)[( t.p)] == 116 {
-			goto st40
+//line tokenizer.go:1953
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr46
+		case 95:
+			goto tr47
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr47
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr47
+			}
+		default:
+			goto tr47
 		}
 		goto st0
+tr46:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st40
 	st40:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof40
 		}
 	st_case_40:
-		if ( t.data)[( t.p)] == 111 {
+//line tokenizer.go:1987
+		if ( t.data)[( t.p)] == 95 {
+			goto st41
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st41
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st41
+			}
+		default:
 			goto st41
 		}
 		goto st0
@@ -1896,8 +2012,23 @@ tr25:
 			goto _test_eof41
 		}
 	st_case_41:
-		if ( t.data)[( t.p)] == 32 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st42
+		case 95:
+			goto st41
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st41
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st41
+			}
+		default:
+			goto st41
 		}
 		goto st0
 	st42:
@@ -1905,16 +2036,23 @@ tr25:
 			goto _test_eof42
 		}
 	st_case_42:
-		if ( t.data)[( t.p)] == 103 {
-			goto st43
+		if ( t.data)[( t.p)] == 32 {
+			goto tr50
 		}
 		goto st0
+tr50:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st43
 	st43:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof43
 		}
 	st_case_43:
-		if ( t.data)[( t.p)] == 97 {
+//line tokenizer.go:2048
+		if ( t.data)[( t.p)] == 91 {
 			goto st44
 		}
 		goto st0
@@ -1923,16 +2061,53 @@ tr25:
 			goto _test_eof44
 		}
 	st_case_44:
-		if ( t.data)[( t.p)] == 109 {
-			goto st45
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr52
+		case 95:
+			goto tr53
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr53
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr53
+			}
+		default:
+			goto tr53
 		}
 		goto st0
+tr52:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st45
 	st45:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof45
 		}
 	st_case_45:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:2091
+		if ( t.data)[( t.p)] == 95 {
+			goto st46
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st46
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st46
+			}
+		default:
 			goto st46
 		}
 		goto st0
@@ -1941,8 +2116,23 @@ tr25:
 			goto _test_eof46
 		}
 	st_case_46:
-		if ( t.data)[( t.p)] == 32 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st47
+		case 95:
+			goto st46
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st46
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st46
+			}
+		default:
+			goto st46
 		}
 		goto st0
 	st47:
@@ -1950,16 +2140,23 @@ tr25:
 			goto _test_eof47
 		}
 	st_case_47:
-		if ( t.data)[( t.p)] == 115 {
-			goto st48
+		if ( t.data)[( t.p)] == 93 {
+			goto tr56
 		}
 		goto st0
+tr56:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st48
 	st48:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof48
 		}
 	st_case_48:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:2152
+		if ( t.data)[( t.p)] == 44 {
 			goto st49
 		}
 		goto st0
@@ -1968,7 +2165,7 @@ tr25:
 			goto _test_eof49
 		}
 	st_case_49:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st50
 		}
 		goto st0
@@ -1977,8 +2174,11 @@ tr25:
 			goto _test_eof50
 		}
 	st_case_50:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st51
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr60
 		}
 		goto st0
 	st51:
@@ -1986,25 +2186,50 @@ tr25:
 			goto _test_eof51
 		}
 	st_case_51:
-		if ( t.data)[( t.p)] == 105 {
-			goto st52
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr60
 		}
 		goto st0
+tr60:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st52
 	st52:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof52
 		}
 	st_case_52:
-		if ( t.data)[( t.p)] == 111 {
-			goto st53
+//line tokenizer.go:2201
+		if ( t.data)[( t.p)] == 41 {
+			goto tr61
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st52
 		}
 		goto st0
+tr61:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 53; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st53
 	st53:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof53
 		}
 	st_case_53:
-		if ( t.data)[( t.p)] == 110 {
+//line tokenizer.go:2225
+		if ( t.data)[( t.p)] == 32 {
 			goto st54
 		}
 		goto st0
@@ -2013,7 +2238,7 @@ tr25:
 			goto _test_eof54
 		}
 	st_case_54:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st55
 		}
 		goto st0
@@ -2022,95 +2247,43 @@ tr25:
 			goto _test_eof55
 		}
 	st_case_55:
-		if ( t.data)[( t.p)] == 45 {
-			goto tr64
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr65
+		if ( t.data)[( t.p)] == 116 {
+			goto st56
 		}
 		goto st0
-tr64:
-//line tokenizer.go.rl:171
-t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
-	goto st56
 	st56:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof56
 		}
 	st_case_56:
-//line tokenizer.go:2042
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr66
+		if ( t.data)[( t.p)] == 97 {
+			goto st57
 		}
 		goto st0
-tr66:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st57
-tr65:
-//line tokenizer.go.rl:171
-t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st57
 	st57:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof57
 		}
 	st_case_57:
-//line tokenizer.go:2068
-		if ( t.data)[( t.p)] == 32 {
-			goto tr67
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st57
+		if ( t.data)[( t.p)] == 116 {
+			goto st58
 		}
 		goto st0
-tr67:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 58; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st58
 	st58:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof58
 		}
 	st_case_58:
-//line tokenizer.go:2092
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 117 {
 			goto st59
 		}
 		goto st0
-tr134:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 59; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st59
 	st59:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof59
 		}
 	st_case_59:
-//line tokenizer.go:2113
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st60
 		}
 		goto st0
@@ -2119,7 +2292,7 @@ tr134:
 			goto _test_eof60
 		}
 	st_case_60:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st61
 		}
 		goto st0
@@ -2128,8 +2301,11 @@ tr134:
 			goto _test_eof61
 		}
 	st_case_61:
-		if ( t.data)[( t.p)] == 61 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st62
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr72
 		}
 		goto st0
 	st62:
@@ -2137,124 +2313,68 @@ tr134:
 			goto _test_eof62
 		}
 	st_case_62:
-		if ( t.data)[( t.p)] == 61 {
-			goto st63
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr72
 		}
 		goto st0
+tr72:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st63
 	st63:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof63
 		}
 	st_case_63:
-		if ( t.data)[( t.p)] == 61 {
-			goto st64
+//line tokenizer.go:2328
+		if ( t.data)[( t.p)] == 32 {
+			goto tr73
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st63
 		}
 		goto st0
+tr73:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 64; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st64
 	st64:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof64
 		}
 	st_case_64:
-		if ( t.data)[( t.p)] == 61 {
+//line tokenizer.go:2352
+		if ( t.data)[( t.p)] == 116 {
 			goto st65
 		}
 		goto st0
-tr663:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 65; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st65
-tr550:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st65
-tr370:
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st65
-tr225:
-//line tokenizer.go.rl:150
-t.tok(FRIENDLY_FIRE)
-	goto st65
-tr376:
-//line tokenizer.go.rl:138
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st65
-tr380:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st65
-tr383:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st65
 	st65:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof65
 		}
 	st_case_65:
-//line tokenizer.go:2207
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
+		if ( t.data)[( t.p)] == 101 {
+			goto st66
 		}
-		goto st0
-tr652:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 680; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st680
-tr209:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st680
-tr369:
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st680
-tr379:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st680
-tr382:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st680
-	st680:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof680
-		}
-	st_case_680:
-//line tokenizer.go:2251
 		goto st0
 	st66:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof66
 		}
 	st_case_66:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st67
 		}
 		goto st0
@@ -2263,7 +2383,7 @@ t.tok(SOURCE)
 			goto _test_eof67
 		}
 	st_case_67:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st68
 		}
 		goto st0
@@ -2272,7 +2392,7 @@ t.tok(SOURCE)
 			goto _test_eof68
 		}
 	st_case_68:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st69
 		}
 		goto st0
@@ -2281,47 +2401,71 @@ t.tok(SOURCE)
 			goto _test_eof69
 		}
 	st_case_69:
-		if ( t.data)[( t.p)] == 116 {
-			goto tr80
+		if ( t.data)[( t.p)] == 45 {
+			goto st70
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr81
 		}
 		goto st0
-tr80:
-//line tokenizer.go.rl:125
- t.tok(START) 
-	goto st70
 	st70:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof70
 		}
 	st_case_70:
-//line tokenizer.go:2298
-		if ( t.data)[( t.p)] == 32 {
-			goto st71
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr81
 		}
 		goto st0
+tr81:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st678
+	st678:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof678
+		}
+	st_case_678:
+//line tokenizer.go:2428
+		if ( t.data)[( t.p)] == 32 {
+			goto tr756
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st678
+		}
+		goto st0
+tr756:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 71; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st71
 	st71:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof71
 		}
 	st_case_71:
-		switch ( t.data)[( t.p)] {
-		case 80:
-			goto tr82
-		case 103:
-			goto tr83
+//line tokenizer.go:2452
+		if ( t.data)[( t.p)] == 103 {
+			goto st72
 		}
 		goto st0
-tr82:
-//line tokenizer.go.rl:167
-t.tokval(StrTok("PVE mission"))
-	goto st72
 	st72:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof72
 		}
 	st_case_72:
-//line tokenizer.go:2324
-		if ( t.data)[( t.p)] == 86 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st73
 		}
 		goto st0
@@ -2330,7 +2474,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof73
 		}
 	st_case_73:
-		if ( t.data)[( t.p)] == 69 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st74
 		}
 		goto st0
@@ -2339,7 +2483,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof74
 		}
 	st_case_74:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 117 {
 			goto st75
 		}
 		goto st0
@@ -2348,7 +2492,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof75
 		}
 	st_case_75:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st76
 		}
 		goto st0
@@ -2357,7 +2501,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof76
 		}
 	st_case_76:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st77
 		}
 		goto st0
@@ -2366,8 +2510,11 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof77
 		}
 	st_case_77:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st78
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr89
 		}
 		goto st0
 	st78:
@@ -2375,26 +2522,95 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof78
 		}
 	st_case_78:
-		if ( t.data)[( t.p)] == 115 {
-			goto st79
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr89
 		}
 		goto st0
+tr89:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st679
+	st679:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof679
+		}
+	st_case_679:
+//line tokenizer.go:2537
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st679
+		}
+		goto st0
+tr53:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st79
 	st79:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof79
 		}
 	st_case_79:
-		if ( t.data)[( t.p)] == 105 {
-			goto st80
+//line tokenizer.go:2556
+		switch ( t.data)[( t.p)] {
+		case 93:
+			goto tr56
+		case 95:
+			goto st79
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st79
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st79
+			}
+		default:
+			goto st79
 		}
 		goto st0
+tr47:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st80
 	st80:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof80
 		}
 	st_case_80:
-		if ( t.data)[( t.p)] == 111 {
-			goto st81
+//line tokenizer.go:2590
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr50
+		case 95:
+			goto st80
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st80
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st80
+			}
+		default:
+			goto st80
 		}
 		goto st0
 	st81:
@@ -2402,7 +2618,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof81
 		}
 	st_case_81:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st82
 		}
 		goto st0
@@ -2411,7 +2627,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof82
 		}
 	st_case_82:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st83
 		}
 		goto st0
@@ -2420,7 +2636,7 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof83
 		}
 	st_case_83:
-		if ( t.data)[( t.p)] == 39 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st84
 		}
 		goto st0
@@ -2429,51 +2645,16 @@ t.tokval(StrTok("PVE mission"))
 			goto _test_eof84
 		}
 	st_case_84:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr96
-		case 95:
-			goto tr97
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr97
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr97
-			}
-		default:
-			goto tr97
+		if ( t.data)[( t.p)] == 101 {
+			goto st85
 		}
 		goto st0
-tr96:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st85
 	st85:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof85
 		}
 	st_case_85:
-//line tokenizer.go:2464
-		if ( t.data)[( t.p)] == 95 {
-			goto st86
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st86
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st86
-			}
-		default:
+		if ( t.data)[( t.p)] == 99 {
 			goto st86
 		}
 		goto st0
@@ -2482,23 +2663,8 @@ tr96:
 			goto _test_eof86
 		}
 	st_case_86:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 116 {
 			goto st87
-		case 95:
-			goto st86
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st86
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st86
-			}
-		default:
-			goto st86
 		}
 		goto st0
 	st87:
@@ -2506,23 +2672,19 @@ tr96:
 			goto _test_eof87
 		}
 	st_case_87:
-		if ( t.data)[( t.p)] == 39 {
-			goto tr100
+		switch ( t.data)[( t.p)] {
+		case 101:
+			goto st88
+		case 105:
+			goto st141
 		}
 		goto st0
-tr100:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st88
 	st88:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof88
 		}
 	st_case_88:
-//line tokenizer.go:2525
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 100 {
 			goto st89
 		}
 		goto st0
@@ -2531,7 +2693,7 @@ tr100:
 			goto _test_eof89
 		}
 	st_case_89:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st90
 		}
 		goto st0
@@ -2540,7 +2702,7 @@ tr100:
 			goto _test_eof90
 		}
 	st_case_90:
-		if ( t.data)[( t.p)] == 112 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st91
 		}
 		goto st0
@@ -2549,7 +2711,7 @@ tr100:
 			goto _test_eof91
 		}
 	st_case_91:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st92
 		}
 		goto st0
@@ -2558,7 +2720,7 @@ tr100:
 			goto _test_eof92
 		}
 	st_case_92:
-		if ( t.data)[( t.p)] == 39 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st93
 		}
 		goto st0
@@ -2567,29 +2729,18 @@ tr100:
 			goto _test_eof93
 		}
 	st_case_93:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr106
-		case 95:
-			goto tr107
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr107
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr107
-			}
-		default:
-			goto tr107
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr105
 		}
 		goto st0
-tr106:
-//line tokenizer.go.rl:105
+tr105:
+//line tokenizer.go.rl:181
+t.tok(CLIENT_CONNECTED)
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st94
@@ -2598,21 +2749,12 @@ tr106:
 			goto _test_eof94
 		}
 	st_case_94:
-//line tokenizer.go:2602
-		if ( t.data)[( t.p)] == 95 {
+//line tokenizer.go:2746
+		if ( t.data)[( t.p)] == 46 {
 			goto st95
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st95
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st95
-			}
-		default:
-			goto st95
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st139
 		}
 		goto st0
 	st95:
@@ -2620,23 +2762,8 @@ tr106:
 			goto _test_eof95
 		}
 	st_case_95:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st96
-		case 95:
-			goto st95
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st95
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st95
-			}
-		default:
-			goto st95
 		}
 		goto st0
 	st96:
@@ -2644,28 +2771,19 @@ tr106:
 			goto _test_eof96
 		}
 	st_case_96:
-		if ( t.data)[( t.p)] == 39 {
-			goto tr110
+		if ( t.data)[( t.p)] == 46 {
+			goto st97
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st137
 		}
 		goto st0
-tr110:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st97
 	st97:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof97
 		}
 	st_case_97:
-//line tokenizer.go:2663
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
-		case 44:
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st98
 		}
 		goto st0
@@ -2674,8 +2792,11 @@ tr110:
 			goto _test_eof98
 		}
 	st_case_98:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 46 {
 			goto st99
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st135
 		}
 		goto st0
 	st99:
@@ -2683,7 +2804,7 @@ tr110:
 			goto _test_eof99
 		}
 	st_case_99:
-		if ( t.data)[( t.p)] == 108 {
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st100
 		}
 		goto st0
@@ -2692,7 +2813,10 @@ tr110:
 			goto _test_eof100
 		}
 	st_case_100:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 124 {
+			goto st103
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st101
 		}
 		goto st0
@@ -2701,7 +2825,10 @@ tr110:
 			goto _test_eof101
 		}
 	st_case_101:
-		if ( t.data)[( t.p)] == 99 {
+		if ( t.data)[( t.p)] == 124 {
+			goto st103
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st102
 		}
 		goto st0
@@ -2710,7 +2837,7 @@ tr110:
 			goto _test_eof102
 		}
 	st_case_102:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 124 {
 			goto st103
 		}
 		goto st0
@@ -2719,7 +2846,7 @@ tr110:
 			goto _test_eof103
 		}
 	st_case_103:
-		if ( t.data)[( t.p)] == 108 {
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st104
 		}
 		goto st0
@@ -2728,16 +2855,26 @@ tr110:
 			goto _test_eof104
 		}
 	st_case_104:
-		if ( t.data)[( t.p)] == 32 {
-			goto st105
+		if ( t.data)[( t.p)] == 44 {
+			goto tr119
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st104
 		}
 		goto st0
+tr119:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st105
 	st105:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof105
 		}
 	st_case_105:
-		if ( t.data)[( t.p)] == 99 {
+//line tokenizer.go:2870
+		if ( t.data)[( t.p)] == 32 {
 			goto st106
 		}
 		goto st0
@@ -2746,7 +2883,7 @@ tr110:
 			goto _test_eof106
 		}
 	st_case_106:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 77 {
 			goto st107
 		}
 		goto st0
@@ -2755,7 +2892,7 @@ tr110:
 			goto _test_eof107
 		}
 	st_case_107:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 84 {
 			goto st108
 		}
 		goto st0
@@ -2764,7 +2901,7 @@ tr110:
 			goto _test_eof108
 		}
 	st_case_108:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 85 {
 			goto st109
 		}
 		goto st0
@@ -2773,7 +2910,7 @@ tr110:
 			goto _test_eof109
 		}
 	st_case_109:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st110
 		}
 		goto st0
@@ -2782,8 +2919,11 @@ tr110:
 			goto _test_eof110
 		}
 	st_case_110:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st111
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr126
 		}
 		goto st0
 	st111:
@@ -2791,25 +2931,50 @@ tr110:
 			goto _test_eof111
 		}
 	st_case_111:
-		if ( t.data)[( t.p)] == 32 {
-			goto st112
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr126
 		}
 		goto st0
+tr126:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st112
 	st112:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof112
 		}
 	st_case_112:
-		if ( t.data)[( t.p)] == 116 {
-			goto st113
+//line tokenizer.go:2946
+		if ( t.data)[( t.p)] == 46 {
+			goto tr127
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st112
 		}
 		goto st0
+tr127:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 113; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st113
 	st113:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof113
 		}
 	st_case_113:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:2970
+		if ( t.data)[( t.p)] == 32 {
 			goto st114
 		}
 		goto st0
@@ -2818,7 +2983,7 @@ tr110:
 			goto _test_eof114
 		}
 	st_case_114:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st115
 		}
 		goto st0
@@ -2827,7 +2992,7 @@ tr110:
 			goto _test_eof115
 		}
 	st_case_115:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st116
 		}
 		goto st0
@@ -2836,7 +3001,7 @@ tr110:
 			goto _test_eof116
 		}
 	st_case_116:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st117
 		}
 		goto st0
@@ -2845,11 +3010,8 @@ tr110:
 			goto _test_eof117
 		}
 	st_case_117:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st118
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr132
 		}
 		goto st0
 	st118:
@@ -2857,105 +3019,43 @@ tr110:
 			goto _test_eof118
 		}
 	st_case_118:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr132
+		if ( t.data)[( t.p)] == 105 {
+			goto st119
 		}
 		goto st0
-tr132:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st119
 	st119:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof119
 		}
 	st_case_119:
-//line tokenizer.go:2877
-		if ( t.data)[( t.p)] == 61 {
-			goto tr134
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st119
+		if ( t.data)[( t.p)] == 110 {
+			goto st120
 		}
 		goto st0
-tr107:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st120
 	st120:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof120
 		}
 	st_case_120:
-//line tokenizer.go:2897
-		switch ( t.data)[( t.p)] {
-		case 39:
-			goto tr110
-		case 95:
-			goto st120
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st120
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st120
-			}
-		default:
-			goto st120
+		if ( t.data)[( t.p)] == 103 {
+			goto st121
 		}
 		goto st0
-tr97:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st121
 	st121:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof121
 		}
 	st_case_121:
-//line tokenizer.go:2929
-		switch ( t.data)[( t.p)] {
-		case 39:
-			goto tr100
-		case 95:
-			goto st121
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st121
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st121
-			}
-		default:
-			goto st121
+		if ( t.data)[( t.p)] == 32 {
+			goto st122
 		}
 		goto st0
-tr83:
-//line tokenizer.go.rl:166
-t.tokval(StrTok("gameplay"))
-	goto st122
 	st122:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof122
 		}
 	st_case_122:
-//line tokenizer.go:2958
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 117 {
 			goto st123
 		}
 		goto st0
@@ -2964,7 +3064,7 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof123
 		}
 	st_case_123:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st124
 		}
 		goto st0
@@ -2973,7 +3073,7 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof124
 		}
 	st_case_124:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st125
 		}
 		goto st0
@@ -2982,7 +3082,7 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof125
 		}
 	st_case_125:
-		if ( t.data)[( t.p)] == 112 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st126
 		}
 		goto st0
@@ -2991,7 +3091,7 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof126
 		}
 	st_case_126:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st127
 		}
 		goto st0
@@ -3000,7 +3100,7 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof127
 		}
 	st_case_127:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st128
 		}
 		goto st0
@@ -3009,24 +3109,16 @@ t.tokval(StrTok("gameplay"))
 			goto _test_eof128
 		}
 	st_case_128:
-		if ( t.data)[( t.p)] == 121 {
-			goto st82
+		if ( t.data)[( t.p)] == 115 {
+			goto st129
 		}
 		goto st0
-tr26:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st129
 	st129:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof129
 		}
 	st_case_129:
-//line tokenizer.go:3029
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st130
 		}
 		goto st0
@@ -3035,7 +3127,7 @@ tr26:
 			goto _test_eof130
 		}
 	st_case_130:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st131
 		}
 		goto st0
@@ -3044,7 +3136,7 @@ tr26:
 			goto _test_eof131
 		}
 	st_case_131:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st132
 		}
 		goto st0
@@ -3053,7 +3145,7 @@ tr26:
 			goto _test_eof132
 		}
 	st_case_132:
-		if ( t.data)[( t.p)] == 103 {
+		if ( t.data)[( t.p)] == 46 {
 			goto st133
 		}
 		goto st0
@@ -3062,85 +3154,53 @@ tr26:
 			goto _test_eof133
 		}
 	st_case_133:
-		if ( t.data)[( t.p)] == 101 {
-			goto tr147
+		if ( t.data)[( t.p)] == 46 {
+			goto st134
 		}
 		goto st0
-tr147:
-//line tokenizer.go.rl:121
- t.tok(DAMAGE) 
-	goto st134
 	st134:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof134
 		}
 	st_case_134:
-//line tokenizer.go:3079
-		if ( t.data)[( t.p)] == 32 {
-			goto st135
+		if ( t.data)[( t.p)] == 46 {
+			goto st680
 		}
-		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st135
+		goto st0
+tr548:
+//line tokenizer.go.rl:138
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+	goto st680
+tr610:
+//line tokenizer.go.rl:151
+t.tok(FRIENDLY_FIRE)
+	goto st680
+	st680:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof680
 		}
+	st_case_680:
+//line tokenizer.go:3177
 		goto st0
 	st135:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof135
 		}
 	st_case_135:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st135
-		case 40:
-			goto tr149
-		case 95:
-			goto tr150
+		if ( t.data)[( t.p)] == 46 {
+			goto st99
 		}
-		switch {
-		case ( t.data)[( t.p)] < 47:
-			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto st135
-			}
-		case ( t.data)[( t.p)] > 57:
-			switch {
-			case ( t.data)[( t.p)] > 90:
-				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr150
-				}
-			case ( t.data)[( t.p)] >= 65:
-				goto tr150
-			}
-		default:
-			goto tr150
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st136
 		}
 		goto st0
-tr149:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st136
 	st136:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof136
 		}
 	st_case_136:
-//line tokenizer.go:3130
-		if ( t.data)[( t.p)] == 95 {
-			goto st137
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st137
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st137
-			}
-		default:
-			goto st137
+		if ( t.data)[( t.p)] == 46 {
+			goto st99
 		}
 		goto st0
 	st137:
@@ -3148,23 +3208,11 @@ tr149:
 			goto _test_eof137
 		}
 	st_case_137:
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st138
-		case 95:
-			goto st137
+		if ( t.data)[( t.p)] == 46 {
+			goto st97
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st137
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st137
-			}
-		default:
-			goto st137
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st138
 		}
 		goto st0
 	st138:
@@ -3172,73 +3220,29 @@ tr149:
 			goto _test_eof138
 		}
 	st_case_138:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr153
-		case 124:
-			goto tr154
+		if ( t.data)[( t.p)] == 46 {
+			goto st97
 		}
 		goto st0
-tr153:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st139
 	st139:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof139
 		}
 	st_case_139:
-//line tokenizer.go:3196
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr155
-		case 95:
-			goto tr156
+		if ( t.data)[( t.p)] == 46 {
+			goto st95
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr156
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr156
-			}
-		default:
-			goto tr156
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st140
 		}
 		goto st0
-tr155:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st140
 	st140:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof140
 		}
 	st_case_140:
-//line tokenizer.go:3228
-		if ( t.data)[( t.p)] == 95 {
-			goto st141
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st141
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st141
-			}
-		default:
-			goto st141
+		if ( t.data)[( t.p)] == 46 {
+			goto st95
 		}
 		goto st0
 	st141:
@@ -3246,23 +3250,8 @@ tr155:
 			goto _test_eof141
 		}
 	st_case_141:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 111 {
 			goto st142
-		case 95:
-			goto st141
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st141
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st141
-			}
-		default:
-			goto st141
 		}
 		goto st0
 	st142:
@@ -3270,51 +3259,26 @@ tr155:
 			goto _test_eof142
 		}
 	st_case_142:
-		if ( t.data)[( t.p)] == 41 {
-			goto tr159
+		if ( t.data)[( t.p)] == 110 {
+			goto st143
 		}
 		goto st0
-tr159:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st143
 	st143:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof143
 		}
 	st_case_143:
-//line tokenizer.go:3291
-		if ( t.data)[( t.p)] == 124 {
-			goto tr160
+		if ( t.data)[( t.p)] == 32 {
+			goto st144
 		}
 		goto st0
-tr154:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st144
-tr160:
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st144
 	st144:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof144
 		}
 	st_case_144:
-//line tokenizer.go:3313
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st145
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr162
 		}
 		goto st0
 	st145:
@@ -3322,48 +3286,25 @@ tr160:
 			goto _test_eof145
 		}
 	st_case_145:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr162
+		if ( t.data)[( t.p)] == 108 {
+			goto st146
 		}
 		goto st0
-tr162:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st146
 	st146:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof146
 		}
 	st_case_146:
-//line tokenizer.go:3342
-		if ( t.data)[( t.p)] == 32 {
-			goto tr163
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st146
+		if ( t.data)[( t.p)] == 111 {
+			goto st147
 		}
 		goto st0
-tr163:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 147; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st147
 	st147:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof147
 		}
 	st_case_147:
-//line tokenizer.go:3366
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st148
 		}
 		goto st0
@@ -3372,7 +3313,7 @@ tr163:
 			goto _test_eof148
 		}
 	st_case_148:
-		if ( t.data)[( t.p)] == 62 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st149
 		}
 		goto st0
@@ -3381,7 +3322,7 @@ tr163:
 			goto _test_eof149
 		}
 	st_case_149:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 100 {
 			goto st150
 		}
 		goto st0
@@ -3390,51 +3331,16 @@ tr163:
 			goto _test_eof150
 		}
 	st_case_150:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr168
-		case 95:
-			goto tr169
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr169
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr169
-			}
-		default:
-			goto tr169
+		if ( t.data)[( t.p)] == 46 {
+			goto st151
 		}
 		goto st0
-tr168:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st151
 	st151:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof151
 		}
 	st_case_151:
-//line tokenizer.go:3425
-		if ( t.data)[( t.p)] == 95 {
-			goto st152
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st152
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st152
-			}
-		default:
+		if ( t.data)[( t.p)] == 32 {
 			goto st152
 		}
 		goto st0
@@ -3444,95 +3350,136 @@ tr168:
 		}
 	st_case_152:
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st153
+		case 40:
+			goto tr165
 		case 95:
-			goto st152
+			goto tr166
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st152
+				goto tr166
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st152
+				goto tr166
 			}
 		default:
-			goto st152
+			goto tr166
 		}
 		goto st0
+tr165:
+//line tokenizer.go.rl:184
+t.tok(CLIENT_CONNECTION_CLOSED)
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st153
 	st153:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof153
 		}
 	st_case_153:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr172
-		case 124:
-			goto tr173
+//line tokenizer.go:3381
+		if ( t.data)[( t.p)] == 95 {
+			goto st154
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st154
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st154
+			}
+		default:
+			goto st154
 		}
 		goto st0
-tr172:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st154
 	st154:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof154
 		}
 	st_case_154:
-//line tokenizer.go:3491
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr174
+		case 41:
+			goto st681
 		case 95:
-			goto tr175
+			goto st154
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr175
+				goto st154
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr175
+				goto st154
 			}
 		default:
-			goto tr175
+			goto st154
 		}
 		goto st0
-tr174:
-//line tokenizer.go.rl:105
+tr724:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
-	goto st155
+	goto st681
+	st681:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof681
+		}
+	st_case_681:
+//line tokenizer.go:3436
+		goto st0
+tr166:
+//line tokenizer.go.rl:184
+t.tok(CLIENT_CONNECTION_CLOSED)
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st682
+	st682:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof682
+		}
+	st_case_682:
+//line tokenizer.go:3454
+		if ( t.data)[( t.p)] == 95 {
+			goto st682
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st682
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st682
+			}
+		default:
+			goto st682
+		}
+		goto st0
 	st155:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof155
 		}
 	st_case_155:
-//line tokenizer.go:3523
-		if ( t.data)[( t.p)] == 95 {
-			goto st156
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st156
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st156
-			}
-		default:
+		if ( t.data)[( t.p)] == 108 {
 			goto st156
 		}
 		goto st0
@@ -3541,23 +3488,8 @@ tr174:
 			goto _test_eof156
 		}
 	st_case_156:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 97 {
 			goto st157
-		case 95:
-			goto st156
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st156
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st156
-			}
-		default:
-			goto st156
 		}
 		goto st0
 	st157:
@@ -3565,51 +3497,26 @@ tr174:
 			goto _test_eof157
 		}
 	st_case_157:
-		if ( t.data)[( t.p)] == 41 {
-			goto tr178
+		if ( t.data)[( t.p)] == 121 {
+			goto st158
 		}
 		goto st0
-tr178:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st158
 	st158:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof158
 		}
 	st_case_158:
-//line tokenizer.go:3586
-		if ( t.data)[( t.p)] == 124 {
-			goto tr179
+		if ( t.data)[( t.p)] == 101 {
+			goto st159
 		}
 		goto st0
-tr173:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st159
-tr179:
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st159
 	st159:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof159
 		}
 	st_case_159:
-//line tokenizer.go:3608
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st160
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr181
 		}
 		goto st0
 	st160:
@@ -3617,76 +3524,88 @@ tr179:
 			goto _test_eof160
 		}
 	st_case_160:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr181
+		if ( t.data)[( t.p)] == 32 {
+			goto st161
 		}
 		goto st0
-tr181:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st161
 	st161:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof161
 		}
 	st_case_161:
-//line tokenizer.go:3637
-		if ( t.data)[( t.p)] == 32 {
-			goto tr182
+		if ( t.data)[( t.p)] == 45 {
+			goto tr175
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st161
+			goto tr176
 		}
 		goto st0
-tr182:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 162; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
+tr175:
+//line tokenizer.go.rl:180
+t.tok(CLIENT_PLAYER_LEAVE)
 	goto st162
 	st162:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof162
 		}
 	st_case_162:
-//line tokenizer.go:3661
-		if ( t.data)[( t.p)] == 45 {
-			goto st163
-		}
+//line tokenizer.go:3546
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st164
+			goto tr177
 		}
 		goto st0
+tr177:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st163
+tr176:
+//line tokenizer.go.rl:180
+t.tok(CLIENT_PLAYER_LEAVE)
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st163
 	st163:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof163
 		}
 	st_case_163:
+//line tokenizer.go:3576
+		if ( t.data)[( t.p)] == 32 {
+			goto tr178
+		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st164
+			goto st163
 		}
 		goto st0
+tr178:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 164; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st164
 	st164:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof164
 		}
 	st_case_164:
-		switch ( t.data)[( t.p)] {
-		case 32:
+//line tokenizer.go:3600
+		if ( t.data)[( t.p)] == 108 {
 			goto st165
-		case 46:
-			goto st202
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st164
 		}
 		goto st0
 	st165:
@@ -3694,7 +3613,7 @@ tr182:
 			goto _test_eof165
 		}
 	st_case_165:
-		if ( t.data)[( t.p)] == 40 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st166
 		}
 		goto st0
@@ -3703,7 +3622,7 @@ tr182:
 			goto _test_eof166
 		}
 	st_case_166:
-		if ( t.data)[( t.p)] == 104 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st167
 		}
 		goto st0
@@ -3712,7 +3631,7 @@ tr182:
 			goto _test_eof167
 		}
 	st_case_167:
-		if ( t.data)[( t.p)] == 58 {
+		if ( t.data)[( t.p)] == 118 {
 			goto st168
 		}
 		goto st0
@@ -3721,11 +3640,8 @@ tr182:
 			goto _test_eof168
 		}
 	st_case_168:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st169
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st170
 		}
 		goto st0
 	st169:
@@ -3733,7 +3649,7 @@ tr182:
 			goto _test_eof169
 		}
 	st_case_169:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st170
 		}
 		goto st0
@@ -3742,14 +3658,8 @@ tr182:
 			goto _test_eof170
 		}
 	st_case_170:
-		switch ( t.data)[( t.p)] {
-		case 32:
+		if ( t.data)[( t.p)] == 103 {
 			goto st171
-		case 46:
-			goto st201
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st170
 		}
 		goto st0
 	st171:
@@ -3757,7 +3667,7 @@ tr182:
 			goto _test_eof171
 		}
 	st_case_171:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st172
 		}
 		goto st0
@@ -3766,7 +3676,7 @@ tr182:
 			goto _test_eof172
 		}
 	st_case_172:
-		if ( t.data)[( t.p)] == 58 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st173
 		}
 		goto st0
@@ -3775,35 +3685,54 @@ tr182:
 			goto _test_eof173
 		}
 	st_case_173:
-		if ( t.data)[( t.p)] == 45 {
-			goto st174
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st175
+		if ( t.data)[( t.p)] == 101 {
+			goto st680
 		}
 		goto st0
+tr15:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st174
 	st174:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof174
 		}
 	st_case_174:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st175
+//line tokenizer.go:3700
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr15
+		case 67:
+			goto tr16
+		case 124:
+			goto tr18
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto tr14
 		}
 		goto st0
+tr16:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st175
 	st175:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof175
 		}
 	st_case_175:
-		switch ( t.data)[( t.p)] {
-		case 41:
+//line tokenizer.go:3727
+		if ( t.data)[( t.p)] == 77 {
 			goto st176
-		case 46:
-			goto st200
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st175
 		}
 		goto st0
 	st176:
@@ -3811,7 +3740,7 @@ tr182:
 			goto _test_eof176
 		}
 	st_case_176:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 66 {
 			goto st177
 		}
 		goto st0
@@ -3820,121 +3749,82 @@ tr182:
 			goto _test_eof177
 		}
 	st_case_177:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto tr202
-		case 40:
-			goto st196
-		case 95:
-			goto tr204
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr204
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr204
-			}
-		default:
-			goto tr204
+		if ( t.data)[( t.p)] == 84 {
+			goto st178
 		}
 		goto st0
-tr202:
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st178
-tr230:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st178
 	st178:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof178
 		}
 	st_case_178:
-//line tokenizer.go:3858
-		if ( t.data)[( t.p)] == 95 {
-			goto tr205
+		if ( t.data)[( t.p)] == 32 {
+			goto st179
 		}
-		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
-			goto tr205
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st179
 		}
 		goto st0
-tr205:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st179
 	st179:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof179
 		}
 	st_case_179:
-//line tokenizer.go:3878
 		switch ( t.data)[( t.p)] {
-		case 95:
+		case 32:
 			goto st179
 		case 124:
-			goto tr207
+			goto tr193
 		}
-		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st179
 		}
 		goto st0
-tr207:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
+tr193:
+//line tokenizer.go.rl:117
+ t.tok(COMBAT) 
 	goto st180
 	st180:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof180
 		}
 	st_case_180:
-//line tokenizer.go:3902
-		if ( t.data)[( t.p)] == 95 {
-			goto tr208
-		}
-		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
-			goto tr208
+//line tokenizer.go:3786
+		if ( t.data)[( t.p)] == 32 {
+			goto st181
 		}
 		goto st0
-tr208:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st181
 	st181:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof181
 		}
 	st_case_181:
-//line tokenizer.go:3922
 		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr209
 		case 32:
-			goto tr210
-		case 95:
 			goto st181
-		}
-		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
-			goto st181
+		case 61:
+			goto tr195
+		case 68:
+			goto tr196
+		case 71:
+			goto tr197
+		case 72:
+			goto tr198
+		case 75:
+			goto tr199
+		case 80:
+			goto tr200
+		case 82:
+			goto tr201
 		}
 		goto st0
-tr210:
-//line tokenizer.go.rl:78
+tr195:
+//line tokenizer.go.rl:103
 
-		t.tokval(StrTok(t.data[t.prev:t.p]))
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
 	
 	goto st182
 	st182:
@@ -3942,13 +3832,8 @@ tr210:
 			goto _test_eof182
 		}
 	st_case_182:
-//line tokenizer.go:3946
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
-		case 60:
+//line tokenizer.go:3829
+		if ( t.data)[( t.p)] == 61 {
 			goto st183
 		}
 		goto st0
@@ -3957,7 +3842,7 @@ tr210:
 			goto _test_eof183
 		}
 	st_case_183:
-		if ( t.data)[( t.p)] == 70 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st184
 		}
 		goto st0
@@ -3966,7 +3851,7 @@ tr210:
 			goto _test_eof184
 		}
 	st_case_184:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st185
 		}
 		goto st0
@@ -3975,7 +3860,7 @@ tr210:
 			goto _test_eof185
 		}
 	st_case_185:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st186
 		}
 		goto st0
@@ -3984,7 +3869,7 @@ tr210:
 			goto _test_eof186
 		}
 	st_case_186:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st187
 		}
 		goto st0
@@ -3993,7 +3878,7 @@ tr210:
 			goto _test_eof187
 		}
 	st_case_187:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st188
 		}
 		goto st0
@@ -4002,7 +3887,7 @@ tr210:
 			goto _test_eof188
 		}
 	st_case_188:
-		if ( t.data)[( t.p)] == 100 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st189
 		}
 		goto st0
@@ -4011,8 +3896,11 @@ tr210:
 			goto _test_eof189
 		}
 	st_case_189:
-		if ( t.data)[( t.p)] == 108 {
+		switch ( t.data)[( t.p)] {
+		case 67:
 			goto st190
+		case 83:
+			goto st223
 		}
 		goto st0
 	st190:
@@ -4020,7 +3908,7 @@ tr210:
 			goto _test_eof190
 		}
 	st_case_190:
-		if ( t.data)[( t.p)] == 121 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st191
 		}
 		goto st0
@@ -4029,7 +3917,7 @@ tr210:
 			goto _test_eof191
 		}
 	st_case_191:
-		if ( t.data)[( t.p)] == 70 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st192
 		}
 		goto st0
@@ -4038,7 +3926,7 @@ tr210:
 			goto _test_eof192
 		}
 	st_case_192:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st193
 		}
 		goto st0
@@ -4047,7 +3935,7 @@ tr210:
 			goto _test_eof193
 		}
 	st_case_193:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st194
 		}
 		goto st0
@@ -4056,7 +3944,7 @@ tr210:
 			goto _test_eof194
 		}
 	st_case_194:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st195
 		}
 		goto st0
@@ -4065,8 +3953,8 @@ tr210:
 			goto _test_eof195
 		}
 	st_case_195:
-		if ( t.data)[( t.p)] == 62 {
-			goto tr225
+		if ( t.data)[( t.p)] == 116 {
+			goto st196
 		}
 		goto st0
 	st196:
@@ -4074,98 +3962,35 @@ tr210:
 			goto _test_eof196
 		}
 	st_case_196:
-		if ( t.data)[( t.p)] == 95 {
-			goto tr226
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr226
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr226
-			}
-		default:
-			goto tr226
+		if ( t.data)[( t.p)] == 32 {
+			goto st197
 		}
 		goto st0
-tr226:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st197
 	st197:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof197
 		}
 	st_case_197:
-//line tokenizer.go:4106
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr227
-		case 95:
-			goto st197
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st197
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st197
-			}
-		default:
-			goto st197
+		if ( t.data)[( t.p)] == 116 {
+			goto st198
 		}
 		goto st0
-tr227:
-//line tokenizer.go.rl:138
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st198
 	st198:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof198
 		}
 	st_case_198:
-//line tokenizer.go:4135
-		if ( t.data)[( t.p)] == 32 {
-			goto st178
+		if ( t.data)[( t.p)] == 111 {
+			goto st199
 		}
 		goto st0
-tr204:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st199
 	st199:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof199
 		}
 	st_case_199:
-//line tokenizer.go:4152
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto tr230
-		case 95:
-			goto st199
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st199
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st199
-			}
-		default:
-			goto st199
+		if ( t.data)[( t.p)] == 32 {
+			goto st200
 		}
 		goto st0
 	st200:
@@ -4173,11 +3998,8 @@ tr204:
 			goto _test_eof200
 		}
 	st_case_200:
-		if ( t.data)[( t.p)] == 41 {
-			goto st176
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st200
+		if ( t.data)[( t.p)] == 103 {
+			goto st201
 		}
 		goto st0
 	st201:
@@ -4185,11 +4007,8 @@ tr204:
 			goto _test_eof201
 		}
 	st_case_201:
-		if ( t.data)[( t.p)] == 32 {
-			goto st171
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st201
+		if ( t.data)[( t.p)] == 97 {
+			goto st202
 		}
 		goto st0
 	st202:
@@ -4197,159 +4016,52 @@ tr204:
 			goto _test_eof202
 		}
 	st_case_202:
-		if ( t.data)[( t.p)] == 32 {
-			goto st165
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st202
+		if ( t.data)[( t.p)] == 109 {
+			goto st203
 		}
 		goto st0
-tr175:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st203
 	st203:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof203
 		}
 	st_case_203:
-//line tokenizer.go:4220
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr178
-		case 95:
-			goto st203
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st203
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st203
-			}
-		default:
-			goto st203
+		if ( t.data)[( t.p)] == 101 {
+			goto st204
 		}
 		goto st0
-tr169:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st204
 	st204:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof204
 		}
 	st_case_204:
-//line tokenizer.go:4252
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr172
-		case 95:
-			goto st204
-		case 124:
-			goto tr173
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st204
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st204
-			}
-		default:
-			goto st204
+		if ( t.data)[( t.p)] == 32 {
+			goto st205
 		}
 		goto st0
-tr156:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st205
 	st205:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof205
 		}
 	st_case_205:
-//line tokenizer.go:4286
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr159
-		case 95:
-			goto st205
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st205
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st205
-			}
-		default:
-			goto st205
+		if ( t.data)[( t.p)] == 115 {
+			goto st206
 		}
 		goto st0
-tr150:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st206
 	st206:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof206
 		}
 	st_case_206:
-//line tokenizer.go:4318
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr153
-		case 95:
-			goto st206
-		case 124:
-			goto tr154
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st206
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st206
-			}
-		default:
-			goto st206
+		if ( t.data)[( t.p)] == 101 {
+			goto st207
 		}
 		goto st0
-tr27:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st207
 	st207:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof207
 		}
 	st_case_207:
-//line tokenizer.go:4352
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st208
 		}
 		goto st0
@@ -4358,7 +4070,7 @@ tr27:
 			goto _test_eof208
 		}
 	st_case_208:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st209
 		}
 		goto st0
@@ -4367,7 +4079,7 @@ tr27:
 			goto _test_eof209
 		}
 	st_case_209:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st210
 		}
 		goto st0
@@ -4376,7 +4088,7 @@ tr27:
 			goto _test_eof210
 		}
 	st_case_210:
-		if ( t.data)[( t.p)] == 112 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st211
 		}
 		goto st0
@@ -4385,7 +4097,7 @@ tr27:
 			goto _test_eof211
 		}
 	st_case_211:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st212
 		}
 		goto st0
@@ -4394,7 +4106,7 @@ tr27:
 			goto _test_eof212
 		}
 	st_case_212:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st213
 		}
 		goto st0
@@ -4403,43 +4115,99 @@ tr27:
 			goto _test_eof213
 		}
 	st_case_213:
-		if ( t.data)[( t.p)] == 121 {
-			goto st214
+		if ( t.data)[( t.p)] == 45 {
+			goto tr234
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr235
 		}
 		goto st0
+tr234:
+//line tokenizer.go.rl:173
+t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
+	goto st214
 	st214:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof214
 		}
 	st_case_214:
-		if ( t.data)[( t.p)] == 32 {
-			goto st215
+//line tokenizer.go:4128
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr236
 		}
 		goto st0
+tr236:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st215
+tr235:
+//line tokenizer.go.rl:173
+t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st215
 	st215:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof215
 		}
 	st_case_215:
-		if ( t.data)[( t.p)] == 102 {
-			goto st216
+//line tokenizer.go:4158
+		if ( t.data)[( t.p)] == 32 {
+			goto tr237
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st215
 		}
 		goto st0
+tr237:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 216; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st216
 	st216:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof216
 		}
 	st_case_216:
-		if ( t.data)[( t.p)] == 105 {
+//line tokenizer.go:4182
+		if ( t.data)[( t.p)] == 61 {
 			goto st217
 		}
 		goto st0
+tr301:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 217; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st217
 	st217:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof217
 		}
 	st_case_217:
-		if ( t.data)[( t.p)] == 110 {
+//line tokenizer.go:4203
+		if ( t.data)[( t.p)] == 61 {
 			goto st218
 		}
 		goto st0
@@ -4448,7 +4216,7 @@ tr27:
 			goto _test_eof218
 		}
 	st_case_218:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st219
 		}
 		goto st0
@@ -4457,7 +4225,7 @@ tr27:
 			goto _test_eof219
 		}
 	st_case_219:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st220
 		}
 		goto st0
@@ -4466,7 +4234,7 @@ tr27:
 			goto _test_eof220
 		}
 	st_case_220:
-		if ( t.data)[( t.p)] == 104 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st221
 		}
 		goto st0
@@ -4475,7 +4243,7 @@ tr27:
 			goto _test_eof221
 		}
 	st_case_221:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 61 {
 			goto st222
 		}
 		goto st0
@@ -4484,8 +4252,8 @@ tr27:
 			goto _test_eof222
 		}
 	st_case_222:
-		if ( t.data)[( t.p)] == 100 {
-			goto st223
+		if ( t.data)[( t.p)] == 61 {
+			goto st680
 		}
 		goto st0
 	st223:
@@ -4493,21 +4261,16 @@ tr27:
 			goto _test_eof223
 		}
 	st_case_223:
-		if ( t.data)[( t.p)] == 46 {
-			goto tr252
+		if ( t.data)[( t.p)] == 116 {
+			goto st224
 		}
 		goto st0
-tr252:
-//line tokenizer.go.rl:126
- t.tok(GAMEPLAY_FINISHED) 
-	goto st224
 	st224:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof224
 		}
 	st_case_224:
-//line tokenizer.go:4510
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st225
 		}
 		goto st0
@@ -4516,7 +4279,7 @@ tr252:
 			goto _test_eof225
 		}
 	st_case_225:
-		if ( t.data)[( t.p)] == 87 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st226
 		}
 		goto st0
@@ -4525,16 +4288,21 @@ tr252:
 			goto _test_eof226
 		}
 	st_case_226:
-		if ( t.data)[( t.p)] == 105 {
-			goto st227
+		if ( t.data)[( t.p)] == 116 {
+			goto tr248
 		}
 		goto st0
+tr248:
+//line tokenizer.go.rl:125
+ t.tok(START) 
+	goto st227
 	st227:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof227
 		}
 	st_case_227:
-		if ( t.data)[( t.p)] == 110 {
+//line tokenizer.go:4298
+		if ( t.data)[( t.p)] == 32 {
 			goto st228
 		}
 		goto st0
@@ -4543,16 +4311,24 @@ tr252:
 			goto _test_eof228
 		}
 	st_case_228:
-		if ( t.data)[( t.p)] == 110 {
-			goto st229
+		switch ( t.data)[( t.p)] {
+		case 80:
+			goto tr250
+		case 103:
+			goto tr251
 		}
 		goto st0
+tr250:
+//line tokenizer.go.rl:169
+t.tokval(StrTok("PVE mission"))
+	goto st229
 	st229:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof229
 		}
 	st_case_229:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:4324
+		if ( t.data)[( t.p)] == 86 {
 			goto st230
 		}
 		goto st0
@@ -4561,7 +4337,7 @@ tr252:
 			goto _test_eof230
 		}
 	st_case_230:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 69 {
 			goto st231
 		}
 		goto st0
@@ -4579,7 +4355,7 @@ tr252:
 			goto _test_eof232
 		}
 	st_case_232:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st233
 		}
 		goto st0
@@ -4588,7 +4364,7 @@ tr252:
 			goto _test_eof233
 		}
 	st_case_233:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st234
 		}
 		goto st0
@@ -4597,7 +4373,7 @@ tr252:
 			goto _test_eof234
 		}
 	st_case_234:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st235
 		}
 		goto st0
@@ -4606,7 +4382,7 @@ tr252:
 			goto _test_eof235
 		}
 	st_case_235:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st236
 		}
 		goto st0
@@ -4615,7 +4391,7 @@ tr252:
 			goto _test_eof236
 		}
 	st_case_236:
-		if ( t.data)[( t.p)] == 58 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st237
 		}
 		goto st0
@@ -4624,7 +4400,7 @@ tr252:
 			goto _test_eof237
 		}
 	st_case_237:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st238
 		}
 		goto st0
@@ -4633,11 +4409,8 @@ tr252:
 			goto _test_eof238
 		}
 	st_case_238:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st239
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr268
 		}
 		goto st0
 	st239:
@@ -4645,83 +4418,49 @@ tr252:
 			goto _test_eof239
 		}
 	st_case_239:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr268
+		if ( t.data)[( t.p)] == 32 {
+			goto st240
 		}
 		goto st0
-tr268:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st240
 	st240:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof240
 		}
 	st_case_240:
-//line tokenizer.go:4665
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr269
-		case 46:
-			goto tr270
-		case 47:
-			goto tr271
-		case 95:
-			goto tr271
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr272
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr271
-			}
-		default:
-			goto tr271
+		if ( t.data)[( t.p)] == 39 {
+			goto st241
 		}
 		goto st0
-tr269:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 241; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st241
 	st241:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof241
 		}
 	st_case_241:
-//line tokenizer.go:4705
-		if ( t.data)[( t.p)] == 95 {
-			goto tr273
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr264
+		case 95:
+			goto tr265
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr273
+				goto tr265
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr273
+				goto tr265
 			}
 		default:
-			goto tr273
+			goto tr265
 		}
 		goto st0
-tr273:
-//line tokenizer.go.rl:105
+tr264:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st242
@@ -4730,88 +4469,69 @@ tr273:
 			goto _test_eof242
 		}
 	st_case_242:
-//line tokenizer.go:4734
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr274
-		case 95:
-			goto st242
+//line tokenizer.go:4466
+		if ( t.data)[( t.p)] == 95 {
+			goto st243
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st242
+				goto st243
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st242
+				goto st243
 			}
 		default:
-			goto st242
+			goto st243
 		}
 		goto st0
-tr274:
-//line tokenizer.go.rl:138
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st243
 	st243:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof243
 		}
 	st_case_243:
-//line tokenizer.go:4763
-		if ( t.data)[( t.p)] == 46 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st244
+		case 95:
+			goto st243
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st243
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st243
+			}
+		default:
+			goto st243
 		}
 		goto st0
-tr325:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st244
-tr270:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 244; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st244
-tr327:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 244; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st244
 	st244:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof244
 		}
 	st_case_244:
-//line tokenizer.go:4805
-		if ( t.data)[( t.p)] == 32 {
-			goto st245
+		if ( t.data)[( t.p)] == 39 {
+			goto tr268
 		}
 		goto st0
+tr268:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st245
 	st245:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof245
 		}
 	st_case_245:
-		if ( t.data)[( t.p)] == 70 {
+//line tokenizer.go:4527
+		if ( t.data)[( t.p)] == 109 {
 			goto st246
 		}
 		goto st0
@@ -4820,7 +4540,7 @@ t.tok(SOURCE)
 			goto _test_eof246
 		}
 	st_case_246:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st247
 		}
 		goto st0
@@ -4829,7 +4549,7 @@ t.tok(SOURCE)
 			goto _test_eof247
 		}
 	st_case_247:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st248
 		}
 		goto st0
@@ -4838,7 +4558,7 @@ t.tok(SOURCE)
 			goto _test_eof248
 		}
 	st_case_248:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st249
 		}
 		goto st0
@@ -4847,7 +4567,7 @@ t.tok(SOURCE)
 			goto _test_eof249
 		}
 	st_case_249:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 39 {
 			goto st250
 		}
 		goto st0
@@ -4856,16 +4576,53 @@ t.tok(SOURCE)
 			goto _test_eof250
 		}
 	st_case_250:
-		if ( t.data)[( t.p)] == 104 {
-			goto st251
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr274
+		case 95:
+			goto tr275
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr275
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr275
+			}
+		default:
+			goto tr275
 		}
 		goto st0
+tr274:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st251
 	st251:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof251
 		}
 	st_case_251:
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:4606
+		if ( t.data)[( t.p)] == 95 {
+			goto st252
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st252
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st252
+			}
+		default:
 			goto st252
 		}
 		goto st0
@@ -4874,8 +4631,23 @@ t.tok(SOURCE)
 			goto _test_eof252
 		}
 	st_case_252:
-		if ( t.data)[( t.p)] == 114 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st253
+		case 95:
+			goto st252
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st252
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st252
+			}
+		default:
+			goto st252
 		}
 		goto st0
 	st253:
@@ -4883,7 +4655,23 @@ t.tok(SOURCE)
 			goto _test_eof253
 		}
 	st_case_253:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 39 {
+			goto tr278
+		}
+		goto st0
+tr278:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st683
+	st683:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof683
+		}
+	st_case_683:
+//line tokenizer.go:4667
+		if ( t.data)[( t.p)] == 44 {
 			goto st254
 		}
 		goto st0
@@ -4892,7 +4680,7 @@ t.tok(SOURCE)
 			goto _test_eof254
 		}
 	st_case_254:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st255
 		}
 		goto st0
@@ -4901,7 +4689,7 @@ t.tok(SOURCE)
 			goto _test_eof255
 		}
 	st_case_255:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st256
 		}
 		goto st0
@@ -4919,7 +4707,7 @@ t.tok(SOURCE)
 			goto _test_eof257
 		}
 	st_case_257:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st258
 		}
 		goto st0
@@ -4928,7 +4716,7 @@ t.tok(SOURCE)
 			goto _test_eof258
 		}
 	st_case_258:
-		if ( t.data)[( t.p)] == 58 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st259
 		}
 		goto st0
@@ -4937,7 +4725,7 @@ t.tok(SOURCE)
 			goto _test_eof259
 		}
 	st_case_259:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st260
 		}
 		goto st0
@@ -4946,7 +4734,7 @@ t.tok(SOURCE)
 			goto _test_eof260
 		}
 	st_case_260:
-		if ( t.data)[( t.p)] == 39 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st261
 		}
 		goto st0
@@ -4955,19 +4743,7 @@ t.tok(SOURCE)
 			goto _test_eof261
 		}
 	st_case_261:
-		if ( t.data)[( t.p)] == 95 {
-			goto st262
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st262
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st262
-			}
-		default:
+		if ( t.data)[( t.p)] == 99 {
 			goto st262
 		}
 		goto st0
@@ -4976,53 +4752,16 @@ t.tok(SOURCE)
 			goto _test_eof262
 		}
 	st_case_262:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto tr295
-		case 39:
-			goto tr296
-		case 95:
-			goto st262
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st262
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st262
-			}
-		default:
-			goto st262
+		if ( t.data)[( t.p)] == 108 {
+			goto st263
 		}
 		goto st0
-tr295:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st263
 	st263:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof263
 		}
 	st_case_263:
-//line tokenizer.go:5013
-		if ( t.data)[( t.p)] == 95 {
-			goto st264
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st264
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st264
-			}
-		default:
+		if ( t.data)[( t.p)] == 105 {
 			goto st264
 		}
 		goto st0
@@ -5031,51 +4770,16 @@ tr295:
 			goto _test_eof264
 		}
 	st_case_264:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st263
-		case 39:
-			goto tr299
-		case 95:
-			goto st264
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st264
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st264
-			}
-		default:
-			goto st264
+		if ( t.data)[( t.p)] == 101 {
+			goto st265
 		}
 		goto st0
-tr299:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st265
-tr296:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st265
 	st265:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof265
 		}
 	st_case_265:
-//line tokenizer.go:5078
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st266
 		}
 		goto st0
@@ -5084,7 +4788,7 @@ tr296:
 			goto _test_eof266
 		}
 	st_case_266:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st267
 		}
 		goto st0
@@ -5093,7 +4797,7 @@ tr296:
 			goto _test_eof267
 		}
 	st_case_267:
-		if ( t.data)[( t.p)] == 65 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st268
 		}
 		goto st0
@@ -5102,7 +4806,7 @@ tr296:
 			goto _test_eof268
 		}
 	st_case_268:
-		if ( t.data)[( t.p)] == 99 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st269
 		}
 		goto st0
@@ -5111,7 +4815,7 @@ tr296:
 			goto _test_eof269
 		}
 	st_case_269:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st270
 		}
 		goto st0
@@ -5120,7 +4824,7 @@ tr296:
 			goto _test_eof270
 		}
 	st_case_270:
-		if ( t.data)[( t.p)] == 117 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st271
 		}
 		goto st0
@@ -5129,7 +4833,7 @@ tr296:
 			goto _test_eof271
 		}
 	st_case_271:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st272
 		}
 		goto st0
@@ -5138,7 +4842,7 @@ tr296:
 			goto _test_eof272
 		}
 	st_case_272:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st273
 		}
 		goto st0
@@ -5147,8 +4851,11 @@ tr296:
 			goto _test_eof273
 		}
 	st_case_273:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st274
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr299
 		}
 		goto st0
 	st274:
@@ -5156,43 +4863,111 @@ tr296:
 			goto _test_eof274
 		}
 	st_case_274:
-		if ( t.data)[( t.p)] == 103 {
-			goto st275
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr299
 		}
 		goto st0
+tr299:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st275
 	st275:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof275
 		}
 	st_case_275:
-		if ( t.data)[( t.p)] == 97 {
-			goto st276
+//line tokenizer.go:4878
+		if ( t.data)[( t.p)] == 61 {
+			goto tr301
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st275
 		}
 		goto st0
+tr275:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st276
 	st276:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof276
 		}
 	st_case_276:
-		if ( t.data)[( t.p)] == 109 {
-			goto st277
+//line tokenizer.go:4900
+		switch ( t.data)[( t.p)] {
+		case 39:
+			goto tr278
+		case 95:
+			goto st276
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st276
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st276
+			}
+		default:
+			goto st276
 		}
 		goto st0
+tr265:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st277
 	st277:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof277
 		}
 	st_case_277:
-		if ( t.data)[( t.p)] == 101 {
-			goto st278
+//line tokenizer.go:4934
+		switch ( t.data)[( t.p)] {
+		case 39:
+			goto tr268
+		case 95:
+			goto st277
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st277
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st277
+			}
+		default:
+			goto st277
 		}
 		goto st0
+tr251:
+//line tokenizer.go.rl:168
+t.tokval(StrTok("gameplay"))
+	goto st278
 	st278:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof278
 		}
 	st_case_278:
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:4963
+		if ( t.data)[( t.p)] == 97 {
 			goto st279
 		}
 		goto st0
@@ -5201,7 +4976,7 @@ tr296:
 			goto _test_eof279
 		}
 	st_case_279:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st280
 		}
 		goto st0
@@ -5210,7 +4985,7 @@ tr296:
 			goto _test_eof280
 		}
 	st_case_280:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st281
 		}
 		goto st0
@@ -5219,7 +4994,7 @@ tr296:
 			goto _test_eof281
 		}
 	st_case_281:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st282
 		}
 		goto st0
@@ -5228,7 +5003,7 @@ tr296:
 			goto _test_eof282
 		}
 	st_case_282:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st283
 		}
 		goto st0
@@ -5237,7 +5012,7 @@ tr296:
 			goto _test_eof283
 		}
 	st_case_283:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st284
 		}
 		goto st0
@@ -5246,19 +5021,26 @@ tr296:
 			goto _test_eof284
 		}
 	st_case_284:
-		if ( t.data)[( t.p)] == 45 {
-			goto st285
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st286
+		if ( t.data)[( t.p)] == 121 {
+			goto st239
 		}
 		goto st0
+tr196:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st285
 	st285:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof285
 		}
 	st_case_285:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+//line tokenizer.go:5036
+		if ( t.data)[( t.p)] == 97 {
 			goto st286
 		}
 		goto st0
@@ -5267,14 +5049,8 @@ tr296:
 			goto _test_eof286
 		}
 	st_case_286:
-		switch ( t.data)[( t.p)] {
-		case 32:
+		if ( t.data)[( t.p)] == 109 {
 			goto st287
-		case 46:
-			goto st290
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st286
 		}
 		goto st0
 	st287:
@@ -5282,7 +5058,7 @@ tr296:
 			goto _test_eof287
 		}
 	st_case_287:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st288
 		}
 		goto st0
@@ -5291,7 +5067,7 @@ tr296:
 			goto _test_eof288
 		}
 	st_case_288:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 103 {
 			goto st289
 		}
 		goto st0
@@ -5300,76 +5076,64 @@ tr296:
 			goto _test_eof289
 		}
 	st_case_289:
-		if ( t.data)[( t.p)] == 99 {
-			goto st65
+		if ( t.data)[( t.p)] == 101 {
+			goto tr314
 		}
 		goto st0
+tr314:
+//line tokenizer.go.rl:121
+ t.tok(DAMAGE) 
+	goto st290
 	st290:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof290
 		}
 	st_case_290:
+//line tokenizer.go:5086
 		if ( t.data)[( t.p)] == 32 {
-			goto st287
+			goto st291
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st290
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st291
 		}
 		goto st0
-tr271:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 291; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st291
 	st291:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof291
 		}
 	st_case_291:
-//line tokenizer.go:5341
 		switch ( t.data)[( t.p)] {
-		case 46:
-			goto tr325
-		case 95:
+		case 32:
 			goto st291
+		case 40:
+			goto tr316
+		case 95:
+			goto tr317
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 				goto st291
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st291
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto tr317
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto tr317
 			}
 		default:
-			goto st291
+			goto tr317
 		}
 		goto st0
-tr272:
-//line tokenizer.go.rl:81
+tr316:
+//line tokenizer.go.rl:103
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 292; goto _out }
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
 		}
-		t.tokval(IntTok(temp.Int))
-	
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
 		t.prev = t.p
 	
 	goto st292
@@ -5378,45 +5142,45 @@ tr272:
 			goto _test_eof292
 		}
 	st_case_292:
-//line tokenizer.go:5382
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr269
-		case 46:
-			goto tr327
-		case 47:
-			goto tr271
-		case 95:
-			goto tr271
+//line tokenizer.go:5139
+		if ( t.data)[( t.p)] == 95 {
+			goto st293
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
-			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr272
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st293
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr271
+				goto st293
 			}
 		default:
-			goto tr271
+			goto st293
 		}
 		goto st0
-tr28:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st293
 	st293:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof293
 		}
 	st_case_293:
-//line tokenizer.go:5418
-		if ( t.data)[( t.p)] == 101 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st294
+		case 95:
+			goto st293
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st293
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st293
+			}
+		default:
+			goto st293
 		}
 		goto st0
 	st294:
@@ -5424,30 +5188,74 @@ tr28:
 			goto _test_eof294
 		}
 	st_case_294:
-		if ( t.data)[( t.p)] == 97 {
-			goto st295
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr320
+		case 124:
+			goto tr321
 		}
 		goto st0
+tr320:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st295
 	st295:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof295
 		}
 	st_case_295:
-		if ( t.data)[( t.p)] == 108 {
-			goto tr330
+//line tokenizer.go:5205
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr322
+		case 95:
+			goto tr323
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr323
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr323
+			}
+		default:
+			goto tr323
 		}
 		goto st0
-tr330:
-//line tokenizer.go.rl:122
- t.tok(HEAL) 
+tr322:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
 	goto st296
 	st296:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof296
 		}
 	st_case_296:
-//line tokenizer.go:5450
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:5239
+		if ( t.data)[( t.p)] == 95 {
+			goto st297
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st297
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st297
+			}
+		default:
 			goto st297
 		}
 		goto st0
@@ -5457,128 +5265,91 @@ tr330:
 		}
 	st_case_297:
 		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st297
-		case 40:
-			goto tr332
+		case 41:
+			goto st298
 		case 95:
-			goto tr333
+			goto st297
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr333
+				goto st297
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr333
+				goto st297
 			}
 		default:
-			goto tr333
+			goto st297
 		}
 		goto st0
-tr332:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st298
 	st298:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof298
 		}
 	st_case_298:
-//line tokenizer.go:5493
-		if ( t.data)[( t.p)] == 95 {
-			goto st299
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st299
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st299
-			}
-		default:
-			goto st299
+		if ( t.data)[( t.p)] == 41 {
+			goto tr326
 		}
 		goto st0
-	st299:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof299
-		}
-	st_case_299:
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st300
-		case 95:
-			goto st299
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st299
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st299
-			}
-		default:
-			goto st299
-		}
-		goto st0
-	st300:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof300
-		}
-	st_case_300:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr336
-		case 124:
-			goto tr337
-		}
-		goto st0
-tr336:
-//line tokenizer.go.rl:78
+tr326:
+//line tokenizer.go.rl:76
 
 		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
 //line tokenizer.go.rl:114
  t.tok(int(t.data[t.p]))
-	goto st301
+	goto st299
+	st299:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof299
+		}
+	st_case_299:
+//line tokenizer.go:5302
+		if ( t.data)[( t.p)] == 124 {
+			goto tr327
+		}
+		goto st0
+tr321:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st300
+tr327:
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st300
+	st300:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof300
+		}
+	st_case_300:
+//line tokenizer.go:5324
+		if ( t.data)[( t.p)] == 45 {
+			goto st301
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr329
+		}
+		goto st0
 	st301:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof301
 		}
 	st_case_301:
-//line tokenizer.go:5559
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr338
-		case 95:
-			goto tr339
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr339
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr339
-			}
-		default:
-			goto tr339
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr329
 		}
 		goto st0
-tr338:
-//line tokenizer.go.rl:105
+tr329:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st302
@@ -5587,44 +5358,43 @@ tr338:
 			goto _test_eof302
 		}
 	st_case_302:
-//line tokenizer.go:5591
-		if ( t.data)[( t.p)] == 95 {
-			goto st303
+//line tokenizer.go:5355
+		if ( t.data)[( t.p)] == 32 {
+			goto tr330
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st303
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st302
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st303
-			}
-		default:
-			goto st303
+		case ( t.data)[( t.p)] >= 9:
+			goto tr330
 		}
 		goto st0
+tr330:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 303; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st303
 	st303:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof303
 		}
 	st_case_303:
+//line tokenizer.go:5384
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st304
-		case 95:
+		case 32:
 			goto st303
+		case 45:
+			goto st304
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st303
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st303
-			}
-		default:
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st303
 		}
 		goto st0
@@ -5633,118 +5403,186 @@ tr338:
 			goto _test_eof304
 		}
 	st_case_304:
-		if ( t.data)[( t.p)] == 41 {
-			goto tr342
+		if ( t.data)[( t.p)] == 62 {
+			goto tr334
 		}
 		goto st0
-tr342:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
+tr334:
+//line tokenizer.go.rl:148
+t.tok(ARROW)
 	goto st305
 	st305:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof305
 		}
 	st_case_305:
-//line tokenizer.go:5654
-		if ( t.data)[( t.p)] == 124 {
-			goto tr343
+//line tokenizer.go:5413
+		if ( t.data)[( t.p)] == 32 {
+			goto st306
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st306
 		}
 		goto st0
-tr337:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st306
-tr343:
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st306
 	st306:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof306
 		}
 	st_case_306:
-//line tokenizer.go:5676
-		if ( t.data)[( t.p)] == 45 {
-			goto st307
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st306
+		case 40:
+			goto tr336
+		case 95:
+			goto tr337
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr345
+		switch {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto st306
+			}
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto tr337
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto tr337
+			}
+		default:
+			goto tr337
 		}
 		goto st0
+tr336:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st307
 	st307:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof307
 		}
 	st_case_307:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr345
+//line tokenizer.go:5466
+		if ( t.data)[( t.p)] == 95 {
+			goto st308
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st308
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st308
+			}
+		default:
+			goto st308
 		}
 		goto st0
-tr345:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st308
 	st308:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof308
 		}
 	st_case_308:
-//line tokenizer.go:5705
-		if ( t.data)[( t.p)] == 32 {
-			goto tr346
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st309
+		case 95:
+			goto st308
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st308
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st308
+			}
+		default:
 			goto st308
 		}
 		goto st0
-tr346:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 309; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st309
 	st309:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof309
 		}
 	st_case_309:
-//line tokenizer.go:5729
-		if ( t.data)[( t.p)] == 45 {
-			goto st310
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr340
+		case 124:
+			goto tr341
 		}
 		goto st0
+tr340:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st310
 	st310:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof310
 		}
 	st_case_310:
-		if ( t.data)[( t.p)] == 62 {
-			goto st311
+//line tokenizer.go:5532
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr342
+		case 95:
+			goto tr343
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr343
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr343
+			}
+		default:
+			goto tr343
 		}
 		goto st0
+tr342:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st311
 	st311:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof311
 		}
 	st_case_311:
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:5566
+		if ( t.data)[( t.p)] == 95 {
+			goto st312
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st312
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st312
+			}
+		default:
 			goto st312
 		}
 		goto st0
@@ -5754,128 +5592,91 @@ tr346:
 		}
 	st_case_312:
 		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st312
-		case 40:
-			goto tr351
+		case 41:
+			goto st313
 		case 95:
-			goto tr352
+			goto st312
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr352
+				goto st312
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr352
+				goto st312
 			}
 		default:
-			goto tr352
+			goto st312
 		}
 		goto st0
-tr351:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st313
 	st313:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof313
 		}
 	st_case_313:
-//line tokenizer.go:5790
-		if ( t.data)[( t.p)] == 95 {
-			goto st314
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st314
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st314
-			}
-		default:
-			goto st314
+		if ( t.data)[( t.p)] == 41 {
+			goto tr346
 		}
 		goto st0
-	st314:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof314
-		}
-	st_case_314:
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st315
-		case 95:
-			goto st314
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st314
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st314
-			}
-		default:
-			goto st314
-		}
-		goto st0
-	st315:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof315
-		}
-	st_case_315:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr355
-		case 124:
-			goto tr356
-		}
-		goto st0
-tr355:
-//line tokenizer.go.rl:78
+tr346:
+//line tokenizer.go.rl:76
 
 		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
 //line tokenizer.go.rl:114
  t.tok(int(t.data[t.p]))
-	goto st316
+	goto st314
+	st314:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof314
+		}
+	st_case_314:
+//line tokenizer.go:5629
+		if ( t.data)[( t.p)] == 124 {
+			goto tr347
+		}
+		goto st0
+tr341:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st315
+tr347:
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st315
+	st315:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof315
+		}
+	st_case_315:
+//line tokenizer.go:5651
+		if ( t.data)[( t.p)] == 45 {
+			goto st316
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr349
+		}
+		goto st0
 	st316:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof316
 		}
 	st_case_316:
-//line tokenizer.go:5856
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr357
-		case 95:
-			goto tr358
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr358
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr358
-			}
-		default:
-			goto tr358
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr349
 		}
 		goto st0
-tr357:
-//line tokenizer.go.rl:105
+tr349:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st317
@@ -5884,44 +5685,48 @@ tr357:
 			goto _test_eof317
 		}
 	st_case_317:
-//line tokenizer.go:5888
-		if ( t.data)[( t.p)] == 95 {
-			goto st318
+//line tokenizer.go:5682
+		if ( t.data)[( t.p)] == 32 {
+			goto tr350
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st318
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st317
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st318
-			}
-		default:
-			goto st318
+		case ( t.data)[( t.p)] >= 9:
+			goto tr350
 		}
 		goto st0
+tr350:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 318; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st318
 	st318:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof318
 		}
 	st_case_318:
+//line tokenizer.go:5711
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st319
-		case 95:
+		case 32:
 			goto st318
+		case 45:
+			goto st319
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st318
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st320
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st318
-			}
-		default:
+		case ( t.data)[( t.p)] >= 9:
 			goto st318
 		}
 		goto st0
@@ -5930,51 +5735,43 @@ tr357:
 			goto _test_eof319
 		}
 	st_case_319:
-		if ( t.data)[( t.p)] == 41 {
-			goto tr361
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st320
 		}
 		goto st0
-tr361:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st320
 	st320:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof320
 		}
 	st_case_320:
-//line tokenizer.go:5951
-		if ( t.data)[( t.p)] == 124 {
-			goto tr362
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st321
+		case 46:
+			goto st367
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st320
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto st321
 		}
 		goto st0
-tr356:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st321
-tr362:
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st321
 	st321:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof321
 		}
 	st_case_321:
-//line tokenizer.go:5973
-		if ( t.data)[( t.p)] == 45 {
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st321
+		case 40:
 			goto st322
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr364
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st321
 		}
 		goto st0
 	st322:
@@ -5982,47 +5779,24 @@ tr362:
 			goto _test_eof322
 		}
 	st_case_322:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr364
+		if ( t.data)[( t.p)] == 104 {
+			goto st323
 		}
 		goto st0
-tr364:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st323
 	st323:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof323
 		}
 	st_case_323:
-//line tokenizer.go:6002
-		if ( t.data)[( t.p)] == 32 {
-			goto tr365
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st323
+		if ( t.data)[( t.p)] == 58 {
+			goto st324
 		}
 		goto st0
-tr365:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 324; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st324
 	st324:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof324
 		}
 	st_case_324:
-//line tokenizer.go:6026
 		if ( t.data)[( t.p)] == 45 {
 			goto st325
 		}
@@ -6045,30 +5819,18 @@ tr365:
 		}
 	st_case_326:
 		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr369
 		case 32:
-			goto tr370
-		case 40:
 			goto st327
 		case 46:
-			goto st329
-		case 47:
-			goto tr373
-		case 95:
-			goto tr373
+			goto st366
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
+		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr374
+				goto st326
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr373
-			}
-		default:
-			goto tr373
+		case ( t.data)[( t.p)] >= 9:
+			goto st327
 		}
 		goto st0
 	st327:
@@ -6076,6 +5838,145 @@ tr365:
 			goto _test_eof327
 		}
 	st_case_327:
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st327
+		case 115:
+			goto st328
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st327
+		}
+		goto st0
+	st328:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof328
+		}
+	st_case_328:
+		if ( t.data)[( t.p)] == 58 {
+			goto st329
+		}
+		goto st0
+	st329:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof329
+		}
+	st_case_329:
+		if ( t.data)[( t.p)] == 45 {
+			goto st330
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st331
+		}
+		goto st0
+	st330:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof330
+		}
+	st_case_330:
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st331
+		}
+		goto st0
+	st331:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof331
+		}
+	st_case_331:
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st332
+		case 46:
+			goto st365
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st331
+		}
+		goto st0
+	st332:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof332
+		}
+	st_case_332:
+		if ( t.data)[( t.p)] == 32 {
+			goto st333
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st333
+		}
+		goto st0
+	st333:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof333
+		}
+	st_case_333:
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr371
+		case 40:
+			goto st335
+		case 95:
+			goto tr373
+		}
+		switch {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto tr371
+			}
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto tr373
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto tr373
+			}
+		default:
+			goto tr373
+		}
+		goto st0
+tr371:
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+	goto st334
+	st334:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof334
+		}
+	st_case_334:
+//line tokenizer.go:5942
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr371
+		case 40:
+			goto st335
+		case 95:
+			goto tr374
+		}
+		switch {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto tr371
+			}
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto tr373
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto tr374
+			}
+		default:
+			goto tr373
+		}
+		goto st0
+	st335:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof335
+		}
+	st_case_335:
 		if ( t.data)[( t.p)] == 95 {
 			goto tr375
 		}
@@ -6093,281 +5994,11 @@ tr365:
 		}
 		goto st0
 tr375:
-//line tokenizer.go.rl:105
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st328
-	st328:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof328
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
 		}
-	st_case_328:
-//line tokenizer.go:6108
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr376
-		case 95:
-			goto st328
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st328
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st328
-			}
-		default:
-			goto st328
-		}
-		goto st0
-	st329:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof329
-		}
-	st_case_329:
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr369
-		case 32:
-			goto tr370
-		case 40:
-			goto st327
-		case 47:
-			goto tr373
-		case 95:
-			goto tr373
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr378
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr373
-			}
-		default:
-			goto tr373
-		}
-		goto st0
-tr373:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st330
-	st330:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof330
-		}
-	st_case_330:
-//line tokenizer.go:6170
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr379
-		case 32:
-			goto tr380
-		case 95:
-			goto st330
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st330
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st330
-			}
-		default:
-			goto st330
-		}
-		goto st0
-tr378:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st331
-	st331:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof331
-		}
-	st_case_331:
-//line tokenizer.go:6204
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr382
-		case 32:
-			goto tr383
-		case 40:
-			goto st327
-		case 47:
-			goto tr373
-		case 95:
-			goto tr373
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr378
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr373
-			}
-		default:
-			goto tr373
-		}
-		goto st0
-tr374:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st332
-	st332:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof332
-		}
-	st_case_332:
-//line tokenizer.go:6242
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr382
-		case 32:
-			goto tr383
-		case 40:
-			goto st327
-		case 46:
-			goto st329
-		case 47:
-			goto tr373
-		case 95:
-			goto tr373
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr374
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr373
-			}
-		default:
-			goto tr373
-		}
-		goto st0
-tr358:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st333
-	st333:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof333
-		}
-	st_case_333:
-//line tokenizer.go:6282
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr361
-		case 95:
-			goto st333
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st333
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st333
-			}
-		default:
-			goto st333
-		}
-		goto st0
-tr352:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st334
-	st334:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof334
-		}
-	st_case_334:
-//line tokenizer.go:6314
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr355
-		case 95:
-			goto st334
-		case 124:
-			goto tr356
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st334
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st334
-			}
-		default:
-			goto st334
-		}
-		goto st0
-tr339:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st335
-	st335:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof335
-		}
-	st_case_335:
-//line tokenizer.go:6348
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr342
-		case 95:
-			goto st335
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st335
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st335
-			}
-		default:
-			goto st335
-		}
-		goto st0
-tr333:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
 		t.prev = t.p
 	
 	goto st336
@@ -6376,14 +6007,12 @@ tr333:
 			goto _test_eof336
 		}
 	st_case_336:
-//line tokenizer.go:6380
+//line tokenizer.go:6004
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr336
+		case 41:
+			goto tr376
 		case 95:
 			goto st336
-		case 124:
-			goto tr337
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -6398,73 +6027,154 @@ tr333:
 			goto st336
 		}
 		goto st0
-tr29:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
+tr376:
+//line tokenizer.go.rl:138
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
 	goto st337
 	st337:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof337
 		}
 	st_case_337:
-//line tokenizer.go:6414
-		if ( t.data)[( t.p)] == 105 {
+//line tokenizer.go:6033
+		if ( t.data)[( t.p)] == 32 {
+			goto st338
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st338
 		}
 		goto st0
+tr406:
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+	goto st338
 	st338:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof338
 		}
 	st_case_338:
-		if ( t.data)[( t.p)] == 108 {
-			goto st339
+//line tokenizer.go:6050
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st338
+		case 95:
+			goto tr379
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
+				goto tr379
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto st338
 		}
 		goto st0
+tr379:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st339
 	st339:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof339
 		}
 	st_case_339:
-		if ( t.data)[( t.p)] == 108 {
-			goto st340
+//line tokenizer.go:6080
+		switch ( t.data)[( t.p)] {
+		case 95:
+			goto st339
+		case 124:
+			goto tr381
+		}
+		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
+			goto st339
 		}
 		goto st0
+tr381:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st340
 	st340:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof340
 		}
 	st_case_340:
-		if ( t.data)[( t.p)] == 101 {
-			goto st341
+//line tokenizer.go:6104
+		if ( t.data)[( t.p)] == 95 {
+			goto tr382
+		}
+		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
+			goto tr382
 		}
 		goto st0
+tr382:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st684
+	st684:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof684
+		}
+	st_case_684:
+//line tokenizer.go:6126
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr761
+		case 95:
+			goto st684
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
+				goto st684
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto tr761
+		}
+		goto st0
+tr761:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st341
 	st341:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof341
 		}
 	st_case_341:
-		if ( t.data)[( t.p)] == 100 {
-			goto tr392
+//line tokenizer.go:6153
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st341
+		case 60:
+			goto st342
+		case 82:
+			goto tr385
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st341
 		}
 		goto st0
-tr392:
-//line tokenizer.go.rl:123
- t.tok(KILL) 
-	goto st342
 	st342:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof342
 		}
 	st_case_342:
-//line tokenizer.go:6464
-		if ( t.data)[( t.p)] == 32 {
-			goto st343
-		}
-		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+		if ( t.data)[( t.p)] == 70 {
 			goto st343
 		}
 		goto st0
@@ -6473,51 +6183,16 @@ tr392:
 			goto _test_eof343
 		}
 	st_case_343:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr394
-		case 95:
-			goto tr395
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr395
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr395
-			}
-		default:
-			goto tr395
+		if ( t.data)[( t.p)] == 114 {
+			goto st344
 		}
 		goto st0
-tr394:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st344
 	st344:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof344
 		}
 	st_case_344:
-//line tokenizer.go:6508
-		if ( t.data)[( t.p)] == 95 {
-			goto st345
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st345
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st345
-			}
-		default:
+		if ( t.data)[( t.p)] == 105 {
 			goto st345
 		}
 		goto st0
@@ -6526,23 +6201,8 @@ tr394:
 			goto _test_eof345
 		}
 	st_case_345:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 101 {
 			goto st346
-		case 95:
-			goto st345
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st345
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st345
-			}
-		default:
-			goto st345
 		}
 		goto st0
 	st346:
@@ -6550,72 +6210,25 @@ tr394:
 			goto _test_eof346
 		}
 	st_case_346:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr398
-		case 124:
-			goto tr399
+		if ( t.data)[( t.p)] == 110 {
+			goto st347
 		}
 		goto st0
-tr398:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st347
 	st347:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof347
 		}
 	st_case_347:
-//line tokenizer.go:6574
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr400
-		case 95:
-			goto tr401
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr401
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr401
-			}
-		default:
-			goto tr401
+		if ( t.data)[( t.p)] == 100 {
+			goto st348
 		}
 		goto st0
-tr400:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st348
 	st348:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof348
 		}
 	st_case_348:
-//line tokenizer.go:6606
-		if ( t.data)[( t.p)] == 95 {
-			goto st349
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st349
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st349
-			}
-		default:
+		if ( t.data)[( t.p)] == 108 {
 			goto st349
 		}
 		goto st0
@@ -6624,23 +6237,8 @@ tr400:
 			goto _test_eof349
 		}
 	st_case_349:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 121 {
 			goto st350
-		case 95:
-			goto st349
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st349
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st349
-			}
-		default:
-			goto st349
 		}
 		goto st0
 	st350:
@@ -6648,51 +6246,26 @@ tr400:
 			goto _test_eof350
 		}
 	st_case_350:
-		if ( t.data)[( t.p)] == 41 {
-			goto tr404
+		if ( t.data)[( t.p)] == 70 {
+			goto st351
 		}
 		goto st0
-tr404:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st351
 	st351:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof351
 		}
 	st_case_351:
-//line tokenizer.go:6669
-		if ( t.data)[( t.p)] == 124 {
-			goto tr405
+		if ( t.data)[( t.p)] == 105 {
+			goto st352
 		}
 		goto st0
-tr399:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st352
-tr405:
-//line tokenizer.go.rl:114
- t.tok(int(t.data[t.p]))
-	goto st352
 	st352:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof352
 		}
 	st_case_352:
-//line tokenizer.go:6691
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st353
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr407
 		}
 		goto st0
 	st353:
@@ -6700,67 +6273,63 @@ tr405:
 			goto _test_eof353
 		}
 	st_case_353:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr407
+		if ( t.data)[( t.p)] == 101 {
+			goto st354
 		}
 		goto st0
-tr407:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st354
 	st354:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof354
 		}
 	st_case_354:
-//line tokenizer.go:6720
-		if ( t.data)[( t.p)] == 59 {
-			goto tr409
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st354
+		if ( t.data)[( t.p)] == 62 {
+			goto tr398
 		}
 		goto st0
-tr409:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 355; goto _out }
+tr398:
+//line tokenizer.go.rl:151
+t.tok(FRIENDLY_FIRE)
+	goto st685
+	st685:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof685
 		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st355
+	st_case_685:
+//line tokenizer.go:6292
+		if ( t.data)[( t.p)] == 32 {
+			goto st355
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st355
+		}
+		goto st0
 	st355:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof355
 		}
 	st_case_355:
-//line tokenizer.go:6744
-		if ( t.data)[( t.p)] == 32 {
-			goto st356
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st355
+		case 82:
+			goto tr385
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st356
+			goto st355
 		}
 		goto st0
+tr385:
+//line tokenizer.go.rl:152
+t.tok(ROCKET)
+	goto st356
 	st356:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof356
 		}
 	st_case_356:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st356
-		case 107:
+//line tokenizer.go:6324
+		if ( t.data)[( t.p)] == 111 {
 			goto st357
-		}
-		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st356
 		}
 		goto st0
 	st357:
@@ -6768,7 +6337,7 @@ tr409:
 			goto _test_eof357
 		}
 	st_case_357:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st358
 		}
 		goto st0
@@ -6777,7 +6346,7 @@ tr409:
 			goto _test_eof358
 		}
 	st_case_358:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 107 {
 			goto st359
 		}
 		goto st0
@@ -6786,7 +6355,7 @@ tr409:
 			goto _test_eof359
 		}
 	st_case_359:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st360
 		}
 		goto st0
@@ -6795,7 +6364,7 @@ tr409:
 			goto _test_eof360
 		}
 	st_case_360:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st361
 		}
 		goto st0
@@ -6804,7 +6373,10 @@ tr409:
 			goto _test_eof361
 		}
 	st_case_361:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 32 {
+			goto st362
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st362
 		}
 		goto st0
@@ -6813,38 +6385,66 @@ tr409:
 			goto _test_eof362
 		}
 	st_case_362:
-		if ( t.data)[( t.p)] == 32 {
-			goto st363
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st362
+		case 45:
+			goto st78
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr89
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto st362
 		}
 		goto st0
+tr373:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st363
 	st363:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof363
 		}
 	st_case_363:
+//line tokenizer.go:6411
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr418
+		case 32:
+			goto tr406
 		case 95:
-			goto tr419
+			goto st363
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr419
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto tr406
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr419
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto st363
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto st363
 			}
 		default:
-			goto tr419
+			goto st363
 		}
 		goto st0
-tr418:
-//line tokenizer.go.rl:105
+tr374:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st364
@@ -6853,21 +6453,31 @@ tr418:
 			goto _test_eof364
 		}
 	st_case_364:
-//line tokenizer.go:6857
-		if ( t.data)[( t.p)] == 95 {
-			goto st365
+//line tokenizer.go:6450
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr406
+		case 95:
+			goto st364
+		case 124:
+			goto tr381
 		}
 		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st365
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto tr406
 			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st365
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto st363
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto st364
 			}
 		default:
-			goto st365
+			goto st363
 		}
 		goto st0
 	st365:
@@ -6875,22 +6485,10 @@ tr418:
 			goto _test_eof365
 		}
 	st_case_365:
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st366
-		case 95:
-			goto st365
+		if ( t.data)[( t.p)] == 41 {
+			goto st332
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st365
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st365
-			}
-		default:
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st365
 		}
 		goto st0
@@ -6899,42 +6497,75 @@ tr418:
 			goto _test_eof366
 		}
 	st_case_366:
-		if ( t.data)[( t.p)] == 124 {
-			goto tr422
+		if ( t.data)[( t.p)] == 32 {
+			goto st327
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st366
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto st327
 		}
 		goto st0
-tr422:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st367
 	st367:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof367
 		}
 	st_case_367:
-//line tokenizer.go:6918
-		if ( t.data)[( t.p)] == 45 {
-			goto st368
+		if ( t.data)[( t.p)] == 32 {
+			goto st321
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr424
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st367
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto st321
 		}
 		goto st0
+tr343:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st368
 	st368:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof368
 		}
 	st_case_368:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr424
+//line tokenizer.go:6537
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr346
+		case 95:
+			goto st368
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st368
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st368
+			}
+		default:
+			goto st368
 		}
 		goto st0
-tr424:
-//line tokenizer.go.rl:105
+tr337:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st369
@@ -6943,23 +6574,35 @@ tr424:
 			goto _test_eof369
 		}
 	st_case_369:
-//line tokenizer.go:6947
-		if ( t.data)[( t.p)] == 32 {
-			goto tr425
+//line tokenizer.go:6571
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr340
+		case 95:
+			goto st369
+		case 124:
+			goto tr341
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st369
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st369
+			}
+		default:
 			goto st369
 		}
 		goto st0
-tr425:
-//line tokenizer.go.rl:81
+tr323:
+//line tokenizer.go.rl:103
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 370; goto _out }
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
 		}
-		t.tokval(IntTok(temp.Int))
+		t.prev = t.p
 	
 	goto st370
 	st370:
@@ -6967,30 +6610,32 @@ tr425:
 			goto _test_eof370
 		}
 	st_case_370:
-//line tokenizer.go:6971
+//line tokenizer.go:6607
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr427
+		case 41:
+			goto tr326
 		case 95:
-			goto tr428
+			goto st370
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr428
+				goto st370
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr428
+				goto st370
 			}
 		default:
-			goto tr428
+			goto st370
 		}
 		goto st0
-tr427:
-//line tokenizer.go.rl:105
+tr317:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st371
@@ -6999,45 +6644,45 @@ tr427:
 			goto _test_eof371
 		}
 	st_case_371:
-//line tokenizer.go:7003
-		if ( t.data)[( t.p)] == 95 {
-			goto st372
+//line tokenizer.go:6641
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr320
+		case 95:
+			goto st371
+		case 124:
+			goto tr321
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st372
+				goto st371
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st372
+				goto st371
 			}
 		default:
-			goto st372
+			goto st371
 		}
 		goto st0
+tr197:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st372
 	st372:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof372
 		}
 	st_case_372:
-		switch ( t.data)[( t.p)] {
-		case 41:
+//line tokenizer.go:6677
+		if ( t.data)[( t.p)] == 97 {
 			goto st373
-		case 95:
-			goto st372
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st372
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st372
-			}
-		default:
-			goto st372
 		}
 		goto st0
 	st373:
@@ -7045,159 +6690,52 @@ tr427:
 			goto _test_eof373
 		}
 	st_case_373:
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr209
-		case 32:
-			goto tr210
+		if ( t.data)[( t.p)] == 109 {
+			goto st374
 		}
 		goto st0
-tr428:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st374
 	st374:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof374
 		}
 	st_case_374:
-//line tokenizer.go:7068
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr209
-		case 32:
-			goto tr210
-		case 95:
-			goto st374
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st374
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st374
-			}
-		default:
-			goto st374
+		if ( t.data)[( t.p)] == 101 {
+			goto st375
 		}
 		goto st0
-tr419:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st375
 	st375:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof375
 		}
 	st_case_375:
-//line tokenizer.go:7102
-		switch ( t.data)[( t.p)] {
-		case 95:
-			goto st375
-		case 124:
-			goto tr422
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st375
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st375
-			}
-		default:
-			goto st375
+		if ( t.data)[( t.p)] == 112 {
+			goto st376
 		}
 		goto st0
-tr401:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st376
 	st376:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof376
 		}
 	st_case_376:
-//line tokenizer.go:7134
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr404
-		case 95:
-			goto st376
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st376
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st376
-			}
-		default:
-			goto st376
+		if ( t.data)[( t.p)] == 108 {
+			goto st377
 		}
 		goto st0
-tr395:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st377
 	st377:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof377
 		}
 	st_case_377:
-//line tokenizer.go:7166
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr398
-		case 95:
-			goto st377
-		case 124:
-			goto tr399
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st377
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st377
-			}
-		default:
-			goto st377
+		if ( t.data)[( t.p)] == 97 {
+			goto st378
 		}
 		goto st0
-tr30:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st378
 	st378:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof378
 		}
 	st_case_378:
-//line tokenizer.go:7200
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 121 {
 			goto st379
 		}
 		goto st0
@@ -7206,7 +6744,7 @@ tr30:
 			goto _test_eof379
 		}
 	st_case_379:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st380
 		}
 		goto st0
@@ -7215,7 +6753,7 @@ tr30:
 			goto _test_eof380
 		}
 	st_case_380:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 102 {
 			goto st381
 		}
 		goto st0
@@ -7233,7 +6771,7 @@ tr30:
 			goto _test_eof382
 		}
 	st_case_382:
-		if ( t.data)[( t.p)] == 99 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st383
 		}
 		goto st0
@@ -7251,7 +6789,7 @@ tr30:
 			goto _test_eof384
 		}
 	st_case_384:
-		if ( t.data)[( t.p)] == 112 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st385
 		}
 		goto st0
@@ -7260,7 +6798,7 @@ tr30:
 			goto _test_eof385
 		}
 	st_case_385:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 104 {
 			goto st386
 		}
 		goto st0
@@ -7269,7 +6807,7 @@ tr30:
 			goto _test_eof386
 		}
 	st_case_386:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st387
 		}
 		goto st0
@@ -7278,76 +6816,39 @@ tr30:
 			goto _test_eof387
 		}
 	st_case_387:
-		if ( t.data)[( t.p)] == 116 {
-			goto tr444
+		if ( t.data)[( t.p)] == 100 {
+			goto st388
 		}
 		goto st0
-tr444:
-//line tokenizer.go.rl:124
- t.tok(PARTICIPANT) 
-	goto st388
 	st388:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof388
 		}
 	st_case_388:
-//line tokenizer.go:7295
-		if ( t.data)[( t.p)] == 32 {
-			goto st389
+		if ( t.data)[( t.p)] == 46 {
+			goto tr429
 		}
 		goto st0
+tr429:
+//line tokenizer.go.rl:126
+ t.tok(GAMEPLAY_FINISHED) 
+	goto st389
 	st389:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof389
 		}
 	st_case_389:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st389
-		case 40:
-			goto tr446
-		case 95:
-			goto tr447
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr447
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr447
-			}
-		default:
-			goto tr447
+//line tokenizer.go:6835
+		if ( t.data)[( t.p)] == 32 {
+			goto st390
 		}
 		goto st0
-tr446:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st390
 	st390:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof390
 		}
 	st_case_390:
-//line tokenizer.go:7338
-		if ( t.data)[( t.p)] == 95 {
-			goto st391
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st391
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st391
-			}
-		default:
+		if ( t.data)[( t.p)] == 87 {
 			goto st391
 		}
 		goto st0
@@ -7356,23 +6857,8 @@ tr446:
 			goto _test_eof391
 		}
 	st_case_391:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 105 {
 			goto st392
-		case 95:
-			goto st391
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st391
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st391
-			}
-		default:
-			goto st391
 		}
 		goto st0
 	st392:
@@ -7380,23 +6866,16 @@ tr446:
 			goto _test_eof392
 		}
 	st_case_392:
-		if ( t.data)[( t.p)] == 9 {
-			goto tr450
+		if ( t.data)[( t.p)] == 110 {
+			goto st393
 		}
 		goto st0
-tr450:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st393
 	st393:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof393
 		}
 	st_case_393:
-//line tokenizer.go:7399
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st394
 		}
 		goto st0
@@ -7405,50 +6884,17 @@ tr450:
 			goto _test_eof394
 		}
 	st_case_394:
-		switch ( t.data)[( t.p)] {
-		case 9:
+		if ( t.data)[( t.p)] == 101 {
 			goto st395
-		case 32:
-			goto st448
-		case 40:
-			goto tr454
-		case 95:
-			goto tr455
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr455
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr455
-			}
-		default:
-			goto tr455
 		}
 		goto st0
-tr515:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st395
 	st395:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof395
 		}
 	st_case_395:
-//line tokenizer.go:7443
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
+		if ( t.data)[( t.p)] == 114 {
 			goto st396
-		case 60:
-			goto st397
-		case 116:
-			goto st409
 		}
 		goto st0
 	st396:
@@ -7456,15 +6902,8 @@ tr515:
 			goto _test_eof396
 		}
 	st_case_396:
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
-		case 60:
+		if ( t.data)[( t.p)] == 32 {
 			goto st397
-		case 116:
-			goto st409
 		}
 		goto st0
 	st397:
@@ -7472,31 +6911,16 @@ tr515:
 			goto _test_eof397
 		}
 	st_case_397:
-		switch ( t.data)[( t.p)] {
-		case 70:
-			goto st184
-		case 98:
-			goto tr459
-		case 100:
-			goto tr460
-		case 104:
-			goto tr461
+		if ( t.data)[( t.p)] == 116 {
+			goto st398
 		}
 		goto st0
-tr459:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st398
 	st398:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof398
 		}
 	st_case_398:
-//line tokenizer.go:7499
-		if ( t.data)[( t.p)] == 117 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st399
 		}
 		goto st0
@@ -7505,7 +6929,7 @@ tr459:
 			goto _test_eof399
 		}
 	st_case_399:
-		if ( t.data)[( t.p)] == 102 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st400
 		}
 		goto st0
@@ -7514,7 +6938,7 @@ tr459:
 			goto _test_eof400
 		}
 	st_case_400:
-		if ( t.data)[( t.p)] == 102 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st401
 		}
 		goto st0
@@ -7523,27 +6947,17 @@ tr459:
 			goto _test_eof401
 		}
 	st_case_401:
-		if ( t.data)[( t.p)] == 62 {
-			goto tr465
+		if ( t.data)[( t.p)] == 58 {
+			goto st402
 		}
 		goto st0
-tr465:
-//line tokenizer.go.rl:151
-t.tokval(StrTok(t.data[t.prev:t.p]))
-	goto st402
 	st402:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof402
 		}
 	st_case_402:
-//line tokenizer.go:7540
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
+		if ( t.data)[( t.p)] == 32 {
 			goto st403
-		case 60:
-			goto st183
 		}
 		goto st0
 	st403:
@@ -7551,46 +6965,69 @@ t.tokval(StrTok(t.data[t.prev:t.p]))
 			goto _test_eof403
 		}
 	st_case_403:
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
-		case 60:
-			goto st397
+		if ( t.data)[( t.p)] == 45 {
+			goto st404
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr445
 		}
 		goto st0
-tr460:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st404
 	st404:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof404
 		}
 	st_case_404:
-//line tokenizer.go:7576
-		if ( t.data)[( t.p)] == 101 {
-			goto st405
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr445
 		}
 		goto st0
+tr445:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st405
 	st405:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof405
 		}
 	st_case_405:
-		if ( t.data)[( t.p)] == 98 {
-			goto st398
+//line tokenizer.go:6992
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr446
+		case 46:
+			goto tr447
+		case 47:
+			goto tr448
+		case 95:
+			goto tr448
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr449
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr448
+			}
+		default:
+			goto tr448
 		}
 		goto st0
-tr461:
-//line tokenizer.go.rl:105
+tr446:
+//line tokenizer.go.rl:79
 
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 406; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
 	
 	goto st406
 	st406:
@@ -7598,35 +7035,110 @@ tr461:
 			goto _test_eof406
 		}
 	st_case_406:
-//line tokenizer.go:7602
-		if ( t.data)[( t.p)] == 101 {
-			goto st407
+//line tokenizer.go:7032
+		if ( t.data)[( t.p)] == 95 {
+			goto tr450
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr450
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr450
+			}
+		default:
+			goto tr450
 		}
 		goto st0
+tr450:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st407
 	st407:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof407
 		}
 	st_case_407:
-		if ( t.data)[( t.p)] == 97 {
-			goto st408
+//line tokenizer.go:7063
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr451
+		case 95:
+			goto st407
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st407
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st407
+			}
+		default:
+			goto st407
 		}
 		goto st0
+tr451:
+//line tokenizer.go.rl:138
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+	goto st408
 	st408:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof408
 		}
 	st_case_408:
-		if ( t.data)[( t.p)] == 108 {
-			goto st401
+//line tokenizer.go:7092
+		if ( t.data)[( t.p)] == 46 {
+			goto st409
 		}
 		goto st0
+tr502:
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+	goto st409
+tr447:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 409; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+	goto st409
+tr504:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 409; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+	goto st409
 	st409:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof409
 		}
 	st_case_409:
-		if ( t.data)[( t.p)] == 111 {
+//line tokenizer.go:7134
+		if ( t.data)[( t.p)] == 32 {
 			goto st410
 		}
 		goto st0
@@ -7635,7 +7147,7 @@ tr461:
 			goto _test_eof410
 		}
 	st_case_410:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 70 {
 			goto st411
 		}
 		goto st0
@@ -7644,7 +7156,7 @@ tr461:
 			goto _test_eof411
 		}
 	st_case_411:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st412
 		}
 		goto st0
@@ -7653,7 +7165,7 @@ tr461:
 			goto _test_eof412
 		}
 	st_case_412:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st413
 		}
 		goto st0
@@ -7662,7 +7174,7 @@ tr461:
 			goto _test_eof413
 		}
 	st_case_413:
-		if ( t.data)[( t.p)] == 68 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st414
 		}
 		goto st0
@@ -7671,7 +7183,7 @@ tr461:
 			goto _test_eof414
 		}
 	st_case_414:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st415
 		}
 		goto st0
@@ -7680,7 +7192,7 @@ tr461:
 			goto _test_eof415
 		}
 	st_case_415:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 104 {
 			goto st416
 		}
 		goto st0
@@ -7689,7 +7201,7 @@ tr461:
 			goto _test_eof416
 		}
 	st_case_416:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st417
 		}
 		goto st0
@@ -7698,7 +7210,7 @@ tr461:
 			goto _test_eof417
 		}
 	st_case_417:
-		if ( t.data)[( t.p)] == 103 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st418
 		}
 		goto st0
@@ -7716,7 +7228,7 @@ tr461:
 			goto _test_eof419
 		}
 	st_case_419:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st420
 		}
 		goto st0
@@ -7725,11 +7237,8 @@ tr461:
 			goto _test_eof420
 		}
 	st_case_420:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st421
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st422
 		}
 		goto st0
 	st421:
@@ -7737,7 +7246,7 @@ tr461:
 			goto _test_eof421
 		}
 	st_case_421:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st422
 		}
 		goto st0
@@ -7746,14 +7255,8 @@ tr461:
 			goto _test_eof422
 		}
 	st_case_422:
-		switch ( t.data)[( t.p)] {
-		case 46:
+		if ( t.data)[( t.p)] == 110 {
 			goto st423
-		case 59:
-			goto st424
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st422
 		}
 		goto st0
 	st423:
@@ -7761,11 +7264,8 @@ tr461:
 			goto _test_eof423
 		}
 	st_case_423:
-		if ( t.data)[( t.p)] == 59 {
+		if ( t.data)[( t.p)] == 58 {
 			goto st424
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st423
 		}
 		goto st0
 	st424:
@@ -7782,7 +7282,7 @@ tr461:
 			goto _test_eof425
 		}
 	st_case_425:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 39 {
 			goto st426
 		}
 		goto st0
@@ -7791,7 +7291,19 @@ tr461:
 			goto _test_eof426
 		}
 	st_case_426:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 95 {
+			goto st427
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st427
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st427
+			}
+		default:
 			goto st427
 		}
 		goto st0
@@ -7800,16 +7312,55 @@ tr461:
 			goto _test_eof427
 		}
 	st_case_427:
-		if ( t.data)[( t.p)] == 115 {
-			goto st428
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr472
+		case 39:
+			goto tr473
+		case 95:
+			goto st427
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st427
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st427
+			}
+		default:
+			goto st427
 		}
 		goto st0
+tr472:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st428
 	st428:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof428
 		}
 	st_case_428:
-		if ( t.data)[( t.p)] == 116 {
+//line tokenizer.go:7344
+		if ( t.data)[( t.p)] == 95 {
+			goto st429
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st429
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st429
+			}
+		default:
 			goto st429
 		}
 		goto st0
@@ -7818,16 +7369,53 @@ tr461:
 			goto _test_eof429
 		}
 	st_case_429:
-		if ( t.data)[( t.p)] == 68 {
-			goto st430
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st428
+		case 39:
+			goto tr476
+		case 95:
+			goto st429
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st429
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st429
+			}
+		default:
+			goto st429
 		}
 		goto st0
+tr476:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st430
+tr473:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st430
 	st430:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof430
 		}
 	st_case_430:
-		if ( t.data)[( t.p)] == 97 {
+//line tokenizer.go:7411
+		if ( t.data)[( t.p)] == 46 {
 			goto st431
 		}
 		goto st0
@@ -7836,7 +7424,7 @@ tr461:
 			goto _test_eof431
 		}
 	st_case_431:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st432
 		}
 		goto st0
@@ -7845,7 +7433,7 @@ tr461:
 			goto _test_eof432
 		}
 	st_case_432:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 65 {
 			goto st433
 		}
 		goto st0
@@ -7854,7 +7442,7 @@ tr461:
 			goto _test_eof433
 		}
 	st_case_433:
-		if ( t.data)[( t.p)] == 103 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st434
 		}
 		goto st0
@@ -7863,7 +7451,7 @@ tr461:
 			goto _test_eof434
 		}
 	st_case_434:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st435
 		}
 		goto st0
@@ -7872,7 +7460,7 @@ tr461:
 			goto _test_eof435
 		}
 	st_case_435:
-		if ( t.data)[( t.p)] == 87 {
+		if ( t.data)[( t.p)] == 117 {
 			goto st436
 		}
 		goto st0
@@ -7881,7 +7469,7 @@ tr461:
 			goto _test_eof436
 		}
 	st_case_436:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st437
 		}
 		goto st0
@@ -7890,7 +7478,7 @@ tr461:
 			goto _test_eof437
 		}
 	st_case_437:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st438
 		}
 		goto st0
@@ -7899,7 +7487,7 @@ tr461:
 			goto _test_eof438
 		}
 	st_case_438:
-		if ( t.data)[( t.p)] == 104 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st439
 		}
 		goto st0
@@ -7908,7 +7496,7 @@ tr461:
 			goto _test_eof439
 		}
 	st_case_439:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 103 {
 			goto st440
 		}
 		goto st0
@@ -7917,7 +7505,7 @@ tr461:
 			goto _test_eof440
 		}
 	st_case_440:
-		if ( t.data)[( t.p)] == 39 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st441
 		}
 		goto st0
@@ -7926,42 +7514,16 @@ tr461:
 			goto _test_eof441
 		}
 	st_case_441:
-		switch ( t.data)[( t.p)] {
-		case 39:
-			goto tr503
-		case 40:
-			goto st444
-		case 95:
-			goto tr505
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr505
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr505
-			}
-		default:
-			goto tr505
+		if ( t.data)[( t.p)] == 109 {
+			goto st442
 		}
 		goto st0
-tr503:
-//line tokenizer.go.rl:140
-t.tok(SOURCE)
-	goto st442
-tr511:
-//line tokenizer.go.rl:135
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st442
 	st442:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof442
 		}
 	st_case_442:
-//line tokenizer.go:7964
-		if ( t.data)[( t.p)] == 59 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st443
 		}
 		goto st0
@@ -7970,13 +7532,8 @@ t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
 			goto _test_eof443
 		}
 	st_case_443:
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st403
-		case 60:
-			goto st397
+		if ( t.data)[( t.p)] == 32 {
+			goto st444
 		}
 		goto st0
 	st444:
@@ -7984,146 +7541,56 @@ t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
 			goto _test_eof444
 		}
 	st_case_444:
-		if ( t.data)[( t.p)] == 95 {
-			goto tr507
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr507
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr507
-			}
-		default:
-			goto tr507
+		if ( t.data)[( t.p)] == 116 {
+			goto st445
 		}
 		goto st0
-tr507:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st445
 	st445:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof445
 		}
 	st_case_445:
-//line tokenizer.go:8016
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto tr508
-		case 95:
-			goto st445
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st445
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st445
-			}
-		default:
-			goto st445
+		if ( t.data)[( t.p)] == 105 {
+			goto st446
 		}
 		goto st0
-tr508:
-//line tokenizer.go.rl:138
-t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
-	goto st446
 	st446:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof446
 		}
 	st_case_446:
-//line tokenizer.go:8045
-		if ( t.data)[( t.p)] == 39 {
-			goto st442
+		if ( t.data)[( t.p)] == 109 {
+			goto st447
 		}
 		goto st0
-tr505:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st447
 	st447:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof447
 		}
 	st_case_447:
-//line tokenizer.go:8062
-		switch ( t.data)[( t.p)] {
-		case 39:
-			goto tr511
-		case 95:
-			goto st447
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st447
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st447
-			}
-		default:
-			goto st447
+		if ( t.data)[( t.p)] == 101 {
+			goto st448
 		}
 		goto st0
-tr516:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st448
 	st448:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof448
 		}
 	st_case_448:
-//line tokenizer.go:8093
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto st395
-		case 32:
-			goto st448
+		if ( t.data)[( t.p)] == 32 {
+			goto st449
 		}
 		goto st0
-tr454:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st449
 	st449:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof449
 		}
 	st_case_449:
-//line tokenizer.go:8113
-		if ( t.data)[( t.p)] == 95 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st450
 		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st450
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st450
-			}
-		default:
-			goto st450
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st451
 		}
 		goto st0
 	st450:
@@ -8131,23 +7598,8 @@ tr454:
 			goto _test_eof450
 		}
 	st_case_450:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st451
-		case 95:
-			goto st450
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st450
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st450
-			}
-		default:
-			goto st450
 		}
 		goto st0
 	st451:
@@ -8156,93 +7608,40 @@ tr454:
 		}
 	st_case_451:
 		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr515
 		case 32:
-			goto tr516
+			goto st452
+		case 46:
+			goto st455
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st451
 		}
 		goto st0
-tr455:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st452
 	st452:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof452
 		}
 	st_case_452:
-//line tokenizer.go:8178
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr515
-		case 32:
-			goto tr516
-		case 95:
-			goto st452
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st452
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st452
-			}
-		default:
-			goto st452
+		if ( t.data)[( t.p)] == 115 {
+			goto st453
 		}
 		goto st0
-tr447:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st453
 	st453:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof453
 		}
 	st_case_453:
-//line tokenizer.go:8212
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr450
-		case 95:
-			goto st453
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st453
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st453
-			}
-		default:
-			goto st453
+		if ( t.data)[( t.p)] == 101 {
+			goto st454
 		}
 		goto st0
-tr31:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st454
 	st454:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof454
 		}
 	st_case_454:
-//line tokenizer.go:8244
-		if ( t.data)[( t.p)] == 101 {
-			goto st455
+		if ( t.data)[( t.p)] == 99 {
+			goto st680
 		}
 		goto st0
 	st455:
@@ -8250,48 +7649,128 @@ tr31:
 			goto _test_eof455
 		}
 	st_case_455:
-		if ( t.data)[( t.p)] == 119 {
-			goto st456
+		if ( t.data)[( t.p)] == 32 {
+			goto st452
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st455
 		}
 		goto st0
+tr448:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 456; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st456
 	st456:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof456
 		}
 	st_case_456:
-		if ( t.data)[( t.p)] == 97 {
-			goto st457
+//line tokenizer.go:7676
+		switch ( t.data)[( t.p)] {
+		case 46:
+			goto tr502
+		case 95:
+			goto st456
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st456
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st456
+			}
+		default:
+			goto st456
 		}
 		goto st0
+tr449:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 457; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st457
 	st457:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof457
 		}
 	st_case_457:
-		if ( t.data)[( t.p)] == 114 {
-			goto st458
+//line tokenizer.go:7719
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr446
+		case 46:
+			goto tr504
+		case 47:
+			goto tr448
+		case 95:
+			goto tr448
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr449
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr448
+			}
+		default:
+			goto tr448
 		}
 		goto st0
+tr198:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st458
 	st458:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof458
 		}
 	st_case_458:
-		if ( t.data)[( t.p)] == 100 {
-			goto tr523
+//line tokenizer.go:7757
+		if ( t.data)[( t.p)] == 101 {
+			goto st459
 		}
 		goto st0
-tr523:
-//line tokenizer.go.rl:127
- t.tok(REWARD) 
-	goto st459
 	st459:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof459
 		}
 	st_case_459:
-//line tokenizer.go:8294
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st460
 		}
 		goto st0
@@ -8300,53 +7779,21 @@ tr523:
 			goto _test_eof460
 		}
 	st_case_460:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st460
-		case 40:
-			goto tr525
-		case 95:
-			goto tr526
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr526
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr526
-			}
-		default:
-			goto tr526
+		if ( t.data)[( t.p)] == 108 {
+			goto tr507
 		}
 		goto st0
-tr525:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
+tr507:
+//line tokenizer.go.rl:122
+ t.tok(HEAL) 
 	goto st461
 	st461:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof461
 		}
 	st_case_461:
-//line tokenizer.go:8337
-		if ( t.data)[( t.p)] == 95 {
-			goto st462
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st462
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st462
-			}
-		default:
+//line tokenizer.go:7789
+		if ( t.data)[( t.p)] == 32 {
 			goto st462
 		}
 		goto st0
@@ -8356,56 +7803,79 @@ tr525:
 		}
 	st_case_462:
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st463
-		case 95:
+		case 32:
 			goto st462
+		case 40:
+			goto tr509
+		case 95:
+			goto tr510
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st462
+				goto tr510
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st462
+				goto tr510
 			}
 		default:
-			goto st462
+			goto tr510
 		}
 		goto st0
+tr509:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st463
 	st463:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof463
 		}
 	st_case_463:
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr529
-		case 32:
-			goto tr530
+//line tokenizer.go:7834
+		if ( t.data)[( t.p)] == 95 {
+			goto st464
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st464
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st464
+			}
+		default:
+			goto st464
 		}
 		goto st0
-tr529:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st464
 	st464:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof464
 		}
 	st_case_464:
-//line tokenizer.go:8401
 		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st464
-		case 45:
+		case 41:
 			goto st465
+		case 95:
+			goto st464
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr533
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st464
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st464
+			}
+		default:
+			goto st464
 		}
 		goto st0
 	st465:
@@ -8413,39 +7883,53 @@ tr529:
 			goto _test_eof465
 		}
 	st_case_465:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr533
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr513
+		case 124:
+			goto tr514
 		}
 		goto st0
-tr533:
-//line tokenizer.go.rl:105
+tr513:
+//line tokenizer.go.rl:76
 
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
+		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
 	goto st466
 	st466:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof466
 		}
 	st_case_466:
-//line tokenizer.go:8433
-		if ( t.data)[( t.p)] == 32 {
-			goto tr534
+//line tokenizer.go:7900
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr515
+		case 95:
+			goto tr516
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st466
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr516
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr516
+			}
+		default:
+			goto tr516
 		}
 		goto st0
-tr534:
-//line tokenizer.go.rl:81
+tr515:
+//line tokenizer.go.rl:103
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 467; goto _out }
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
 		}
-		t.tokval(IntTok(temp.Int))
+		t.prev = t.p
 	
 	goto st467
 	st467:
@@ -8453,14 +7937,21 @@ tr534:
 			goto _test_eof467
 		}
 	st_case_467:
-//line tokenizer.go:8457
-		switch ( t.data)[( t.p)] {
-		case 99:
+//line tokenizer.go:7934
+		if ( t.data)[( t.p)] == 95 {
 			goto st468
-		case 101:
-			goto st480
-		case 107:
-			goto st501
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st468
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st468
+			}
+		default:
+			goto st468
 		}
 		goto st0
 	st468:
@@ -8468,8 +7959,23 @@ tr534:
 			goto _test_eof468
 		}
 	st_case_468:
-		if ( t.data)[( t.p)] == 114 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st469
+		case 95:
+			goto st468
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st468
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st468
+			}
+		default:
+			goto st468
 		}
 		goto st0
 	st469:
@@ -8477,26 +7983,51 @@ tr534:
 			goto _test_eof469
 		}
 	st_case_469:
-		if ( t.data)[( t.p)] == 101 {
-			goto st470
+		if ( t.data)[( t.p)] == 41 {
+			goto tr519
 		}
 		goto st0
+tr519:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st470
 	st470:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof470
 		}
 	st_case_470:
-		if ( t.data)[( t.p)] == 100 {
-			goto st471
+//line tokenizer.go:7997
+		if ( t.data)[( t.p)] == 124 {
+			goto tr520
 		}
 		goto st0
+tr514:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st471
+tr520:
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st471
 	st471:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof471
 		}
 	st_case_471:
-		if ( t.data)[( t.p)] == 105 {
+//line tokenizer.go:8019
+		if ( t.data)[( t.p)] == 45 {
 			goto st472
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr522
 		}
 		goto st0
 	st472:
@@ -8504,29 +8035,62 @@ tr534:
 			goto _test_eof472
 		}
 	st_case_472:
-		if ( t.data)[( t.p)] == 116 {
-			goto st473
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr522
 		}
 		goto st0
+tr522:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st473
 	st473:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof473
 		}
 	st_case_473:
-		if ( t.data)[( t.p)] == 115 {
-			goto st474
+//line tokenizer.go:8050
+		if ( t.data)[( t.p)] == 32 {
+			goto tr523
+		}
+		switch {
+		case ( t.data)[( t.p)] > 13:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st473
+			}
+		case ( t.data)[( t.p)] >= 9:
+			goto tr523
 		}
 		goto st0
+tr523:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 474; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st474
 	st474:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof474
 		}
 	st_case_474:
+//line tokenizer.go:8079
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st474
-		case 102:
+		case 45:
 			goto st475
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st474
 		}
 		goto st0
 	st475:
@@ -8534,16 +8098,24 @@ tr534:
 			goto _test_eof475
 		}
 	st_case_475:
-		if ( t.data)[( t.p)] == 111 {
-			goto st476
+		if ( t.data)[( t.p)] == 62 {
+			goto tr527
 		}
 		goto st0
+tr527:
+//line tokenizer.go.rl:148
+t.tok(ARROW)
+	goto st476
 	st476:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof476
 		}
 	st_case_476:
-		if ( t.data)[( t.p)] == 114 {
+//line tokenizer.go:8108
+		if ( t.data)[( t.p)] == 32 {
+			goto st477
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st477
 		}
 		goto st0
@@ -8552,37 +8124,85 @@ tr534:
 			goto _test_eof477
 		}
 	st_case_477:
-		if ( t.data)[( t.p)] == 32 {
-			goto st478
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st477
+		case 40:
+			goto tr529
+		case 95:
+			goto tr530
+		}
+		switch {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto st477
+			}
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto tr530
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto tr530
+			}
+		default:
+			goto tr530
 		}
 		goto st0
+tr529:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st478
 	st478:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof478
 		}
 	st_case_478:
-		if ( t.data)[( t.p)] == 10 {
-			goto st0
+//line tokenizer.go:8161
+		if ( t.data)[( t.p)] == 95 {
+			goto st479
 		}
-		goto tr549
-tr549:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st479
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st479
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st479
+			}
+		default:
+			goto st479
+		}
+		goto st0
 	st479:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof479
 		}
 	st_case_479:
-//line tokenizer.go:8581
 		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr209
-		case 32:
-			goto tr550
+		case 41:
+			goto st480
+		case 95:
+			goto st479
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st479
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st479
+			}
+		default:
+			goto st479
 		}
 		goto st0
 	st480:
@@ -8591,27 +8211,73 @@ tr549:
 		}
 	st_case_480:
 		switch ( t.data)[( t.p)] {
-		case 102:
-			goto st481
-		case 120:
-			goto st493
+		case 40:
+			goto tr533
+		case 124:
+			goto tr534
 		}
 		goto st0
+tr533:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st481
 	st481:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof481
 		}
 	st_case_481:
-		if ( t.data)[( t.p)] == 102 {
-			goto st482
+//line tokenizer.go:8227
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr535
+		case 95:
+			goto tr536
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr536
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr536
+			}
+		default:
+			goto tr536
 		}
 		goto st0
+tr535:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st482
 	st482:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof482
 		}
 	st_case_482:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:8261
+		if ( t.data)[( t.p)] == 95 {
+			goto st483
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st483
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st483
+			}
+		default:
 			goto st483
 		}
 		goto st0
@@ -8620,8 +8286,23 @@ tr549:
 			goto _test_eof483
 		}
 	st_case_483:
-		if ( t.data)[( t.p)] == 99 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st484
+		case 95:
+			goto st483
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st483
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st483
+			}
+		default:
+			goto st483
 		}
 		goto st0
 	st484:
@@ -8629,26 +8310,51 @@ tr549:
 			goto _test_eof484
 		}
 	st_case_484:
-		if ( t.data)[( t.p)] == 116 {
-			goto st485
+		if ( t.data)[( t.p)] == 41 {
+			goto tr539
 		}
 		goto st0
+tr539:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st485
 	st485:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof485
 		}
 	st_case_485:
-		if ( t.data)[( t.p)] == 105 {
-			goto st486
+//line tokenizer.go:8324
+		if ( t.data)[( t.p)] == 124 {
+			goto tr540
 		}
 		goto st0
+tr534:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st486
+tr540:
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st486
 	st486:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof486
 		}
 	st_case_486:
-		if ( t.data)[( t.p)] == 118 {
+//line tokenizer.go:8346
+		if ( t.data)[( t.p)] == 45 {
 			goto st487
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr542
 		}
 		goto st0
 	st487:
@@ -8656,26 +8362,54 @@ tr549:
 			goto _test_eof487
 		}
 	st_case_487:
-		if ( t.data)[( t.p)] == 101 {
-			goto st488
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr542
 		}
 		goto st0
+tr542:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st488
 	st488:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof488
 		}
 	st_case_488:
+//line tokenizer.go:8377
 		if ( t.data)[( t.p)] == 32 {
-			goto st489
+			goto tr543
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st488
 		}
 		goto st0
+tr543:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 489; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st489
 	st489:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof489
 		}
 	st_case_489:
-		if ( t.data)[( t.p)] == 112 {
+//line tokenizer.go:8401
+		if ( t.data)[( t.p)] == 45 {
 			goto st490
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st686
 		}
 		goto st0
 	st490:
@@ -8683,8 +8417,36 @@ tr549:
 			goto _test_eof490
 		}
 	st_case_490:
-		if ( t.data)[( t.p)] == 111 {
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st686
+		}
+		goto st0
+	st686:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof686
+		}
+	st_case_686:
+		switch ( t.data)[( t.p)] {
+		case 40:
 			goto st491
+		case 46:
+			goto st687
+		case 47:
+			goto tr765
+		case 95:
+			goto tr765
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr766
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr765
+			}
+		default:
+			goto tr765
 		}
 		goto st0
 	st491:
@@ -8692,61 +8454,343 @@ tr549:
 			goto _test_eof491
 		}
 	st_case_491:
-		if ( t.data)[( t.p)] == 105 {
-			goto st492
+		if ( t.data)[( t.p)] == 95 {
+			goto tr547
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr547
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr547
+			}
+		default:
+			goto tr547
 		}
 		goto st0
+tr547:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st492
 	st492:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof492
 		}
 	st_case_492:
-		if ( t.data)[( t.p)] == 110 {
-			goto st472
+//line tokenizer.go:8481
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr548
+		case 95:
+			goto st492
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st492
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st492
+			}
+		default:
+			goto st492
 		}
 		goto st0
+	st687:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof687
+		}
+	st_case_687:
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto st491
+		case 47:
+			goto tr765
+		case 95:
+			goto tr765
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr767
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr765
+			}
+		default:
+			goto tr765
+		}
+		goto st0
+tr765:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st688
+	st688:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof688
+		}
+	st_case_688:
+//line tokenizer.go:8541
+		if ( t.data)[( t.p)] == 95 {
+			goto st688
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st688
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st688
+			}
+		default:
+			goto st688
+		}
+		goto st0
+tr767:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st689
+	st689:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof689
+		}
+	st_case_689:
+//line tokenizer.go:8572
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto st491
+		case 47:
+			goto tr765
+		case 95:
+			goto tr765
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr767
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr765
+			}
+		default:
+			goto tr765
+		}
+		goto st0
+tr766:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st690
+	st690:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof690
+		}
+	st_case_690:
+//line tokenizer.go:8608
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto st491
+		case 46:
+			goto st687
+		case 47:
+			goto tr765
+		case 95:
+			goto tr765
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr766
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr765
+			}
+		default:
+			goto tr765
+		}
+		goto st0
+tr536:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st493
 	st493:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof493
 		}
 	st_case_493:
-		if ( t.data)[( t.p)] == 112 {
-			goto st494
+//line tokenizer.go:8646
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr539
+		case 95:
+			goto st493
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st493
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st493
+			}
+		default:
+			goto st493
 		}
 		goto st0
+tr530:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st494
 	st494:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof494
 		}
 	st_case_494:
-		if ( t.data)[( t.p)] == 101 {
-			goto st495
+//line tokenizer.go:8680
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr533
+		case 95:
+			goto st494
+		case 124:
+			goto tr534
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st494
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st494
+			}
+		default:
+			goto st494
 		}
 		goto st0
+tr516:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st495
 	st495:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof495
 		}
 	st_case_495:
-		if ( t.data)[( t.p)] == 114 {
-			goto st496
+//line tokenizer.go:8716
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr519
+		case 95:
+			goto st495
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st495
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st495
+			}
+		default:
+			goto st495
 		}
 		goto st0
+tr510:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st496
 	st496:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof496
 		}
 	st_case_496:
-		if ( t.data)[( t.p)] == 105 {
-			goto st497
+//line tokenizer.go:8750
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr513
+		case 95:
+			goto st496
+		case 124:
+			goto tr514
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st496
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st496
+			}
+		default:
+			goto st496
 		}
 		goto st0
+tr199:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st497
 	st497:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof497
 		}
 	st_case_497:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:8786
+		if ( t.data)[( t.p)] == 105 {
 			goto st498
 		}
 		goto st0
@@ -8755,7 +8799,7 @@ tr549:
 			goto _test_eof498
 		}
 	st_case_498:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st499
 		}
 		goto st0
@@ -8764,7 +8808,7 @@ tr549:
 			goto _test_eof499
 		}
 	st_case_499:
-		if ( t.data)[( t.p)] == 99 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st500
 		}
 		goto st0
@@ -8774,7 +8818,7 @@ tr549:
 		}
 	st_case_500:
 		if ( t.data)[( t.p)] == 101 {
-			goto st474
+			goto st501
 		}
 		goto st0
 	st501:
@@ -8782,16 +8826,24 @@ tr549:
 			goto _test_eof501
 		}
 	st_case_501:
-		if ( t.data)[( t.p)] == 97 {
-			goto st502
+		if ( t.data)[( t.p)] == 100 {
+			goto tr558
 		}
 		goto st0
+tr558:
+//line tokenizer.go.rl:123
+ t.tok(KILL) 
+	goto st502
 	st502:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof502
 		}
 	st_case_502:
-		if ( t.data)[( t.p)] == 114 {
+//line tokenizer.go:8836
+		if ( t.data)[( t.p)] == 32 {
+			goto st503
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st503
 		}
 		goto st0
@@ -8800,217 +8852,230 @@ tr549:
 			goto _test_eof503
 		}
 	st_case_503:
-		if ( t.data)[( t.p)] == 109 {
-			goto st504
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr560
+		case 95:
+			goto tr561
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr561
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr561
+			}
+		default:
+			goto tr561
 		}
 		goto st0
+tr560:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st504
 	st504:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof504
 		}
 	st_case_504:
-		if ( t.data)[( t.p)] == 97 {
-			goto st474
+//line tokenizer.go:8882
+		if ( t.data)[( t.p)] == 95 {
+			goto st505
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st505
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st505
+			}
+		default:
+			goto st505
 		}
 		goto st0
-tr530:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st505
 	st505:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof505
 		}
 	st_case_505:
-//line tokenizer.go:8828
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr574
+		case 41:
+			goto st506
 		case 95:
-			goto tr575
+			goto st505
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr575
+				goto st505
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr575
+				goto st505
 			}
 		default:
-			goto tr575
+			goto st505
 		}
 		goto st0
-tr574:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st506
 	st506:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof506
 		}
 	st_case_506:
-//line tokenizer.go:8860
-		if ( t.data)[( t.p)] == 95 {
-			goto st507
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st507
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st507
-			}
-		default:
-			goto st507
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr564
+		case 124:
+			goto tr565
 		}
 		goto st0
+tr564:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st507
 	st507:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof507
 		}
 	st_case_507:
+//line tokenizer.go:8948
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st508
+		case 40:
+			goto tr566
 		case 95:
-			goto st507
+			goto tr567
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st507
+				goto tr567
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st507
+				goto tr567
 			}
 		default:
-			goto st507
+			goto tr567
 		}
 		goto st0
+tr566:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st508
 	st508:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof508
 		}
 	st_case_508:
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr529
-		case 32:
-			goto tr578
+//line tokenizer.go:8982
+		if ( t.data)[( t.p)] == 95 {
+			goto st509
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st509
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st509
+			}
+		default:
+			goto st509
 		}
 		goto st0
-tr578:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st509
 	st509:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof509
 		}
 	st_case_509:
-//line tokenizer.go:8924
 		switch ( t.data)[( t.p)] {
-		case 9:
-			goto st464
-		case 32:
+		case 41:
+			goto st510
+		case 95:
+			goto st509
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st509
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st509
+			}
+		default:
 			goto st509
 		}
 		goto st0
-tr575:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st510
 	st510:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof510
 		}
 	st_case_510:
-//line tokenizer.go:8944
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr529
-		case 32:
-			goto tr578
-		case 95:
-			goto st510
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st510
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st510
-			}
-		default:
-			goto st510
+		if ( t.data)[( t.p)] == 41 {
+			goto tr570
 		}
 		goto st0
-tr526:
-//line tokenizer.go.rl:105
+tr570:
+//line tokenizer.go.rl:76
 
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
+		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
 	goto st511
 	st511:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof511
 		}
 	st_case_511:
-//line tokenizer.go:8978
-		switch ( t.data)[( t.p)] {
-		case 9:
-			goto tr529
-		case 32:
-			goto tr530
-		case 95:
-			goto st511
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st511
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st511
-			}
-		default:
-			goto st511
+//line tokenizer.go:9045
+		if ( t.data)[( t.p)] == 124 {
+			goto tr571
 		}
 		goto st0
-tr16:
-//line tokenizer.go.rl:105
+tr565:
+//line tokenizer.go.rl:76
 
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
+		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
+	goto st512
+tr571:
+//line tokenizer.go.rl:114
+ t.tok(int(t.data[t.p]))
 	goto st512
 	st512:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof512
 		}
 	st_case_512:
-//line tokenizer.go:9012
-		if ( t.data)[( t.p)] == 65 {
+//line tokenizer.go:9067
+		if ( t.data)[( t.p)] == 45 {
 			goto st513
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr573
 		}
 		goto st0
 	st513:
@@ -9018,25 +9083,53 @@ tr16:
 			goto _test_eof513
 		}
 	st_case_513:
-		if ( t.data)[( t.p)] == 77 {
-			goto st514
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr573
 		}
 		goto st0
+tr573:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st514
 	st514:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof514
 		}
 	st_case_514:
-		if ( t.data)[( t.p)] == 69 {
-			goto st515
+//line tokenizer.go:9098
+		if ( t.data)[( t.p)] == 59 {
+			goto tr575
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st514
 		}
 		goto st0
+tr575:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 515; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st515
 	st515:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof515
 		}
 	st_case_515:
+//line tokenizer.go:9122
 		if ( t.data)[( t.p)] == 32 {
+			goto st516
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st516
 		}
 		goto st0
@@ -9045,8 +9138,14 @@ tr16:
 			goto _test_eof516
 		}
 	st_case_516:
-		if ( t.data)[( t.p)] == 32 {
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st516
+		case 107:
 			goto st517
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st516
 		}
 		goto st0
 	st517:
@@ -9054,7 +9153,7 @@ tr16:
 			goto _test_eof517
 		}
 	st_case_517:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st518
 		}
 		goto st0
@@ -9063,21 +9162,16 @@ tr16:
 			goto _test_eof518
 		}
 	st_case_518:
-		if ( t.data)[( t.p)] == 124 {
-			goto tr588
+		if ( t.data)[( t.p)] == 108 {
+			goto st519
 		}
 		goto st0
-tr588:
-//line tokenizer.go.rl:118
- t.tok(GAME) 
-	goto st519
 	st519:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof519
 		}
 	st_case_519:
-//line tokenizer.go:9080
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st520
 		}
 		goto st0
@@ -9086,27 +9180,16 @@ tr588:
 			goto _test_eof520
 		}
 	st_case_520:
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto st520
-		case 99:
-			goto tr590
+		if ( t.data)[( t.p)] == 101 {
+			goto st521
 		}
 		goto st0
-tr590:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st521
 	st521:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof521
 		}
 	st_case_521:
-//line tokenizer.go:9109
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st522
 		}
 		goto st0
@@ -9115,7 +9198,7 @@ tr590:
 			goto _test_eof522
 		}
 	st_case_522:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st523
 		}
 		goto st0
@@ -9124,16 +9207,53 @@ tr590:
 			goto _test_eof523
 		}
 	st_case_523:
-		if ( t.data)[( t.p)] == 101 {
-			goto st524
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr584
+		case 95:
+			goto tr585
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr585
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr585
+			}
+		default:
+			goto tr585
 		}
 		goto st0
+tr584:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st524
 	st524:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof524
 		}
 	st_case_524:
-		if ( t.data)[( t.p)] == 110 {
+//line tokenizer.go:9237
+		if ( t.data)[( t.p)] == 95 {
+			goto st525
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st525
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st525
+			}
+		default:
 			goto st525
 		}
 		goto st0
@@ -9142,8 +9262,23 @@ tr590:
 			goto _test_eof525
 		}
 	st_case_525:
-		if ( t.data)[( t.p)] == 116 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st526
+		case 95:
+			goto st525
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st525
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st525
+			}
+		default:
+			goto st525
 		}
 		goto st0
 	st526:
@@ -9151,17 +9286,27 @@ tr590:
 			goto _test_eof526
 		}
 	st_case_526:
-		if ( t.data)[( t.p)] == 58 {
-			goto st527
+		if ( t.data)[( t.p)] == 124 {
+			goto tr588
 		}
 		goto st0
+tr588:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st527
 	st527:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof527
 		}
 	st_case_527:
-		if ( t.data)[( t.p)] == 32 {
+//line tokenizer.go:9298
+		if ( t.data)[( t.p)] == 45 {
 			goto st528
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr590
 		}
 		goto st0
 	st528:
@@ -9169,39 +9314,96 @@ tr590:
 			goto _test_eof528
 		}
 	st_case_528:
-		switch ( t.data)[( t.p)] {
-		case 65:
-			goto st529
-		case 99:
-			goto st586
-		case 112:
-			goto st661
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr590
 		}
 		goto st0
+tr590:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st529
 	st529:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof529
 		}
 	st_case_529:
-		if ( t.data)[( t.p)] == 68 {
-			goto st530
+//line tokenizer.go:9329
+		if ( t.data)[( t.p)] == 32 {
+			goto tr591
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st529
 		}
 		goto st0
+tr591:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 530; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st530
 	st530:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof530
 		}
 	st_case_530:
-		if ( t.data)[( t.p)] == 68 {
-			goto st531
+//line tokenizer.go:9353
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr593
+		case 95:
+			goto tr594
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr594
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr594
+			}
+		default:
+			goto tr594
 		}
 		goto st0
+tr593:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st531
 	st531:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof531
 		}
 	st_case_531:
+//line tokenizer.go:9387
 		if ( t.data)[( t.p)] == 95 {
+			goto st532
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st532
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st532
+			}
+		default:
 			goto st532
 		}
 		goto st0
@@ -9210,16 +9412,47 @@ tr590:
 			goto _test_eof532
 		}
 	st_case_532:
-		if ( t.data)[( t.p)] == 80 {
-			goto st533
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st691
+		case 95:
+			goto st532
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st532
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st532
+			}
+		default:
+			goto st532
 		}
 		goto st0
+	st691:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof691
+		}
+	st_case_691:
+		if ( t.data)[( t.p)] == 32 {
+			goto tr769
+		}
+		goto st0
+tr769:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st533
 	st533:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof533
 		}
 	st_case_533:
-		if ( t.data)[( t.p)] == 76 {
+//line tokenizer.go:9448
+		if ( t.data)[( t.p)] == 60 {
 			goto st534
 		}
 		goto st0
@@ -9228,7 +9461,7 @@ tr590:
 			goto _test_eof534
 		}
 	st_case_534:
-		if ( t.data)[( t.p)] == 65 {
+		if ( t.data)[( t.p)] == 70 {
 			goto st535
 		}
 		goto st0
@@ -9237,7 +9470,7 @@ tr590:
 			goto _test_eof535
 		}
 	st_case_535:
-		if ( t.data)[( t.p)] == 89 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st536
 		}
 		goto st0
@@ -9246,7 +9479,7 @@ tr590:
 			goto _test_eof536
 		}
 	st_case_536:
-		if ( t.data)[( t.p)] == 69 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st537
 		}
 		goto st0
@@ -9255,7 +9488,7 @@ tr590:
 			goto _test_eof537
 		}
 	st_case_537:
-		if ( t.data)[( t.p)] == 82 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st538
 		}
 		goto st0
@@ -9264,7 +9497,7 @@ tr590:
 			goto _test_eof538
 		}
 	st_case_538:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st539
 		}
 		goto st0
@@ -9273,118 +9506,43 @@ tr590:
 			goto _test_eof539
 		}
 	st_case_539:
-		if ( t.data)[( t.p)] == 45 {
-			goto tr611
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr612
+		if ( t.data)[( t.p)] == 100 {
+			goto st540
 		}
 		goto st0
-tr611:
-//line tokenizer.go.rl:176
-t.tok(CLIENT_ADD_PLAYER)
-	goto st540
 	st540:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof540
 		}
 	st_case_540:
-//line tokenizer.go:9293
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr613
+		if ( t.data)[( t.p)] == 108 {
+			goto st541
 		}
 		goto st0
-tr613:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st541
-tr612:
-//line tokenizer.go.rl:176
-t.tok(CLIENT_ADD_PLAYER)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st541
 	st541:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof541
 		}
 	st_case_541:
-//line tokenizer.go:9319
-		if ( t.data)[( t.p)] == 40 {
-			goto tr614
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st541
+		if ( t.data)[( t.p)] == 121 {
+			goto st542
 		}
 		goto st0
-tr614:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 542; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st542
 	st542:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof542
 		}
 	st_case_542:
-//line tokenizer.go:9343
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr616
-		case 95:
-			goto tr617
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr617
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr617
-			}
-		default:
-			goto tr617
+		if ( t.data)[( t.p)] == 70 {
+			goto st543
 		}
 		goto st0
-tr616:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st543
 	st543:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof543
 		}
 	st_case_543:
-//line tokenizer.go:9375
-		if ( t.data)[( t.p)] == 95 {
-			goto st544
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st544
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st544
-			}
-		default:
+		if ( t.data)[( t.p)] == 105 {
 			goto st544
 		}
 		goto st0
@@ -9393,23 +9551,8 @@ tr616:
 			goto _test_eof544
 		}
 	st_case_544:
-		switch ( t.data)[( t.p)] {
-		case 41:
+		if ( t.data)[( t.p)] == 114 {
 			goto st545
-		case 95:
-			goto st544
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st544
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st544
-			}
-		default:
-			goto st544
 		}
 		goto st0
 	st545:
@@ -9417,54 +9560,93 @@ tr616:
 			goto _test_eof545
 		}
 	st_case_545:
-		if ( t.data)[( t.p)] == 32 {
-			goto tr620
+		if ( t.data)[( t.p)] == 101 {
+			goto st546
 		}
 		goto st0
-tr620:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st546
 	st546:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof546
 		}
 	st_case_546:
-//line tokenizer.go:9436
-		if ( t.data)[( t.p)] == 91 {
-			goto st547
+		if ( t.data)[( t.p)] == 62 {
+			goto tr610
 		}
 		goto st0
+tr594:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st692
+	st692:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof692
+		}
+	st_case_692:
+//line tokenizer.go:9584
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto tr769
+		case 95:
+			goto st692
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st692
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st692
+			}
+		default:
+			goto st692
+		}
+		goto st0
+tr585:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st547
 	st547:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof547
 		}
 	st_case_547:
+//line tokenizer.go:9618
 		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr622
 		case 95:
-			goto tr623
+			goto st547
+		case 124:
+			goto tr588
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr623
+				goto st547
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr623
+				goto st547
 			}
 		default:
-			goto tr623
+			goto st547
 		}
 		goto st0
-tr622:
-//line tokenizer.go.rl:105
+tr567:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st548
@@ -9473,33 +9655,48 @@ tr622:
 			goto _test_eof548
 		}
 	st_case_548:
-//line tokenizer.go:9477
-		if ( t.data)[( t.p)] == 95 {
-			goto st549
+//line tokenizer.go:9652
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr570
+		case 95:
+			goto st548
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st549
+				goto st548
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st549
+				goto st548
 			}
 		default:
-			goto st549
+			goto st548
 		}
 		goto st0
+tr561:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st549
 	st549:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof549
 		}
 	st_case_549:
+//line tokenizer.go:9686
 		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st550
+		case 40:
+			goto tr564
 		case 95:
 			goto st549
+		case 124:
+			goto tr565
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -9514,28 +9711,31 @@ tr622:
 			goto st549
 		}
 		goto st0
+tr200:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st550
 	st550:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof550
 		}
 	st_case_550:
-		if ( t.data)[( t.p)] == 93 {
-			goto tr626
+//line tokenizer.go:9722
+		if ( t.data)[( t.p)] == 97 {
+			goto st551
 		}
 		goto st0
-tr626:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
-	goto st551
 	st551:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof551
 		}
 	st_case_551:
-//line tokenizer.go:9538
-		if ( t.data)[( t.p)] == 44 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st552
 		}
 		goto st0
@@ -9544,7 +9744,7 @@ tr626:
 			goto _test_eof552
 		}
 	st_case_552:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st553
 		}
 		goto st0
@@ -9553,11 +9753,8 @@ tr626:
 			goto _test_eof553
 		}
 	st_case_553:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st554
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr630
 		}
 		goto st0
 	st554:
@@ -9565,48 +9762,25 @@ tr626:
 			goto _test_eof554
 		}
 	st_case_554:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr630
+		if ( t.data)[( t.p)] == 99 {
+			goto st555
 		}
 		goto st0
-tr630:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st555
 	st555:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof555
 		}
 	st_case_555:
-//line tokenizer.go:9585
-		if ( t.data)[( t.p)] == 41 {
-			goto tr631
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st555
+		if ( t.data)[( t.p)] == 105 {
+			goto st556
 		}
 		goto st0
-tr631:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 556; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st556
 	st556:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof556
 		}
 	st_case_556:
-//line tokenizer.go:9609
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st557
 		}
 		goto st0
@@ -9615,7 +9789,7 @@ tr631:
 			goto _test_eof557
 		}
 	st_case_557:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st558
 		}
 		goto st0
@@ -9624,7 +9798,7 @@ tr631:
 			goto _test_eof558
 		}
 	st_case_558:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st559
 		}
 		goto st0
@@ -9633,16 +9807,21 @@ tr631:
 			goto _test_eof559
 		}
 	st_case_559:
-		if ( t.data)[( t.p)] == 97 {
-			goto st560
+		if ( t.data)[( t.p)] == 116 {
+			goto tr623
 		}
 		goto st0
+tr623:
+//line tokenizer.go.rl:124
+ t.tok(PARTICIPANT) 
+	goto st560
 	st560:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof560
 		}
 	st_case_560:
-		if ( t.data)[( t.p)] == 116 {
+//line tokenizer.go:9817
+		if ( t.data)[( t.p)] == 32 {
 			goto st561
 		}
 		goto st0
@@ -9651,16 +9830,55 @@ tr631:
 			goto _test_eof561
 		}
 	st_case_561:
-		if ( t.data)[( t.p)] == 117 {
-			goto st562
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st561
+		case 40:
+			goto tr625
+		case 95:
+			goto tr626
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr626
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr626
+			}
+		default:
+			goto tr626
 		}
 		goto st0
+tr625:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st562
 	st562:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof562
 		}
 	st_case_562:
-		if ( t.data)[( t.p)] == 115 {
+//line tokenizer.go:9862
+		if ( t.data)[( t.p)] == 95 {
+			goto st563
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st563
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st563
+			}
+		default:
 			goto st563
 		}
 		goto st0
@@ -9669,8 +9887,23 @@ tr631:
 			goto _test_eof563
 		}
 	st_case_563:
-		if ( t.data)[( t.p)] == 32 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st564
+		case 95:
+			goto st563
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st563
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st563
+			}
+		default:
+			goto st563
 		}
 		goto st0
 	st564:
@@ -9678,69 +9911,119 @@ tr631:
 			goto _test_eof564
 		}
 	st_case_564:
-		if ( t.data)[( t.p)] == 45 {
-			goto st565
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr642
+		if ( t.data)[( t.p)] == 9 {
+			goto tr629
 		}
 		goto st0
+tr629:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st565
 	st565:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof565
 		}
 	st_case_565:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr642
+//line tokenizer.go:9923
+		if ( t.data)[( t.p)] == 32 {
+			goto st566
 		}
 		goto st0
-tr642:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st566
 	st566:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof566
 		}
 	st_case_566:
-//line tokenizer.go:9710
-		if ( t.data)[( t.p)] == 32 {
-			goto tr643
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto st693
+		case 32:
+			goto st615
+		case 40:
+			goto tr633
+		case 95:
+			goto tr634
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st566
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr634
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr634
+			}
+		default:
+			goto tr634
 		}
 		goto st0
-tr643:
-//line tokenizer.go.rl:81
+tr690:
+//line tokenizer.go.rl:76
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 567; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
+		t.tokval(StrTok(t.data[t.prev:t.p]))
 	
-	goto st567
+	goto st693
+	st693:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof693
+		}
+	st_case_693:
+//line tokenizer.go:9967
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st694
+		case 60:
+			goto st567
+		case 116:
+			goto st577
+		}
+		goto st0
+	st694:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof694
+		}
+	st_case_694:
+		switch ( t.data)[( t.p)] {
+		case 60:
+			goto st567
+		case 116:
+			goto st577
+		}
+		goto st0
 	st567:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof567
 		}
 	st_case_567:
-//line tokenizer.go:9734
-		if ( t.data)[( t.p)] == 116 {
-			goto st568
+		switch ( t.data)[( t.p)] {
+		case 70:
+			goto st535
+		case 98:
+			goto tr635
+		case 100:
+			goto tr636
+		case 104:
+			goto tr637
 		}
 		goto st0
+tr635:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st568
 	st568:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof568
 		}
 	st_case_568:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:10019
+		if ( t.data)[( t.p)] == 117 {
 			goto st569
 		}
 		goto st0
@@ -9749,7 +10032,7 @@ tr643:
 			goto _test_eof569
 		}
 	st_case_569:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 102 {
 			goto st570
 		}
 		goto st0
@@ -9758,7 +10041,7 @@ tr643:
 			goto _test_eof570
 		}
 	st_case_570:
-		if ( t.data)[( t.p)] == 109 {
+		if ( t.data)[( t.p)] == 102 {
 			goto st571
 		}
 		goto st0
@@ -9767,20 +10050,53 @@ tr643:
 			goto _test_eof571
 		}
 	st_case_571:
-		if ( t.data)[( t.p)] == 32 {
-			goto st572
+		if ( t.data)[( t.p)] == 62 {
+			goto tr641
 		}
 		goto st0
+tr641:
+//line tokenizer.go.rl:153
+t.tokval(StrTok(t.data[t.prev:t.p]))
+	goto st695
+	st695:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof695
+		}
+	st_case_695:
+//line tokenizer.go:10060
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st696
+		case 60:
+			goto st534
+		}
+		goto st0
+	st696:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof696
+		}
+	st_case_696:
+		if ( t.data)[( t.p)] == 60 {
+			goto st567
+		}
+		goto st0
+tr636:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st572
 	st572:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof572
 		}
 	st_case_572:
-		if ( t.data)[( t.p)] == 45 {
+//line tokenizer.go:10091
+		if ( t.data)[( t.p)] == 101 {
 			goto st573
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr651
 		}
 		goto st0
 	st573:
@@ -9788,14 +10104,16 @@ tr643:
 			goto _test_eof573
 		}
 	st_case_573:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr651
+		if ( t.data)[( t.p)] == 98 {
+			goto st568
 		}
 		goto st0
-tr651:
-//line tokenizer.go.rl:105
+tr637:
+//line tokenizer.go.rl:103
 
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	
 	goto st574
@@ -9804,40 +10122,17 @@ tr651:
 			goto _test_eof574
 		}
 	st_case_574:
-//line tokenizer.go:9808
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr652
-		case 32:
-			goto tr653
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st574
+//line tokenizer.go:10119
+		if ( t.data)[( t.p)] == 101 {
+			goto st575
 		}
 		goto st0
-tr653:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 575; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st575
 	st575:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof575
 		}
 	st_case_575:
-//line tokenizer.go:9835
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto st680
-		case 32:
-			goto st65
-		case 103:
+		if ( t.data)[( t.p)] == 97 {
 			goto st576
 		}
 		goto st0
@@ -9846,8 +10141,8 @@ tr653:
 			goto _test_eof576
 		}
 	st_case_576:
-		if ( t.data)[( t.p)] == 114 {
-			goto st577
+		if ( t.data)[( t.p)] == 108 {
+			goto st571
 		}
 		goto st0
 	st577:
@@ -9864,7 +10159,7 @@ tr653:
 			goto _test_eof578
 		}
 	st_case_578:
-		if ( t.data)[( t.p)] == 117 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st579
 		}
 		goto st0
@@ -9873,7 +10168,7 @@ tr653:
 			goto _test_eof579
 		}
 	st_case_579:
-		if ( t.data)[( t.p)] == 112 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st580
 		}
 		goto st0
@@ -9882,7 +10177,7 @@ tr653:
 			goto _test_eof580
 		}
 	st_case_580:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 108 {
 			goto st581
 		}
 		goto st0
@@ -9891,11 +10186,8 @@ tr653:
 			goto _test_eof581
 		}
 	st_case_581:
-		if ( t.data)[( t.p)] == 45 {
+		if ( t.data)[( t.p)] == 68 {
 			goto st582
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr662
 		}
 		goto st0
 	st582:
@@ -9903,95 +10195,35 @@ tr653:
 			goto _test_eof582
 		}
 	st_case_582:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr662
+		if ( t.data)[( t.p)] == 97 {
+			goto st583
 		}
 		goto st0
-tr662:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st583
 	st583:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof583
 		}
 	st_case_583:
-//line tokenizer.go:9923
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr652
-		case 32:
-			goto tr663
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st583
+		if ( t.data)[( t.p)] == 109 {
+			goto st584
 		}
 		goto st0
-tr623:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st584
 	st584:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof584
 		}
 	st_case_584:
-//line tokenizer.go:9946
-		switch ( t.data)[( t.p)] {
-		case 93:
-			goto tr626
-		case 95:
-			goto st584
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st584
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st584
-			}
-		default:
-			goto st584
+		if ( t.data)[( t.p)] == 97 {
+			goto st585
 		}
 		goto st0
-tr617:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st585
 	st585:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof585
 		}
 	st_case_585:
-//line tokenizer.go:9978
-		switch ( t.data)[( t.p)] {
-		case 32:
-			goto tr620
-		case 95:
-			goto st585
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st585
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st585
-			}
-		default:
-			goto st585
+		if ( t.data)[( t.p)] == 103 {
+			goto st586
 		}
 		goto st0
 	st586:
@@ -9999,7 +10231,7 @@ tr617:
 			goto _test_eof586
 		}
 	st_case_586:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st587
 		}
 		goto st0
@@ -10008,7 +10240,7 @@ tr617:
 			goto _test_eof587
 		}
 	st_case_587:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st588
 		}
 		goto st0
@@ -10017,8 +10249,11 @@ tr617:
 			goto _test_eof588
 		}
 	st_case_588:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 45 {
 			goto st589
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st590
 		}
 		goto st0
 	st589:
@@ -10026,7 +10261,7 @@ tr617:
 			goto _test_eof589
 		}
 	st_case_589:
-		if ( t.data)[( t.p)] == 101 {
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st590
 		}
 		goto st0
@@ -10035,8 +10270,14 @@ tr617:
 			goto _test_eof590
 		}
 	st_case_590:
-		if ( t.data)[( t.p)] == 99 {
+		switch ( t.data)[( t.p)] {
+		case 46:
 			goto st591
+		case 59:
+			goto st592
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st590
 		}
 		goto st0
 	st591:
@@ -10044,8 +10285,11 @@ tr617:
 			goto _test_eof591
 		}
 	st_case_591:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 59 {
 			goto st592
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st591
 		}
 		goto st0
 	st592:
@@ -10053,11 +10297,8 @@ tr617:
 			goto _test_eof592
 		}
 	st_case_592:
-		switch ( t.data)[( t.p)] {
-		case 101:
+		if ( t.data)[( t.p)] == 32 {
 			goto st593
-		case 105:
-			goto st646
 		}
 		goto st0
 	st593:
@@ -10065,7 +10306,7 @@ tr617:
 			goto _test_eof593
 		}
 	st_case_593:
-		if ( t.data)[( t.p)] == 100 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st594
 		}
 		goto st0
@@ -10074,7 +10315,7 @@ tr617:
 			goto _test_eof594
 		}
 	st_case_594:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st595
 		}
 		goto st0
@@ -10083,7 +10324,7 @@ tr617:
 			goto _test_eof595
 		}
 	st_case_595:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st596
 		}
 		goto st0
@@ -10092,7 +10333,7 @@ tr617:
 			goto _test_eof596
 		}
 	st_case_596:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st597
 		}
 		goto st0
@@ -10101,7 +10342,7 @@ tr617:
 			goto _test_eof597
 		}
 	st_case_597:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 68 {
 			goto st598
 		}
 		goto st0
@@ -10110,30 +10351,17 @@ tr617:
 			goto _test_eof598
 		}
 	st_case_598:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr680
+		if ( t.data)[( t.p)] == 97 {
+			goto st599
 		}
 		goto st0
-tr680:
-//line tokenizer.go.rl:179
-t.tok(CLIENT_CONNECTED)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st599
 	st599:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof599
 		}
 	st_case_599:
-//line tokenizer.go:10132
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 109 {
 			goto st600
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st644
 		}
 		goto st0
 	st600:
@@ -10141,7 +10369,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof600
 		}
 	st_case_600:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st601
 		}
 		goto st0
@@ -10150,11 +10378,8 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof601
 		}
 	st_case_601:
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 103 {
 			goto st602
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st642
 		}
 		goto st0
 	st602:
@@ -10162,7 +10387,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof602
 		}
 	st_case_602:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st603
 		}
 		goto st0
@@ -10171,11 +10396,8 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof603
 		}
 	st_case_603:
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 87 {
 			goto st604
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st640
 		}
 		goto st0
 	st604:
@@ -10183,7 +10405,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof604
 		}
 	st_case_604:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st605
 		}
 		goto st0
@@ -10192,10 +10414,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof605
 		}
 	st_case_605:
-		if ( t.data)[( t.p)] == 124 {
-			goto st608
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st606
 		}
 		goto st0
@@ -10204,10 +10423,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof606
 		}
 	st_case_606:
-		if ( t.data)[( t.p)] == 124 {
-			goto st608
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 104 {
 			goto st607
 		}
 		goto st0
@@ -10216,7 +10432,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof607
 		}
 	st_case_607:
-		if ( t.data)[( t.p)] == 124 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st608
 		}
 		goto st0
@@ -10225,7 +10441,7 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof608
 		}
 	st_case_608:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 39 {
 			goto st609
 		}
 		goto st0
@@ -10234,27 +10450,55 @@ t.tok(CLIENT_CONNECTED)
 			goto _test_eof609
 		}
 	st_case_609:
-		if ( t.data)[( t.p)] == 44 {
-			goto tr694
+		switch ( t.data)[( t.p)] {
+		case 39:
+			goto tr678
+		case 40:
+			goto st611
+		case 95:
+			goto tr680
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st609
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr680
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr680
+			}
+		default:
+			goto tr680
 		}
 		goto st0
-tr694:
-//line tokenizer.go.rl:78
-
-		t.tokval(StrTok(t.data[t.prev:t.p]))
-	
+tr678:
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+	goto st610
+tr686:
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
 	goto st610
 	st610:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof610
 		}
 	st_case_610:
-//line tokenizer.go:10256
-		if ( t.data)[( t.p)] == 32 {
-			goto st611
+//line tokenizer.go:10481
+		if ( t.data)[( t.p)] == 59 {
+			goto st697
+		}
+		goto st0
+	st697:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof697
+		}
+	st_case_697:
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st696
+		case 60:
+			goto st567
 		}
 		goto st0
 	st611:
@@ -10262,123 +10506,276 @@ tr694:
 			goto _test_eof611
 		}
 	st_case_611:
-		if ( t.data)[( t.p)] == 77 {
-			goto st612
+		if ( t.data)[( t.p)] == 95 {
+			goto tr682
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr682
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr682
+			}
+		default:
+			goto tr682
 		}
 		goto st0
+tr682:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st612
 	st612:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof612
 		}
 	st_case_612:
-		if ( t.data)[( t.p)] == 84 {
-			goto st613
+//line tokenizer.go:10533
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto tr683
+		case 95:
+			goto st612
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st612
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st612
+			}
+		default:
+			goto st612
 		}
 		goto st0
+tr683:
+//line tokenizer.go.rl:138
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+	goto st613
 	st613:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof613
 		}
 	st_case_613:
-		if ( t.data)[( t.p)] == 85 {
-			goto st614
+//line tokenizer.go:10562
+		if ( t.data)[( t.p)] == 39 {
+			goto st610
 		}
 		goto st0
+tr680:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st614
 	st614:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof614
 		}
 	st_case_614:
-		if ( t.data)[( t.p)] == 32 {
-			goto st615
+//line tokenizer.go:10581
+		switch ( t.data)[( t.p)] {
+		case 39:
+			goto tr686
+		case 95:
+			goto st614
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st614
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st614
+			}
+		default:
+			goto st614
 		}
 		goto st0
+tr691:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st615
 	st615:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof615
 		}
 	st_case_615:
-		if ( t.data)[( t.p)] == 45 {
-			goto st616
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr701
+//line tokenizer.go:10612
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto st693
+		case 32:
+			goto st615
 		}
 		goto st0
+tr633:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st616
 	st616:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof616
 		}
 	st_case_616:
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr701
+//line tokenizer.go:10634
+		if ( t.data)[( t.p)] == 95 {
+			goto st617
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st617
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st617
+			}
+		default:
+			goto st617
 		}
 		goto st0
-tr701:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st617
 	st617:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof617
 		}
 	st_case_617:
-//line tokenizer.go:10330
-		if ( t.data)[( t.p)] == 46 {
-			goto tr702
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st618
+		case 95:
+			goto st617
 		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st617
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st617
+			}
+		default:
 			goto st617
 		}
 		goto st0
-tr702:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 618; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st618
 	st618:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof618
 		}
 	st_case_618:
-//line tokenizer.go:10354
-		if ( t.data)[( t.p)] == 32 {
-			goto st619
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr690
+		case 32:
+			goto tr691
 		}
 		goto st0
+tr634:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st619
 	st619:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof619
 		}
 	st_case_619:
-		if ( t.data)[( t.p)] == 115 {
-			goto st620
+//line tokenizer.go:10701
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr690
+		case 32:
+			goto tr691
+		case 95:
+			goto st619
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st619
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st619
+			}
+		default:
+			goto st619
 		}
 		goto st0
+tr626:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st620
 	st620:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof620
 		}
 	st_case_620:
-		if ( t.data)[( t.p)] == 101 {
-			goto st621
+//line tokenizer.go:10737
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr629
+		case 95:
+			goto st620
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st620
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st620
+			}
+		default:
+			goto st620
 		}
 		goto st0
+tr201:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st621
 	st621:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof621
 		}
 	st_case_621:
-		if ( t.data)[( t.p)] == 116 {
+//line tokenizer.go:10771
+		if ( t.data)[( t.p)] == 101 {
 			goto st622
 		}
 		goto st0
@@ -10387,7 +10784,7 @@ tr702:
 			goto _test_eof622
 		}
 	st_case_622:
-		if ( t.data)[( t.p)] == 116 {
+		if ( t.data)[( t.p)] == 119 {
 			goto st623
 		}
 		goto st0
@@ -10396,7 +10793,7 @@ tr702:
 			goto _test_eof623
 		}
 	st_case_623:
-		if ( t.data)[( t.p)] == 105 {
+		if ( t.data)[( t.p)] == 97 {
 			goto st624
 		}
 		goto st0
@@ -10405,7 +10802,7 @@ tr702:
 			goto _test_eof624
 		}
 	st_case_624:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st625
 		}
 		goto st0
@@ -10414,15 +10811,20 @@ tr702:
 			goto _test_eof625
 		}
 	st_case_625:
-		if ( t.data)[( t.p)] == 103 {
-			goto st626
+		if ( t.data)[( t.p)] == 100 {
+			goto tr698
 		}
 		goto st0
+tr698:
+//line tokenizer.go.rl:127
+ t.tok(REWARD) 
+	goto st626
 	st626:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof626
 		}
 	st_case_626:
+//line tokenizer.go:10821
 		if ( t.data)[( t.p)] == 32 {
 			goto st627
 		}
@@ -10432,16 +10834,55 @@ tr702:
 			goto _test_eof627
 		}
 	st_case_627:
-		if ( t.data)[( t.p)] == 117 {
-			goto st628
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st627
+		case 40:
+			goto tr700
+		case 95:
+			goto tr701
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr701
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr701
+			}
+		default:
+			goto tr701
 		}
 		goto st0
+tr700:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st628
 	st628:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof628
 		}
 	st_case_628:
-		if ( t.data)[( t.p)] == 112 {
+//line tokenizer.go:10866
+		if ( t.data)[( t.p)] == 95 {
+			goto st629
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st629
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st629
+			}
+		default:
 			goto st629
 		}
 		goto st0
@@ -10450,8 +10891,23 @@ tr702:
 			goto _test_eof629
 		}
 	st_case_629:
-		if ( t.data)[( t.p)] == 32 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st630
+		case 95:
+			goto st629
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st629
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st629
+			}
+		default:
+			goto st629
 		}
 		goto st0
 	st630:
@@ -10459,17 +10915,33 @@ tr702:
 			goto _test_eof630
 		}
 	st_case_630:
-		if ( t.data)[( t.p)] == 115 {
-			goto st631
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr704
+		case 32:
+			goto tr705
 		}
 		goto st0
+tr704:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st631
 	st631:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof631
 		}
 	st_case_631:
-		if ( t.data)[( t.p)] == 101 {
+//line tokenizer.go:10930
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st631
+		case 45:
 			goto st632
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr708
 		}
 		goto st0
 	st632:
@@ -10477,26 +10949,56 @@ tr702:
 			goto _test_eof632
 		}
 	st_case_632:
-		if ( t.data)[( t.p)] == 115 {
-			goto st633
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr708
 		}
 		goto st0
+tr708:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st633
 	st633:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof633
 		}
 	st_case_633:
-		if ( t.data)[( t.p)] == 115 {
-			goto st634
+//line tokenizer.go:10964
+		if ( t.data)[( t.p)] == 32 {
+			goto tr709
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st633
 		}
 		goto st0
+tr709:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 634; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+	goto st634
 	st634:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof634
 		}
 	st_case_634:
-		if ( t.data)[( t.p)] == 105 {
+//line tokenizer.go:10988
+		switch ( t.data)[( t.p)] {
+		case 99:
 			goto st635
+		case 101:
+			goto st646
+		case 107:
+			goto st667
 		}
 		goto st0
 	st635:
@@ -10504,7 +11006,7 @@ tr702:
 			goto _test_eof635
 		}
 	st_case_635:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st636
 		}
 		goto st0
@@ -10513,7 +11015,7 @@ tr702:
 			goto _test_eof636
 		}
 	st_case_636:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st637
 		}
 		goto st0
@@ -10522,7 +11024,7 @@ tr702:
 			goto _test_eof637
 		}
 	st_case_637:
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 100 {
 			goto st638
 		}
 		goto st0
@@ -10531,7 +11033,7 @@ tr702:
 			goto _test_eof638
 		}
 	st_case_638:
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st639
 		}
 		goto st0
@@ -10540,8 +11042,8 @@ tr702:
 			goto _test_eof639
 		}
 	st_case_639:
-		if ( t.data)[( t.p)] == 46 {
-			goto st65
+		if ( t.data)[( t.p)] == 116 {
+			goto st640
 		}
 		goto st0
 	st640:
@@ -10549,10 +11051,7 @@ tr702:
 			goto _test_eof640
 		}
 	st_case_640:
-		if ( t.data)[( t.p)] == 46 {
-			goto st604
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 115 {
 			goto st641
 		}
 		goto st0
@@ -10561,8 +11060,11 @@ tr702:
 			goto _test_eof641
 		}
 	st_case_641:
-		if ( t.data)[( t.p)] == 46 {
-			goto st604
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st641
+		case 102:
+			goto st642
 		}
 		goto st0
 	st642:
@@ -10570,10 +11072,7 @@ tr702:
 			goto _test_eof642
 		}
 	st_case_642:
-		if ( t.data)[( t.p)] == 46 {
-			goto st602
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st643
 		}
 		goto st0
@@ -10582,8 +11081,8 @@ tr702:
 			goto _test_eof643
 		}
 	st_case_643:
-		if ( t.data)[( t.p)] == 46 {
-			goto st602
+		if ( t.data)[( t.p)] == 114 {
+			goto st644
 		}
 		goto st0
 	st644:
@@ -10591,10 +11090,7 @@ tr702:
 			goto _test_eof644
 		}
 	st_case_644:
-		if ( t.data)[( t.p)] == 46 {
-			goto st600
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st645
 		}
 		goto st0
@@ -10603,17 +11099,20 @@ tr702:
 			goto _test_eof645
 		}
 	st_case_645:
-		if ( t.data)[( t.p)] == 46 {
-			goto st600
+		if ( t.data)[( t.p)] == 10 {
+			goto st0
 		}
-		goto st0
+		goto tr724
 	st646:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof646
 		}
 	st_case_646:
-		if ( t.data)[( t.p)] == 111 {
+		switch ( t.data)[( t.p)] {
+		case 102:
 			goto st647
+		case 120:
+			goto st659
 		}
 		goto st0
 	st647:
@@ -10621,7 +11120,7 @@ tr702:
 			goto _test_eof647
 		}
 	st_case_647:
-		if ( t.data)[( t.p)] == 110 {
+		if ( t.data)[( t.p)] == 102 {
 			goto st648
 		}
 		goto st0
@@ -10630,7 +11129,7 @@ tr702:
 			goto _test_eof648
 		}
 	st_case_648:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st649
 		}
 		goto st0
@@ -10648,7 +11147,7 @@ tr702:
 			goto _test_eof650
 		}
 	st_case_650:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 116 {
 			goto st651
 		}
 		goto st0
@@ -10657,7 +11156,7 @@ tr702:
 			goto _test_eof651
 		}
 	st_case_651:
-		if ( t.data)[( t.p)] == 111 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st652
 		}
 		goto st0
@@ -10666,7 +11165,7 @@ tr702:
 			goto _test_eof652
 		}
 	st_case_652:
-		if ( t.data)[( t.p)] == 115 {
+		if ( t.data)[( t.p)] == 118 {
 			goto st653
 		}
 		goto st0
@@ -10684,7 +11183,7 @@ tr702:
 			goto _test_eof654
 		}
 	st_case_654:
-		if ( t.data)[( t.p)] == 100 {
+		if ( t.data)[( t.p)] == 32 {
 			goto st655
 		}
 		goto st0
@@ -10693,7 +11192,7 @@ tr702:
 			goto _test_eof655
 		}
 	st_case_655:
-		if ( t.data)[( t.p)] == 46 {
+		if ( t.data)[( t.p)] == 112 {
 			goto st656
 		}
 		goto st0
@@ -10702,7 +11201,7 @@ tr702:
 			goto _test_eof656
 		}
 	st_case_656:
-		if ( t.data)[( t.p)] == 32 {
+		if ( t.data)[( t.p)] == 111 {
 			goto st657
 		}
 		goto st0
@@ -10711,54 +11210,17 @@ tr702:
 			goto _test_eof657
 		}
 	st_case_657:
-		switch ( t.data)[( t.p)] {
-		case 40:
-			goto tr739
-		case 95:
-			goto tr740
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr740
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr740
-			}
-		default:
-			goto tr740
+		if ( t.data)[( t.p)] == 105 {
+			goto st658
 		}
 		goto st0
-tr739:
-//line tokenizer.go.rl:182
-t.tok(CLIENT_CONNECTION_CLOSED)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st658
 	st658:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof658
 		}
 	st_case_658:
-//line tokenizer.go:10748
-		if ( t.data)[( t.p)] == 95 {
-			goto st659
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st659
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st659
-			}
-		default:
-			goto st659
+		if ( t.data)[( t.p)] == 110 {
+			goto st639
 		}
 		goto st0
 	st659:
@@ -10766,59 +11228,17 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof659
 		}
 	st_case_659:
-		switch ( t.data)[( t.p)] {
-		case 41:
-			goto st479
-		case 95:
-			goto st659
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st659
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st659
-			}
-		default:
-			goto st659
+		if ( t.data)[( t.p)] == 112 {
+			goto st660
 		}
 		goto st0
-tr740:
-//line tokenizer.go.rl:182
-t.tok(CLIENT_CONNECTION_CLOSED)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st660
 	st660:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof660
 		}
 	st_case_660:
-//line tokenizer.go:10803
-		switch ( t.data)[( t.p)] {
-		case 10:
-			goto tr209
-		case 32:
-			goto tr550
-		case 95:
-			goto st660
-		}
-		switch {
-		case ( t.data)[( t.p)] < 65:
-			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st660
-			}
-		case ( t.data)[( t.p)] > 90:
-			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto st660
-			}
-		default:
-			goto st660
+		if ( t.data)[( t.p)] == 101 {
+			goto st661
 		}
 		goto st0
 	st661:
@@ -10826,7 +11246,7 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof661
 		}
 	st_case_661:
-		if ( t.data)[( t.p)] == 108 {
+		if ( t.data)[( t.p)] == 114 {
 			goto st662
 		}
 		goto st0
@@ -10835,7 +11255,7 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof662
 		}
 	st_case_662:
-		if ( t.data)[( t.p)] == 97 {
+		if ( t.data)[( t.p)] == 105 {
 			goto st663
 		}
 		goto st0
@@ -10844,7 +11264,7 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof663
 		}
 	st_case_663:
-		if ( t.data)[( t.p)] == 121 {
+		if ( t.data)[( t.p)] == 101 {
 			goto st664
 		}
 		goto st0
@@ -10853,7 +11273,7 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof664
 		}
 	st_case_664:
-		if ( t.data)[( t.p)] == 101 {
+		if ( t.data)[( t.p)] == 110 {
 			goto st665
 		}
 		goto st0
@@ -10862,7 +11282,7 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof665
 		}
 	st_case_665:
-		if ( t.data)[( t.p)] == 114 {
+		if ( t.data)[( t.p)] == 99 {
 			goto st666
 		}
 		goto st0
@@ -10871,8 +11291,8 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof666
 		}
 	st_case_666:
-		if ( t.data)[( t.p)] == 32 {
-			goto st667
+		if ( t.data)[( t.p)] == 101 {
+			goto st641
 		}
 		goto st0
 	st667:
@@ -10880,92 +11300,96 @@ t.tok(CLIENT_CONNECTION_CLOSED)
 			goto _test_eof667
 		}
 	st_case_667:
-		if ( t.data)[( t.p)] == 45 {
-			goto tr750
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr751
+		if ( t.data)[( t.p)] == 97 {
+			goto st668
 		}
 		goto st0
-tr750:
-//line tokenizer.go.rl:178
-t.tok(CLIENT_PLAYER_LEAVE)
-	goto st668
 	st668:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof668
 		}
 	st_case_668:
-//line tokenizer.go:10900
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto tr752
+		if ( t.data)[( t.p)] == 114 {
+			goto st669
 		}
 		goto st0
-tr752:
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st669
-tr751:
-//line tokenizer.go.rl:178
-t.tok(CLIENT_PLAYER_LEAVE)
-//line tokenizer.go.rl:105
-
-		fmt.Printf("start: %s\n", t.state)
-		t.prev = t.p
-	
-	goto st669
 	st669:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof669
 		}
 	st_case_669:
-//line tokenizer.go:10926
-		if ( t.data)[( t.p)] == 32 {
-			goto tr753
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st669
+		if ( t.data)[( t.p)] == 109 {
+			goto st670
 		}
 		goto st0
-tr753:
-//line tokenizer.go.rl:81
-
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
-		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
-			{( t.p)++;  t.cs = 670; goto _out }
-		}
-		t.tokval(IntTok(temp.Int))
-	
-	goto st670
 	st670:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof670
 		}
 	st_case_670:
-//line tokenizer.go:10950
-		if ( t.data)[( t.p)] == 108 {
-			goto st671
+		if ( t.data)[( t.p)] == 97 {
+			goto st641
 		}
 		goto st0
+tr705:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st671
 	st671:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof671
 		}
 	st_case_671:
-		if ( t.data)[( t.p)] == 101 {
-			goto st672
+//line tokenizer.go:11339
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr748
+		case 95:
+			goto tr749
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr749
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr749
+			}
+		default:
+			goto tr749
 		}
 		goto st0
+tr748:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st672
 	st672:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof672
 		}
 	st_case_672:
-		if ( t.data)[( t.p)] == 97 {
+//line tokenizer.go:11373
+		if ( t.data)[( t.p)] == 95 {
+			goto st673
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st673
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st673
+			}
+		default:
 			goto st673
 		}
 		goto st0
@@ -10974,8 +11398,23 @@ tr753:
 			goto _test_eof673
 		}
 	st_case_673:
-		if ( t.data)[( t.p)] == 118 {
+		switch ( t.data)[( t.p)] {
+		case 41:
 			goto st674
+		case 95:
+			goto st673
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st673
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st673
+			}
+		default:
+			goto st673
 		}
 		goto st0
 	st674:
@@ -10983,53 +11422,102 @@ tr753:
 			goto _test_eof674
 		}
 	st_case_674:
-		if ( t.data)[( t.p)] == 101 {
-			goto st675
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr704
+		case 32:
+			goto tr752
 		}
 		goto st0
+tr752:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+	goto st675
 	st675:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof675
 		}
 	st_case_675:
-		if ( t.data)[( t.p)] == 32 {
-			goto st676
+//line tokenizer.go:11437
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto st631
+		case 32:
+			goto st675
 		}
 		goto st0
+tr749:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st676
 	st676:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof676
 		}
 	st_case_676:
-		if ( t.data)[( t.p)] == 103 {
-			goto st677
+//line tokenizer.go:11459
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr704
+		case 32:
+			goto tr752
+		case 95:
+			goto st676
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st676
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st676
+			}
+		default:
+			goto st676
 		}
 		goto st0
+tr701:
+//line tokenizer.go.rl:103
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st677
 	st677:
 		if ( t.p)++; ( t.p) == ( t.pe) {
 			goto _test_eof677
 		}
 	st_case_677:
-		if ( t.data)[( t.p)] == 97 {
-			goto st678
+//line tokenizer.go:11495
+		switch ( t.data)[( t.p)] {
+		case 9:
+			goto tr704
+		case 32:
+			goto tr705
+		case 95:
+			goto st677
 		}
-		goto st0
-	st678:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof678
-		}
-	st_case_678:
-		if ( t.data)[( t.p)] == 109 {
-			goto st679
-		}
-		goto st0
-	st679:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof679
-		}
-	st_case_679:
-		if ( t.data)[( t.p)] == 101 {
-			goto st65
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st677
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st677
+			}
+		default:
+			goto st677
 		}
 		goto st0
 	st_out:
@@ -11097,12 +11585,12 @@ tr753:
 	_test_eof63:  t.cs = 63; goto _test_eof
 	_test_eof64:  t.cs = 64; goto _test_eof
 	_test_eof65:  t.cs = 65; goto _test_eof
-	_test_eof680:  t.cs = 680; goto _test_eof
 	_test_eof66:  t.cs = 66; goto _test_eof
 	_test_eof67:  t.cs = 67; goto _test_eof
 	_test_eof68:  t.cs = 68; goto _test_eof
 	_test_eof69:  t.cs = 69; goto _test_eof
 	_test_eof70:  t.cs = 70; goto _test_eof
+	_test_eof678:  t.cs = 678; goto _test_eof
 	_test_eof71:  t.cs = 71; goto _test_eof
 	_test_eof72:  t.cs = 72; goto _test_eof
 	_test_eof73:  t.cs = 73; goto _test_eof
@@ -11111,6 +11599,7 @@ tr753:
 	_test_eof76:  t.cs = 76; goto _test_eof
 	_test_eof77:  t.cs = 77; goto _test_eof
 	_test_eof78:  t.cs = 78; goto _test_eof
+	_test_eof679:  t.cs = 679; goto _test_eof
 	_test_eof79:  t.cs = 79; goto _test_eof
 	_test_eof80:  t.cs = 80; goto _test_eof
 	_test_eof81:  t.cs = 81; goto _test_eof
@@ -11167,6 +11656,7 @@ tr753:
 	_test_eof132:  t.cs = 132; goto _test_eof
 	_test_eof133:  t.cs = 133; goto _test_eof
 	_test_eof134:  t.cs = 134; goto _test_eof
+	_test_eof680:  t.cs = 680; goto _test_eof
 	_test_eof135:  t.cs = 135; goto _test_eof
 	_test_eof136:  t.cs = 136; goto _test_eof
 	_test_eof137:  t.cs = 137; goto _test_eof
@@ -11187,6 +11677,8 @@ tr753:
 	_test_eof152:  t.cs = 152; goto _test_eof
 	_test_eof153:  t.cs = 153; goto _test_eof
 	_test_eof154:  t.cs = 154; goto _test_eof
+	_test_eof681:  t.cs = 681; goto _test_eof
+	_test_eof682:  t.cs = 682; goto _test_eof
 	_test_eof155:  t.cs = 155; goto _test_eof
 	_test_eof156:  t.cs = 156; goto _test_eof
 	_test_eof157:  t.cs = 157; goto _test_eof
@@ -11286,6 +11778,7 @@ tr753:
 	_test_eof251:  t.cs = 251; goto _test_eof
 	_test_eof252:  t.cs = 252; goto _test_eof
 	_test_eof253:  t.cs = 253; goto _test_eof
+	_test_eof683:  t.cs = 683; goto _test_eof
 	_test_eof254:  t.cs = 254; goto _test_eof
 	_test_eof255:  t.cs = 255; goto _test_eof
 	_test_eof256:  t.cs = 256; goto _test_eof
@@ -11373,6 +11866,7 @@ tr753:
 	_test_eof338:  t.cs = 338; goto _test_eof
 	_test_eof339:  t.cs = 339; goto _test_eof
 	_test_eof340:  t.cs = 340; goto _test_eof
+	_test_eof684:  t.cs = 684; goto _test_eof
 	_test_eof341:  t.cs = 341; goto _test_eof
 	_test_eof342:  t.cs = 342; goto _test_eof
 	_test_eof343:  t.cs = 343; goto _test_eof
@@ -11387,6 +11881,7 @@ tr753:
 	_test_eof352:  t.cs = 352; goto _test_eof
 	_test_eof353:  t.cs = 353; goto _test_eof
 	_test_eof354:  t.cs = 354; goto _test_eof
+	_test_eof685:  t.cs = 685; goto _test_eof
 	_test_eof355:  t.cs = 355; goto _test_eof
 	_test_eof356:  t.cs = 356; goto _test_eof
 	_test_eof357:  t.cs = 357; goto _test_eof
@@ -11523,8 +12018,13 @@ tr753:
 	_test_eof488:  t.cs = 488; goto _test_eof
 	_test_eof489:  t.cs = 489; goto _test_eof
 	_test_eof490:  t.cs = 490; goto _test_eof
+	_test_eof686:  t.cs = 686; goto _test_eof
 	_test_eof491:  t.cs = 491; goto _test_eof
 	_test_eof492:  t.cs = 492; goto _test_eof
+	_test_eof687:  t.cs = 687; goto _test_eof
+	_test_eof688:  t.cs = 688; goto _test_eof
+	_test_eof689:  t.cs = 689; goto _test_eof
+	_test_eof690:  t.cs = 690; goto _test_eof
 	_test_eof493:  t.cs = 493; goto _test_eof
 	_test_eof494:  t.cs = 494; goto _test_eof
 	_test_eof495:  t.cs = 495; goto _test_eof
@@ -11565,6 +12065,7 @@ tr753:
 	_test_eof530:  t.cs = 530; goto _test_eof
 	_test_eof531:  t.cs = 531; goto _test_eof
 	_test_eof532:  t.cs = 532; goto _test_eof
+	_test_eof691:  t.cs = 691; goto _test_eof
 	_test_eof533:  t.cs = 533; goto _test_eof
 	_test_eof534:  t.cs = 534; goto _test_eof
 	_test_eof535:  t.cs = 535; goto _test_eof
@@ -11579,6 +12080,7 @@ tr753:
 	_test_eof544:  t.cs = 544; goto _test_eof
 	_test_eof545:  t.cs = 545; goto _test_eof
 	_test_eof546:  t.cs = 546; goto _test_eof
+	_test_eof692:  t.cs = 692; goto _test_eof
 	_test_eof547:  t.cs = 547; goto _test_eof
 	_test_eof548:  t.cs = 548; goto _test_eof
 	_test_eof549:  t.cs = 549; goto _test_eof
@@ -11599,11 +12101,15 @@ tr753:
 	_test_eof564:  t.cs = 564; goto _test_eof
 	_test_eof565:  t.cs = 565; goto _test_eof
 	_test_eof566:  t.cs = 566; goto _test_eof
+	_test_eof693:  t.cs = 693; goto _test_eof
+	_test_eof694:  t.cs = 694; goto _test_eof
 	_test_eof567:  t.cs = 567; goto _test_eof
 	_test_eof568:  t.cs = 568; goto _test_eof
 	_test_eof569:  t.cs = 569; goto _test_eof
 	_test_eof570:  t.cs = 570; goto _test_eof
 	_test_eof571:  t.cs = 571; goto _test_eof
+	_test_eof695:  t.cs = 695; goto _test_eof
+	_test_eof696:  t.cs = 696; goto _test_eof
 	_test_eof572:  t.cs = 572; goto _test_eof
 	_test_eof573:  t.cs = 573; goto _test_eof
 	_test_eof574:  t.cs = 574; goto _test_eof
@@ -11643,6 +12149,7 @@ tr753:
 	_test_eof608:  t.cs = 608; goto _test_eof
 	_test_eof609:  t.cs = 609; goto _test_eof
 	_test_eof610:  t.cs = 610; goto _test_eof
+	_test_eof697:  t.cs = 697; goto _test_eof
 	_test_eof611:  t.cs = 611; goto _test_eof
 	_test_eof612:  t.cs = 612; goto _test_eof
 	_test_eof613:  t.cs = 613; goto _test_eof
@@ -11710,43 +12217,66 @@ tr753:
 	_test_eof675:  t.cs = 675; goto _test_eof
 	_test_eof676:  t.cs = 676; goto _test_eof
 	_test_eof677:  t.cs = 677; goto _test_eof
-	_test_eof678:  t.cs = 678; goto _test_eof
-	_test_eof679:  t.cs = 679; goto _test_eof
 
 	_test_eof: {}
 	if ( t.p) == ( t.pe) {
 		switch  t.cs {
-		case 680:
-//line tokenizer.go.rl:145
-t.tok(EOL)
-//line tokenizer.go:11723
+		case 681, 682, 684, 691, 692:
+//line tokenizer.go.rl:76
+
+		t.tokval(StrTok(t.data[t.prev:t.p]))
+	
+		case 678, 679:
+//line tokenizer.go.rl:79
+
+		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 0; goto _out }
+		}
+		t.tokval(IntTok(temp.Int))
+	
+		case 688:
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+		case 686, 687:
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+		case 689, 690:
+//line tokenizer.go.rl:135
+t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))
+//line tokenizer.go.rl:140
+t.tok(SOURCE)
+//line tokenizer.go:12244
 		}
 	}
 
 	_out: {}
 	}
 
-//line tokenizer.go.rl:227
+//line tokenizer.go.rl:228
 
-	fmt.Printf("exited: %s\n", t.state)
+	if debugTokenizer {
+		fmt.Printf("exited: %s\n", t.state)
+	}
 	if t.p != t.pe {
-		t.err(fmt.Errorf("line is not finished: %s|||||%s", t.data[:t.p], t.data[t.p:t.pe]))
+		t.err(fmt.Errorf("%w: %q %q", ErrLineIsNotFinished, t.data[:t.p], t.data[t.p:t.pe]))
 	}
 	return t.tokens, errors.Join(t.errors...)
 }
 
-func (t *Tokenizer) parseTime(s string) (time.Time, error) {
+func (t *tokenizer) parseTime(s string) (time.Time, error) {
 	return ParseTime(t.nowTime, s)
 }
 
-func (t *Tokenizer) tokval(token Token) {
+func (t *tokenizer) tokval(token Token) {
 	t.tokens = append(t.tokens, token)
 }
 
-func (t *Tokenizer) tok(tok int) {
-	t.tokens = append(t.tokens, AnyTok(tok))
+func (t *tokenizer) tok(tok int) {
+	t.tokens = append(t.tokens, VoidTok(tok))
 }
 
-func (t *Tokenizer) err(err error) {
+func (t *tokenizer) err(err error) {
 	t.errors = append(t.errors, err)
 }

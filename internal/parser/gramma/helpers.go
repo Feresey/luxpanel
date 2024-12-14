@@ -1,11 +1,19 @@
 package gramma
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
+
+const debugTokenizer = true
+
+func init() {
+	yyDebug = 4
+	yyErrorVerbose = true
+}
 
 const timeFormat = "15:04:05.000"
 
@@ -37,6 +45,23 @@ func parseDamageModifiers(raw string) (res DamageModifiersMap, err error) {
 	return res, nil
 }
 
+type ParseTokenError struct {
+	TokType int
+	Err     error
+	Raw     string
+}
+
+func (e ParseTokenError) Error() string {
+	return fmt.Sprintf("parse field (raw: %s, tok: %s, err: %v)", e.Raw, getTokStrName(e.TokType), e.Err)
+}
+
+type LexerError struct {
+	LineIsNotFinished bool
+	
+}
+
+var ErrLineIsNotFinished = errors.New("line is not finished")
+
 type Token interface {
 	Set(*yySymType)
 	Token() int
@@ -67,11 +92,11 @@ func (s TimeTok) Set(out *yySymType) { out.Time = Time(s) }
 func (TimeTok) Token() int           { return TIME }
 func (s TimeTok) String() string     { return time.Time(s).String() }
 
-type AnyTok int
+type VoidTok int
 
-func (a AnyTok) Token() int   { return int(a) }
-func (AnyTok) Set(*yySymType) {}
-func (AnyTok) String() string { return "" }
+func (a VoidTok) Token() int   { return int(a) }
+func (VoidTok) Set(*yySymType) {}
+func (VoidTok) String() string { return "" }
 
 type AnyVal struct {
 	token int
@@ -89,6 +114,14 @@ func (t AnyVal) Token() int         { return t.token }
 func (t AnyVal) Set(out *yySymType) { t.value.Set(out) }
 func (t AnyVal) String() string     { return t.value.String() }
 
+func getTokStrName(tok int) string {
+	if tok > yyPrivate {
+		return yyTokname(tok - yyPrivate + yyErrCode)
+	} else {
+		return string(byte(tok))
+	}
+}
+
 func ShowTok(t Token) string {
 	var sb strings.Builder
 	if tok := t.Token(); tok > yyPrivate {
@@ -101,19 +134,21 @@ func ShowTok(t Token) string {
 	return sb.String()
 }
 
-type Lexer struct {
-	res    CombatLine
+type lexer struct {
+	res    LogLine
 	pos    int
 	tokens []Token
+	err    error
 }
 
-func NewLexer(tokens []Token) *Lexer {
-	return &Lexer{
-		tokens: tokens,
-	}
+func (l *lexer) reset(toks []Token) {
+	l.res = LogLine{}
+	l.pos = 0
+	l.tokens = toks
+	l.err = nil
 }
 
-func (l *Lexer) Lex(out *yySymType) int {
+func (l *lexer) Lex(out *yySymType) int {
 	if l.pos >= len(l.tokens) {
 		return yyEofCode
 	}
@@ -123,6 +158,49 @@ func (l *Lexer) Lex(out *yySymType) int {
 	return t.Token()
 }
 
-func (l *Lexer) Error(errMsg string) {
-	panic(errMsg)
+func (l *lexer) Error(errMsg string) {
+	l.err = fmt.Errorf("lexer error: %s", errMsg)
+}
+
+type Parser struct {
+	t tokenizer
+	l lexer
+	p yyParser
+}
+
+func NewParser() *Parser {
+	return &Parser{
+		p: yyNewParser(),
+	}
+}
+
+func (p *Parser) Parse(logTime time.Time, line string) (*LogLine, error) {
+	toks, err := p.t.Parse(logTime, line)
+	if err != nil {
+		return nil, fmt.Errorf("tokenizer.Parse: %w", err)
+	}
+	if len(toks) == 0 {
+		return nil, nil
+	}
+
+	p.l.reset(toks)
+
+	staus := p.p.Parse(&p.l)
+	if staus != 0 {
+		return nil, &GrammaError{
+			Err:    p.l.err,
+			Tokens: toks,
+		}
+	}
+
+	return &p.l.res, nil
+}
+
+type GrammaError struct {
+	Err    error
+	Tokens []Token
+}
+
+func (e GrammaError) Error() string {
+	return e.Err.Error()
 }

@@ -110,10 +110,10 @@ func TestCombatConnectUnmarshal(t *testing.T) {
 			data: "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======\n",
 			want: []gramma.Token{
 				makeTime(t, now, "19:32:58.666"),
-				gramma.AnyTok(gramma.COMBAT),
-				gramma.AnyTok(gramma.CONNECT_TO_GAME_SESSION_PREFIX),
+				gramma.VoidTok(gramma.COMBAT),
+				gramma.VoidTok(gramma.CONNECT_TO_GAME_SESSION_PREFIX),
 				gramma.IntTok(50419619),
-				gramma.AnyTok(gramma.EOL),
+				gramma.VoidTok(gramma.EOL),
 			},
 		},
 		{

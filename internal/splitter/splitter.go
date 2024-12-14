@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"iter"
 	"os"
 	"slices"
 	"strings"
@@ -15,8 +16,7 @@ import (
 
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
-	"github.com/Feresey/luxpanel/internal/parser/combat"
-	"github.com/Feresey/luxpanel/internal/parser/game"
+	"github.com/Feresey/luxpanel/internal/parser/gramma"
 )
 
 var ErrLogsCorrupted = errors.New("logs corrupted")
@@ -40,8 +40,14 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 		return nil, fmt.Errorf("parseFiles: %w", err)
 	}
 
-	gameLevels := s.GetGameLogLevels(ctx, gameLog)
-	combatLevels := s.GetCombatLogLevels(ctx, combatLog)
+	gameLevels, gameErrs := s.GetGameLogLevels(ctx, gameLog)
+	if err := errors.Join(gameErrs...); err != nil {
+		return nil, fmt.Errorf("GetGameLogLevels: %w", err)
+	}
+	combatLevels, combatErrs := s.GetCombatLogLevels(ctx, combatLog)
+	if err := errors.Join(combatErrs...); err != nil {
+		return nil, fmt.Errorf("GetCombatLogLevels: %w", err)
+	}
 	if len(gameLevels) != len(combatLevels) {
 		mx := max(len(gameLevels), len(combatLevels))
 		s.lg.For(ctx).Infow("levels count mismatch", "combat", len(combatLevels), "game", len(gameLevels))
@@ -81,29 +87,29 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 	return levels, nil
 }
 
-func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) ([]game.LogLine, []combat.LogLine, error) {
+func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (game, gramma iter.Seq[parser.LogLine], err error) {
 	ctx, span := s.tr.Start(ctx, "parseFiles")
 	defer span.End()
 
-	combatLog, err := fs.Open("combat.log")
+	combatLog, err := fs.Open("gramma.log")
 	if err != nil {
-		return nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
+		return nil, nil, fmt.Errorf("fs.Open(gramma.log): %w", err)
 	}
 	defer combatLog.Close()
 
-	gameLog, err := fs.Open("game.log")
+	gameLog, err := fs.Open("gramma.log")
 	if err != nil {
-		return nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
+		return nil, nil, fmt.Errorf("fs.Open(gramma.log): %w", err)
 	}
 	defer gameLog.Close()
 
-	combatLogLines, err := s.parser.ParseCombatLog(ctx, combatLog)
+	combatLogLines, err := s.parser.ParseLogFile(ctx, combatLog)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parser.ParseCombatLog: %w", err)
+		return nil, nil, fmt.Errorf("parser.ParseLogFile(gramma): %w", err)
 	}
-	gameLogLines, err := s.parser.ParseGameLog(ctx, gameLog)
+	gameLogLines, err := s.parser.ParseLogFile(ctx, gameLog)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parser.ParseGameLog: %w", err)
+		return nil, nil, fmt.Errorf("parser.ParseLogFile(game): %w", err)
 	}
 
 	return gameLogLines, combatLogLines, nil
@@ -119,18 +125,18 @@ func (s *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 	}
 
 	if gameLevel != nil {
-		lvl.StartLevelTime = gameLevel.StartGameplay.LogTime
+		lvl.StartLevelTime = gameLevel.StartGameplay.Time
 	}
 	if combatLevel != nil {
-		if lvl.StartLevelTime.After(combatLevel.Start.GetLogTime()) {
-			lvl.StartLevelTime = combatLevel.Start.GetLogTime()
+		if lvl.StartLevelTime.After(GetCombatLineTime(combatLevel.Start)) {
+			lvl.StartLevelTime = GetCombatLineTime(combatLevel.Start)
 		}
-		if lvl.StartLevelTime.After(combatLevel.Connect.GetLogTime()) {
-			lvl.StartLevelTime = combatLevel.Connect.GetLogTime()
+		if lvl.StartLevelTime.After(GetCombatLineTime(combatLevel.Connect)) {
+			lvl.StartLevelTime = GetCombatLineTime(combatLevel.Connect)
 		}
 	}
-	lvl.EndLevelTime = gameLevel.FinishGameplay.GetLogTime()
-	if cmbt := combatLevel.Finished.GetLogTime(); lvl.EndLevelTime.Before(cmbt) {
+	lvl.EndLevelTime = GetGameLineTime(gameLevel.FinishGameplay)
+	if cmbt := GetCombatLineTime(combatLevel.Finished); lvl.EndLevelTime.Before(cmbt) {
 		lvl.EndLevelTime = cmbt
 	}
 
@@ -138,9 +144,9 @@ func (s *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 	for _, logPlayer := range gameLevel.AddPlayer {
 		player := Player{
 			PlayerID:        logPlayer.PlayerID,
-			SessionPlayerID: logPlayer.SessionPlayerID,
-			Name:            logPlayer.PlayerName,
-			CorpTag:         logPlayer.PlayerCorpTag,
+			SessionPlayerID: logPlayer.InGamePlayerID,
+			Name:            logPlayer.Name,
+			CorpTag:         logPlayer.ClanTag,
 			TeamID:          logPlayer.TeamID,
 		}
 		teamMap := playerTeamsMap[logPlayer.TeamID]
@@ -206,12 +212,12 @@ type Level struct {
 // TODO make timeline func for level
 
 type GameLogLevel struct {
-	Lines []game.LogLine
+	Lines []gramma.GameLine
 
-	StartGameplay  *game.Connected
-	AddPlayer      []*game.AddPlayer
-	LeavePlayer    []*game.PlayerLeave
-	FinishGameplay *game.ConnectionClosed
+	StartGameplay  *gramma.ClientConnected
+	AddPlayer      []*gramma.ClientAddPlayer
+	LeavePlayer    []*gramma.ClientPlayerLeave
+	FinishGameplay *gramma.ClientConnectionClosed
 }
 
 func (g *GameLogLevel) IsEmpty() bool {
@@ -219,25 +225,69 @@ func (g *GameLogLevel) IsEmpty() bool {
 }
 
 type CombatLogLevel struct {
-	Lines []combat.LogLine
+	Lines []gramma.CombatLine
 
-	Connect  *combat.ConnectToGameSession
-	Start    *combat.StartGameplay
-	Damage   []*combat.Damage
-	Heal     []*combat.Heal
-	Kill     []*combat.Kill
-	Finished *combat.FinishedGameplay
+	Connect  *gramma.ConnectToGameSession
+	Start    *gramma.Start
+	Damage   []*gramma.Damage
+	Heal     []*gramma.Heal
+	Kill     []*gramma.Kill
+	Finished *gramma.Finished
+}
+
+func GetGameLineTime(line gramma.GameLine) time.Time {
+	if line == nil {
+		return time.Time{}
+	}
+	switch line := line.(type) {
+	case gramma.ClientAddPlayer:
+		return line.Time
+	case gramma.ClientPlayerLeave:
+		return line.Time
+	case gramma.ClientConnected:
+		return line.Time
+	case gramma.ClientConnectionClosed:
+		return line.Time
+	default:
+		return time.Time{}
+	}
+}
+
+func GetCombatLineTime(line gramma.CombatLine) time.Time {
+	if line == nil {
+		return time.Time{}
+	}
+	switch line := line.(type) {
+	case gramma.ConnectToGameSession:
+		return line.Time
+	case gramma.Start:
+		return line.Time
+	case gramma.Finished:
+		return line.Time
+	case gramma.Reward:
+		return line.Time
+	case gramma.Damage:
+		return line.Time
+	case gramma.Heal:
+		return line.Time
+	case gramma.Kill:
+		return line.Time
+	case gramma.Participant:
+		return line.Time
+	default:
+		return time.Time{}
+	}
 }
 
 func (g *CombatLogLevel) String() string {
 	if len(g.Lines) == 0 {
-		return "empty combat level"
+		return "empty gramma level"
 	}
 
 	var sb strings.Builder
 
-	sb.WriteString("combat level: ")
-	fmt.Fprintf(&sb, "time: %s ", g.Lines[0].GetLogTime())
+	sb.WriteString("gramma level: ")
+	fmt.Fprintf(&sb, "time: %s ", GetCombatLineTime(g.Lines[0]))
 	fmt.Fprintf(&sb, "lines: %d ", len(g.Lines))
 	if g.Connect != nil {
 		fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
@@ -256,16 +306,28 @@ func (g *CombatLogLevel) IsEmpty() bool {
 	return len(g.Lines) == 0 || (g.Connect == nil && g.Start == nil && g.Finished == nil)
 }
 
-func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []game.LogLine) (res []*GameLogLevel) {
+const (
+	ConnectionClosedReasonGameFinished          = "DR_CLIENT_GAME_FINISHED"
+	ConnectionClosedReasonClientCouldNotConnect = "DR_CLIENT_COULD_NOT_CONNECT"
+	ConnectionClosedReasonQuit                  = "DR_CLIENT_QUIT"
+	ConnectionClosedReasonServerTransfer        = "DR_CLIENT_SERVER_TRANSFER"
+	ConnectionClosedReasonDockSpaceStation      = "DR_CLIENT_DOCK_SPACE_STATION"
+	ConnectionClosedReasonReturnSpaceStation    = "DR_CLIENT_RETURN_SPACE_STATION"
+)
+
+func (s *Splitter) GetGameLogLevels(ctx context.Context, lines iter.Seq[parser.LogLine]) (res []*GameLogLevel, errors []error) {
 	ctx, span := s.tr.Start(ctx, "GetGameLogLevels")
 	defer span.End()
 
 	currLevel := new(GameLogLevel)
-
-	for _, line := range lines {
-		currLevel.Lines = append(currLevel.Lines, line)
-		switch line := line.(type) {
-		case *game.Connected:
+	lines(func(line parser.LogLine) bool {
+		if line.Err != nil {
+			errors = append(errors, line.Err)
+			return true
+		}
+		currLevel.Lines = append(currLevel.Lines, line.Data.Game)
+		switch line := line.Data.Game.(type) {
+		case *gramma.ClientConnected:
 			if currLevel.StartGameplay != nil {
 				s.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line,
 					"start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
@@ -273,67 +335,72 @@ func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []game.LogLine) (
 				currLevel = new(GameLogLevel)
 			}
 			currLevel.StartGameplay = line
-		case *game.AddPlayer:
+		case *gramma.ClientAddPlayer:
 			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
-		case *game.ConnectionClosed:
+		case *gramma.ClientConnectionClosed:
 			currLevel.FinishGameplay = line
-			if line.CloseReason == game.ConnectionClosedReasonClientCouldNotConnect {
+			if line.Reason == ConnectionClosedReasonClientCouldNotConnect {
 				s.lg.For(ctx).Infow("detected could not connect log", "line", line)
 				currLevel = new(GameLogLevel)
-				continue
+				return true
 			}
 			res = append(res, currLevel)
 			currLevel = new(GameLogLevel)
-		case *game.PlayerLeave:
+		case *gramma.ClientPlayerLeave:
 			currLevel.LeavePlayer = append(currLevel.LeavePlayer, line)
 		}
-	}
+		return true
+	})
 
 	if !currLevel.IsEmpty() {
 		res = append(res, currLevel)
 	}
 
 	s.lg.For(ctx).Infow("got game log levels", "count", len(res))
-	return res
+	return res, errors
 }
 
-func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []combat.LogLine) (res []*CombatLogLevel) {
+func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines iter.Seq[parser.LogLine]) (res []*CombatLogLevel, errors []error) {
 	ctx, span := s.tr.Start(ctx, "GetCombatLogLevels")
 	defer span.End()
 
 	currLevel := new(CombatLogLevel)
-
-	for _, line := range lines {
-		currLevel.Lines = append(currLevel.Lines, line)
-		switch line := line.(type) {
-		case *combat.ConnectToGameSession:
+	lines(func(line parser.LogLine) bool {
+		if line.Err != nil {
+			errors = append(errors, line.Err)
+			return true
+		}
+		currLevel.Lines = append(currLevel.Lines, line.Data.Combat)
+		switch line := line.Data.Combat.(type) {
+		case *gramma.ConnectToGameSession:
 			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Connect = line
-		case *combat.StartGameplay:
+		case *gramma.Start:
 			if currLevel.Start != nil {
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
 			currLevel.Start = line
-		case *combat.Damage:
+		case *gramma.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)
-		case *combat.Heal:
+		case *gramma.Heal:
 			currLevel.Heal = append(currLevel.Heal, line)
-		case *combat.Kill:
+		case *gramma.Kill:
 			currLevel.Kill = append(currLevel.Kill, line)
-		case *combat.FinishedGameplay:
+		case *gramma.Finished:
 			currLevel.Finished = line
 		}
-	}
+		return true
+	})
 
 	if !currLevel.IsEmpty() {
 		s.lg.For(ctx).Debugw("level", "level", currLevel.String())
 		res = append(res, currLevel)
 	}
 
-	s.lg.For(ctx).Infow("got combat log levels", "count", len(res))
-	return res
+	s.lg.For(ctx).Infow("got gramma log levels", "count", len(res))
+	return res, errors
 }

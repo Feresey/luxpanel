@@ -58,14 +58,12 @@ func (e state) Error() string {
 	return e.String()
 }
 
-type Tokenizer struct {
+type tokenizer struct {
 	nowTime time.Time
 	tokens []Token
 	errors []error
 	state
 }
-
-
 
 %%{
 	action setCombat {
@@ -81,7 +79,7 @@ type Tokenizer struct {
 	action setInt {
 		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.Atoi: %w", parseErr))
+			t.err(ParseTokenError{TokType: INT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			fbreak;
 		}
 		t.tokval(IntTok(temp.Int))
@@ -89,7 +87,7 @@ type Tokenizer struct {
 	action setFloat {
 		parsed, parseErr := strconv.ParseFloat(t.data[t.prev:t.p], 32)
 		if parseErr != nil {
-			t.err(fmt.Errorf("strconv.ParseFloat: %w", parseErr))
+			t.err(ParseTokenError{TokType: FLOAT, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.ParseFloat: %w", parseErr)})
 			fbreak;
 		}
 		t.tokval(FloatTok(parsed))
@@ -97,13 +95,15 @@ type Tokenizer struct {
 	action setTime {
 		temp.Time, parseErr = t.parseTime(t.data[t.prev:t.p])
 		if parseErr != nil {
-			t.err(fmt.Errorf("parseTime: %w", parseErr))
+			t.err(ParseTokenError{TokType: TIME, Raw: t.data[t.prev:t.p], Err: fmt.Errorf("parseTime: %w", parseErr)})
 			fbreak;
 		}
 		t.tokval(TimeTok(temp.Time))
 	}
 	action start {
-		fmt.Printf("start: %s\n", t.state)
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
 		t.prev = t.p
 	}
 
@@ -114,8 +114,8 @@ type Tokenizer struct {
 	action sym { t.tok(int(t.data[t.p]))}
 
 	Time = (digit {2} ':' digit {2} ':' digit {2} '.' digit {3}) >start %setTime;
-	Combat = ('CMBT   |') >start @{ t.tok(COMBAT) };
-	Game = ('GAME   |') >start @{ t.tok(GAME) };
+	Combat = ('CMBT' space+ '|') >start @{ t.tok(COMBAT) };
+	Game = (space+ '|') >start @{ t.tok(GAME) };
 
 
 	Damage = ('Damage') >start @{ t.tok(DAMAGE) };
@@ -131,7 +131,7 @@ type Tokenizer struct {
 	String = (string | value) >start %setString;
 	Strings = string (' ' string)* >start %setString;
 	Source = (
-				string 
+				string
 					>start %{t.tokval(NewAnyVal(SOURCE, StrTok(t.data[t.prev:t.p])))}
 				|
 				('(' string
@@ -145,17 +145,19 @@ type Tokenizer struct {
 	EOL = '\n' %{t.tok(EOL)};
 
 	Object = (String | (String '(' >sym String ')' >sym)) '|' >sym Int;
+	Arrow = '->' @{t.tok(ARROW)};
 	Killer = (String | (String '\t' >sym String)) '|' >sym Int;
 	DamageModifiers = DamageModifier ('|' >sym DamageModifier);
 	FriendlyFire = '<FriendlyFire>' @{t.tok(FRIENDLY_FIRE)};
+	Rocket = 'Rocket' >{t.tok(ROCKET)} space+ Int;
 	ParticipationModifier = '<' ('buff'|'debuff'|'heal') >start %{t.tokval(StrTok(t.data[t.prev:t.p]))} '>';
 	ParticipationModifiers = ParticipationModifier (' ' ParticipationModifier)*;
 
 	damageLine = Damage
-		space+ Object ' -> ' Object ' '
-		Float ' (h:' Float ' s:' Float ') ' Source? ' ' DamageModifiers (' ' FriendlyFire)?;
+		space+ Object space+ Arrow space+ Object space+
+		Float space+ '(h:' Float space+ 's:' Float ')' space+ Source? space+ DamageModifiers (space+ FriendlyFire)? (space+ Rocket)?;
 	healLine = Heal
-		' '+ Object ' ->' ' '+ Object ' ' Float Source?;
+		' '+ Object space+ Arrow space+ Object ' ' Float Source?;
 	killLine = Kill space Object ';' space+ 'killer ' String '|' Int ' ' String (' ' FriendlyFire)?;
 	participationLine = Participant ' '+ String '\t ' String? ' '* '\t' ' '? (
 		'totalDamage ' Float '; mostDamageWith ' "'" Source "';" ' '?
@@ -204,11 +206,10 @@ type Tokenizer struct {
 				clientConnectionClosed
 			)
 		)
-	)
-		' '* EOL;
+	);
 }%%
 
-func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
+func (t *tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 	var parseErr error
 	var temp yySymType
 
@@ -225,25 +226,27 @@ func (t *Tokenizer) Parse(nowTime time.Time, data string) ([]Token, error) {
 
 	%%write exec;
 
-	fmt.Printf("exited: %s\n", t.state)
+	if debugTokenizer {
+		fmt.Printf("exited: %s\n", t.state)
+	}
 	if t.p != t.pe {
-		t.err(fmt.Errorf("line is not finished: %s|||||%s", t.data[:t.p], t.data[t.p:t.pe]))
+		t.err(fmt.Errorf("%w: %q %q", ErrLineIsNotFinished, t.data[:t.p], t.data[t.p:t.pe]))
 	}
 	return t.tokens, errors.Join(t.errors...)
 }
 
-func (t *Tokenizer) parseTime(s string) (time.Time, error) {
+func (t *tokenizer) parseTime(s string) (time.Time, error) {
 	return ParseTime(t.nowTime, s)
 }
 
-func (t *Tokenizer) tokval(token Token) {
+func (t *tokenizer) tokval(token Token) {
 	t.tokens = append(t.tokens, token)
 }
 
-func (t *Tokenizer) tok(tok int) {
-	t.tokens = append(t.tokens, AnyTok(tok))
+func (t *tokenizer) tok(tok int) {
+	t.tokens = append(t.tokens, VoidTok(tok))
 }
 
-func (t *Tokenizer) err(err error) {
+func (t *tokenizer) err(err error) {
 	t.errors = append(t.errors, err)
 }

@@ -18,12 +18,14 @@ type (
 %}
 
 %union {
+	// Common
 	String;
 	Strings;
 	Int;
 	Float;
 	Bool;
 	Time;
+	// Combat log
 	Damage;
 	DamageModifiersMap;
 	Object;
@@ -33,16 +35,24 @@ type (
 	BuffDebuff;
 	ConnectToGameSession;
 	Start;
-	CombatLine;
 	Finished;
 	Reward;
+	CombatLine;
+	// Game log
+	ClientAddPlayer;
+	ClientPlayerLeave;
+	ClientConnected;
+	ClientConnectionClosed;
+	GameLine;
+	// Result
+	LogLine;
 }
 
 // MAIN TOKENS
 
 %left COMBAT
 %left GAME
-%right EOL
+%right
 %token ARROW
 
 // BASIC TYPES
@@ -57,17 +67,22 @@ type (
 
 // Common
 %type <Strings> strings
+
+// COMBAT
+
 %type <Object> object
 %type <Object> player_or_object
-%type <Bool> friendly_fire
 
 // Damage
 %left DAMAGE
 %token<String> DAMAGE_MODIFIER
+%token ROCKET
 
 %type <Damage> damage
 %type <Damage> damage_line
 %type <DamageModifiersMap> damage_modifiers
+%type <Bool> friendly_fire
+%type <Int> rocket
 
 // Heal
 %left HEAL
@@ -117,84 +132,158 @@ type (
 %type <Reward> reward
 %type <Reward> reward_line
 
+
+// GAME
+
+// Add player
+%token CLIENT_ADD_PLAYER
+
+%type <Int> group
+%type <ClientAddPlayer> add_player_line
+%type <ClientAddPlayer> add_player
+
+// Remove player
+%token CLIENT_PLAYER_LEAVE
+
+%type <ClientPlayerLeave> player_leave_line
+%type <ClientPlayerLeave> player_leave
+
+// Client connected
+%token CLIENT_CONNECTED
+
+%type <ClientConnected> client_connected_line
+%type <ClientConnected> client_connected
+
+// Client connection closed
+%token CLIENT_CONNECTION_CLOSED
+
+%type <ClientConnectionClosed> client_connection_closed_line
+%type <ClientConnectionClosed> client_connection_closed
+
 // RESULT
 
-%type <CombatLine> action
+%type <LogLine> action
 
-// TODO
-%token CLIENT_ADD_PLAYER CLIENT_PLAYER_LEAVE CLIENT_CONNECTED CLIENT_CONNECTION_CLOSED
+%type <CombatLine> combat_line
+%type <GameLine> game_line
 
 %%
 
 main: action {
-	yylex.(*Lexer).res = $1
+	yylex.(*lexer).res = $1
 }
 
-action:
+
+action: combat_line {
+		$$.Combat = $1
+	} |
+	game_line {
+		$$.Game = $1
+	}
+
+combat_line:
 	damage_line {
-		$$.Damage = &$1
+		$$ = &$1
 	} |
 	heal_line {
-		$$.Heal = &$1
+		$$ = &$1
 	} |
 	kill_line {
-		$$.Kill = &$1
+		$$ = &$1
 	} |
 	participation_line {
-		$$.Participant = &$1
+		$$ = &$1
 	} |
 	start_line {
-		$$.Start = &$1
+		$$ = &$1
 	} |
 	finished_line {
-		$$.Finished = &$1
+		$$ = &$1
 	} |
 	reward_line {
-		$$.Reward = &$1
+		$$ = &$1
 	} |
 	connect_to_game_session_line {
-		$$.ConnectToGameSession = &$1
-	} | EOL {}
+		$$ = &$1
+	}
+
+game_line:
+	add_player_line {
+		$$ = &$1
+	} |
+	player_leave_line {
+		$$ = &$1
+	} |
+	client_connected_line {
+		$$ = &$1
+	} |
+	client_connection_closed_line {
+		$$ = &$1
+	} | TIME GAME $unk {}
 
 // LINES
 
-damage_line: TIME COMBAT DAMAGE damage EOL {
+// COMBAT
+
+damage_line: TIME COMBAT DAMAGE damage {
 	$$ = $4
 	$$.Time = $1
 }
 
-heal_line: TIME COMBAT HEAL heal EOL {
+heal_line: TIME COMBAT HEAL heal {
 	$$ = $4
 	$$.Time = $1
 }
 
-kill_line: TIME COMBAT KILL kill EOL {
+kill_line: TIME COMBAT KILL kill {
 	$$ = $4
 	$$.Time = $1
 }
 
-participation_line: TIME COMBAT PARTICIPANT participation EOL {
+participation_line: TIME COMBAT PARTICIPANT participation {
 	$$ = $4
 	$$.Time = $1
 }
 
-connect_to_game_session_line: TIME COMBAT connect_to_game_session EOL {
+connect_to_game_session_line: TIME COMBAT connect_to_game_session {
 	$$ = $3
 	$$.Time = $1
 }
 
-start_line: TIME COMBAT START start EOL {
+start_line: TIME COMBAT START start {
 	$$ = $4
 	$$.Time = $1
 }
 
-finished_line: TIME COMBAT GAMEPLAY_FINISHED finished EOL {
+finished_line: TIME COMBAT GAMEPLAY_FINISHED finished {
 	$$ = $4
 	$$.Time = $1
 }
 
-reward_line: TIME COMBAT REWARD reward EOL {
+reward_line: TIME COMBAT REWARD reward {
 
+}
+
+// GAME
+
+add_player_line: TIME GAME add_player {
+    $$ = $3
+    $$.Time = $1
+}
+
+player_leave_line: TIME GAME player_leave {
+    $$ = $3
+    $$.Time = $1
+}
+
+client_connected_line: TIME GAME client_connected {
+    $$ = $3
+    $$.Time = $1
+}
+
+client_connection_closed_line: TIME GAME client_connection_closed {
+    $$ = $3
+    $$.Time = $1
 }
 
 // CONTENTS
@@ -221,6 +310,8 @@ object: STRING '|' INT {
 
 friendly_fire: FRIENDLY_FIRE { $$ = true } | /* empty */ {};
 
+rocket: ROCKET INT { $$ = $2 } | /* empty */ {};
+
 // Damage
 
 // 21:41:15.644  CMBT   | Damage         aSpectro|0000002757 ->          Nafalar|0000002677 117.55 (h:0.00 s:117.55) Weapon_KineticStkBomb_T5_Epic KINETIC|PRIMARY_WEAPON|CRIT  
@@ -229,7 +320,8 @@ damage:
 	FLOAT FLOAT FLOAT
 	SOURCE
 	damage_modifiers
-	friendly_fire {
+	friendly_fire
+	rocket {
 	$$ = Damage{
 		Initiator: $1,
 		Recipient: $2,
@@ -239,6 +331,7 @@ damage:
 		Source: $6,
 		DamageModifiers: $7,
 		FriendlyFire: $8,
+		Rocket: $9,
 	}
 }
 
@@ -355,6 +448,45 @@ finished: INT '(' STRING ')' FINISH_REASON '\'' strings '\'' ACTUAL_GAME_TIME FL
 // 19:33:35.728  CMBT   | Reward          Feresey Ship_Race3_M_T2_Pirate          	 136 experience                for damage Py6Jl
 reward: STRING STRING '\t' INT STRING strings STRING {
 
+}
+
+// Add player
+
+group: INT { $$ = $1 } | /* empy */ {}
+
+// 19:42:11.984         | client: ADD_PLAYER 11 (idanceandkillyou [], 435146) status 6 team 1 group 5212334
+add_player: CLIENT_ADD_PLAYER INT STRING STRING INT INT INT group {
+	$$ = ClientAddPlayer{
+		InGamePlayerID: $2,
+		Name: $3,
+		ClanTag: $4,
+		PlayerID: $5,
+		Status: $6,
+		TeamID: $7,
+		GroupID: $8,
+	}
+}
+
+// 21:44:21.601         | client: player 3 leave game
+player_leave: CLIENT_PLAYER_LEAVE INT {
+	$$ = ClientPlayerLeave{
+		InGamePlayerID: $2,
+	}
+}
+
+// 21:46:40.862         | client: connected to 23.111.211.207|35020, MTU 1492. setting up session...
+client_connected: CLIENT_CONNECTED STRING INT {
+	$$ = ClientConnected{
+		ServerAddr: $2,
+		MTU: $3,
+	}
+}
+
+// 21:51:50.272         | client: connection closed. DR_CLIENT_GAME_FINISHED
+client_connection_closed: CLIENT_CONNECTION_CLOSED STRING {
+	$$ = ClientConnectionClosed{
+		Reason: $2,
+	}
 }
 
 %%
