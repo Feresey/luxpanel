@@ -1,0 +1,12 @@
+19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======
+19:42:11.695  CMBT   | ======= Connect to game session 50419668 =======
+19:54:42.532  CMBT   | ======= Connect to game session 50419726 =======
+20:08:20.358  CMBT   | ======= Connect to game session 50419805 =======
+20:21:00.637  CMBT   | ======= Connect to game session 50419872 =======
+20:33:34.772  CMBT   | ======= Connect to game session 50419926 =======
+20:48:27.110  CMBT   | ======= Connect to game session 50419994 =======
+21:08:43.867  CMBT   | ======= Connect to game session 50420076 =======
+21:21:15.528  CMBT   | ======= Connect to game session 50420132 =======
+21:32:07.981  CMBT   | ======= Connect to game session 50420182 =======
+21:39:36.890  CMBT   | ======= Connect to game session 50420220 =======
+21:46:40.822  CMBT   | ======= Connect to game session 50420257 =======

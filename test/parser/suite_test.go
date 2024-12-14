@@ -6,7 +6,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
+	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/mytrace"
 	"github.com/Feresey/luxpanel/internal/parser"

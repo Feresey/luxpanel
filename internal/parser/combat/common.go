@@ -15,13 +15,11 @@ type CombatLineType string
 func (s CombatLineType) String() string { return string(s) }
 
 const (
-	ApplyAuraLineType            = "ApplyAura"
 	ConnectToGameSessionLineType = "ConnectToGameSession"
 	DamageLineType               = "Damage"
 	FinishedGameplayLineType     = "FinishedGameplay"
 	HealLineType                 = "Heal"
 	KillLineType                 = "Kill"
-	RewardLineType               = "Reward"
 	StartGameplayLineType        = "StartGameplay"
 )
 
@@ -35,8 +33,6 @@ var errWrongLineFormat = errors.New("Combat: wrong format")
 
 func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool, err error) {
 	switch {
-	case shortReApplyAura.MatchString(raw):
-		line = &ApplyAura{}
 	case shortReConnectToGameSession.MatchString(raw):
 		line = &ConnectToGameSession{}
 	case shortReDamage.MatchString(raw):
@@ -47,8 +43,6 @@ func ParseLogLine(raw string, now time.Time) (line LogLine, matchedToRegexp bool
 		line = &Heal{}
 	case shortReKill.MatchString(raw):
 		line = &Kill{}
-	case shortReReward.MatchString(raw):
-		line = &Reward{}
 	case shortReStartGameplay.MatchString(raw):
 		line = &StartGameplay{}
 	default:

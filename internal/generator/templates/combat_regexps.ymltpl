@@ -5,7 +5,7 @@
 {{- $kill := printf "%s%s" $cmbt `\s+Killed\s+`}}
 {{- $reward := printf "%s%s" $cmbt `\s+Reward\s+`}}
 {{- $applyAura := printf "%s%s" $cmbt `\s+Apply aura\s+`}}
-{{- $name := `[a-zA-Z][a-zA-Z0-9_/-]*`}}
+{{- $name := `[a-zA-Z0-9][a-zA-Z0-9_/-]*`}}
 {{- $id := `-?\d+`}}
 {{- $float := `-?\d+\.\d+`}}
 {{- $int := `\d+`}}
@@ -13,7 +13,7 @@
 regexps:
 - name: connectToGameSession
   full: >-
-    (?s){{$cmbt}} ======= Connect to game session {{wrap "SessionID" `\d+`}} =======\s*$
+    (?s){{$cmbt}} ======= Connect to game session {{wrap "SessionID" `\d+`}}.* =======\s*$
   short: >-
     Connect to game session
 - name: startGameplay
@@ -72,14 +72,14 @@ Actual game time\s+{{wrap "GameTime" $float}}\s+sec\s*$
   full: >-
     (?s){{$reward}}
 {{- wrap "Recipient" $name}}(\s{{wrap "Ship" $name}})?\s*\t\s*
-{{- wrap "Reward" $int}}\s+{{wrap "RewardType" "((experience)|(credits)|(effective points))"}}\s+{{"" -}}
+{{- wrap "Reward" $int}}\s+{{wrap "RewardType" "((experience)|(credits)|(effective points)|(karma))"}}\s+{{"" -}}
 for\s{{wrap "Reason" ".+"}}\s*$
   short: >-
     {{$reward}}
-- name: apply_aura
+{{/* - name: apply_aura
   full: >-
     (?s){{$applyAura}}'
 {{- wrap "AuraName" $name}}'\s+id\s+{{wrap "AuraID" $int}}\s+type\s+
 {{- wrap "AuraType" "[A-Z0-9_]+"}}\s+to\s+'({{wrap "Recipient" $name}}|{{wrap "ObjectName" $name}}\({{wrap "ObjectOwner" $name}}\))'\s*$
   short: >-
-    {{$applyAura}}
+    {{$applyAura}} */}}

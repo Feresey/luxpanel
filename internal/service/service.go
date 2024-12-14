@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/maps"
 
-	"github.com/Feresey/luxpanel/cmd/luxpanel/config"
+	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
@@ -22,7 +22,7 @@ import (
 )
 
 type Service struct {
-	cfg      *config.Config
+	cfg      *config.ServiceConfig
 	lg       logger.Factory
 	tr       trace.Tracer
 	splitter *splitter.Splitter
@@ -30,7 +30,7 @@ type Service struct {
 }
 
 func NewService(
-	cfg *config.Config,
+	cfg *config.ServiceConfig,
 	lg logger.Factory,
 	tr trace.TracerProvider,
 	splitter *splitter.Splitter,

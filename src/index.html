@@ -12,23 +12,14 @@
 <body>
     <div class="header">
         <div class="buttons">
-            <button>Button 1</button>
-            <button>Button 2</button>
-            <button>Button 3</button>
-            <button>Button 4</button>
-            <button>Button 5</button>
-        </div>
-    </div>
-    <div class="content">
-        <div class="graphs">
-            <div class="graph">
-                <canvas id="pieChart1"></canvas>
-            </div>
-            <div class="graph">
-                <canvas id="pieChart2"></canvas>
+            <div class="upload-button">
+                <input type="file"
+                       id="pick_logs" hidden multiple webkitdirectory/>
+                <label for="pick_logs" multiple webkitdirectory>Pick logs</label>
             </div>
         </div>
-    </div>
+        <div class="content">
+        </div>
 </body>
 
 </html>
