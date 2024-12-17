@@ -1,9 +1,6 @@
 package parser_test
 
 import (
-	"context"
-	"errors"
-	"syscall"
 	"testing"
 
 	"github.com/Feresey/luxpanel/config"
@@ -23,7 +20,6 @@ type Suite struct {
 
 	app *fxtest.App
 
-	cfg      config.Config
 	splitter *splitter.Splitter
 }
 
@@ -35,13 +31,11 @@ func (s *Suite) SetupSuite() {
 	logConfig := zap.NewDevelopmentConfig()
 	logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
-	s.cfg = config.Config{}
-
 	s.app = fxtest.New(
 		s.T(),
 		fx.NopLogger,
 		fx.Supply(
-			s.cfg,
+			&config.TraceConfig{Enabled: false},
 			logConfig,
 		),
 		fx.Provide(
@@ -59,7 +53,5 @@ func (s *Suite) SetupSuite() {
 }
 
 func (s *Suite) TearDownSuite() {
-	if stopErr := s.app.Stop(context.Background()); stopErr != nil && !errors.Is(stopErr, syscall.ENOTTY) {
-		// s.NoError(stopErr)
-	}
+	s.app.RequireStop()
 }

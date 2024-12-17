@@ -116,21 +116,21 @@ type DetailedDamage struct {
 // FilterPlayerDamage суммирует урон игрока по указанным модификаторам
 func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage, *DetailedDamage] {
 	return func(line *combat.Damage) (res *DetailedDamage, ok bool) {
-		if filter.InitiatorName != "" && line.Initiator != filter.InitiatorName {
+		if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
 			return res, false
 		}
-		if filter.RecipientName != "" && line.Recipient != filter.RecipientName {
+		if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
 			return res, false
 		}
 
 		if filter.DamageToObject {
-			if line.ObjectName == "" {
+			if line.Recipient.ObjectName == "" {
 				return res, false
 			}
-			if filter.RecipientName != "" && filter.RecipientName != line.Recipient {
+			if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
 				return res, false
 			}
-			if filter.RecipientName != line.ObjectOwner {
+			if filter.RecipientName != line.Recipient.ObjectOwner {
 				return res, false
 			}
 		}
@@ -140,17 +140,20 @@ func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage,
 		}
 
 		if filter.DamageModifiers != nil {
-			for wantModifier, exists := range filter.DamageModifiers {
-				if _, ok := line.DamageModifiers[wantModifier]; ok != exists {
-					return res, false
+			for _, modifier := range line.DamageModifiers {
+				if want, exists := filter.DamageModifiers[modifier]; exists {
+					if !want {
+						return res, false
+					}
 				}
+
 			}
 		}
 
-		res = &DetailedDamage{Source: line.ActionSource, Object: line.ObjectName}
+		res = &DetailedDamage{Source: line.Source, Object: line.Recipient.ObjectName}
 		switch filter.DamageType {
 		case DamageTypeTotal:
-			res.Damage = line.DamageTotal
+			res.Damage = line.DamageFull
 		case DamageTypeHull:
 			res.Damage = line.DamageHull
 		case DamageTypeShield:

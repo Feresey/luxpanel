@@ -38,7 +38,7 @@ func NewFactory(cfg FxConfig) (lf Factory, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("build logger: %w", err)
 	}
-	cfg.LC.Append(fx.StopHook(lg.Sync))
+	cfg.LC.Append(fx.StopHook(func() { _ = lg.Sync() }))
 
 	ozlog := otelzap.New(lg,
 		otelzap.WithCaller(false),

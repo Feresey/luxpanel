@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"iter"
 	"regexp"
 	"time"
 
 	"github.com/Feresey/luxpanel/internal/logger"
-	"github.com/Feresey/luxpanel/internal/parser/gramma"
+	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/game"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -32,65 +32,61 @@ type Parser struct {
 	tr trace.Tracer
 }
 
-type LogLine struct {
+func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]LogLine[game.LogLine], error) {
+	parser := game.NewParser()
+	return parseLogFile(r, parser.Parse)
+}
+
+func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]LogLine[combat.LogLine], error) {
+	parser := combat.NewParser()
+	return parseLogFile(r, parser.Parse)
+}
+
+type LogLine[T any] struct {
 	Num  int
 	Raw  string
-	Data *gramma.LogLine
+	Data T
 	Err  error
 }
 
-func (p *Parser) ParseLogFile(ctx context.Context, r io.Reader) (iter.Seq[LogLine], error) {
-	ctx, trace := p.tr.Start(ctx, "ParseLogFile")
-	defer trace.End()
-
+func parseLogFile[T any](r io.Reader, parseLine func(time.Time, string) (T, error)) (res []LogLine[T], err error) {
 	rd := bufio.NewReader(r)
-	logTime, err := p.getLogTime(ctx, rd)
+	logTime, err := getLogTime(rd)
 	if err != nil {
 		return nil, fmt.Errorf("getLogTime: %w", err)
 	}
 
-	return func(yield func(LogLine) bool) {
-		gp := gramma.NewParser()
+	// time parse offset
+	for counter := 3; ; counter++ {
+		rawLineBytes, isPrefix, err := rd.ReadLine()
+		rawLine := string(rawLineBytes)
 
-		for counter := 0; ; counter++ {
-			rawLineBytes, isPrefix, err := rd.ReadLine()
-			rawLine := string(rawLineBytes)
-
-			next := LogLine{
-				Num: counter,
-				Raw: rawLine,
-			}
-			if err != nil {
-				if errors.Is(err, io.EOF) {
-					p.lf.For(ctx).Debugw("EOF", "total_lines", counter)
-					return
-				}
-
-				next.Err = fmt.Errorf("read log: %w", err)
-
-				if !yield(next) {
-					return
-				}
-			}
-			if isPrefix {
-				p.lf.For(ctx).Warnw("very long line. possible log corruption", "line", rawLine)
-				next.Err = fmt.Errorf("very long line detected: %s", rawLine)
-				if !yield(next) {
-					return
-				}
-			}
-
-			line, err := gp.Parse(logTime, string(rawLine))
-			next.Data = line
-			if err != nil {
-				next.Err = fmt.Errorf("gramma.Parse: %w", err)
-			}
-
-			if !yield(next) {
-				return
-			}
+		next := LogLine[T]{
+			Num: counter,
+			Raw: rawLine,
 		}
-	}, nil
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return res, nil
+			}
+
+			next.Err = fmt.Errorf("read log: %w", err)
+			res = append(res, next)
+			continue
+		}
+		if isPrefix {
+			next.Err = fmt.Errorf("very long line detected at %d: %s", counter, rawLine)
+			res = append(res, next)
+		}
+
+		line, err := parseLine(logTime, string(rawLine))
+		next.Data = line
+		if err != nil {
+			next.Err = fmt.Errorf("gramma.Parse: %w", err)
+		}
+
+		res = append(res, next)
+	}
 }
 
 var firstLogLineRe = regexp.MustCompile(`--- Date: (\d\d\d\d-\d\d-\d\d)`)
@@ -100,10 +96,7 @@ const (
 	firstLineReTotal
 )
 
-func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, error) {
-	ctx, span := p.tr.Start(ctx, "getLogTime")
-	defer span.End()
-
+func getLogTime(rd *bufio.Reader) (time.Time, error) {
 	rawLine, isPrefix, err := rd.ReadLine()
 	if err != nil {
 		return time.Time{}, fmt.Errorf("read line: %w", err)
@@ -125,6 +118,5 @@ func (p *Parser) getLogTime(ctx context.Context, rd *bufio.Reader) (time.Time, e
 		return time.Time{}, fmt.Errorf("parse time: %s: %w", rawLine, err)
 	}
 
-	p.lf.For(ctx).Debugw("got log time", "log_time", res)
 	return res, nil
 }

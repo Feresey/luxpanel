@@ -2,7 +2,7 @@ package parser_test
 
 import (
 	_ "embed"
-	"fmt"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -30,68 +30,78 @@ var (
 	applyAuraRaw string
 )
 
-func TestCombatConnectUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.ConnectToGameSession
-		wantError bool
-	}{
-		{
-			name: "ok",
-			raw:  "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
-			want: combat.ConnectToGameSession{
-				LogTime:   time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.Local),
-				SessionID: 50419619,
-			},
-		},
-		{
-			name:      "cutted",
-			raw:       "19:32:58.666  CMBT   | ======= Connect to game session 50419619",
-			wantError: true,
-		},
-		{
-			name:      "empty",
-			raw:       "",
-			wantError: true,
-		},
-		{
-			name:      "wrong time",
-			raw:       "19:32:58.66  CMBT   | ======= Connect to game session 50419619 =======",
-			wantError: true,
-		},
-	}
+type testData[Out any] struct {
+	name      string
+	input     string
+	want      Out
+	wantError bool
+}
+
+func runTests[Out any](t *testing.T, tests []testData[Out], rawTests string, runFunc func(*testing.T, string) (Out, error)) {
+	t.Helper()
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Helper()
 			r := require.New(t)
 
-			var val combat.ConnectToGameSession
-			err := val.Unmarshal(tt.raw, now)
+			got, err := runFunc(t, tt.input)
 			if tt.wantError {
-				r.Error(err)
+				raw, _ := json.Marshal(got)
+				r.Error(err, "res: %s, err: %v", raw, err)
 				return
-			} else {
-				r.NoError(err)
 			}
-			r.Equal(tt.want, val)
+			r.NoError(err)
+			r.Equal(tt.want, got)
 		})
 	}
 
 	t.Run("raw", func(t *testing.T) {
 		r := require.New(t)
-		lines := strings.Split(connectRaw, "\n")
+		lines := strings.Split(rawTests, "\n")
 
 		for _, line := range lines {
 			if line == "" {
 				return
 			}
-			var val combat.ConnectToGameSession
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
+			res, err := runFunc(t, line)
+			r.NoError(err)
+			r.NotEmpty(res)
 		}
+	})
+}
+
+func TestCombatConnect(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
+		{
+			name:  "ok",
+			input: "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
+			want: &combat.ConnectToGameSession{
+				Time:      combat.Time(time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.UTC)),
+				SessionID: 50419619,
+			},
+		},
+		{
+			name:      "cutted",
+			input:     "19:32:58.666  CMBT   | ======= Connect to game session 50419619",
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			input:     "",
+			wantError: false,
+		},
+		{
+			name:      "wrong time",
+			input:     "19:32:58.66  CMBT   | ======= Connect to game session 50419619 =======",
+			wantError: true,
+		},
+	}
+
+	p := combat.NewParser()
+	runTests(t, tests, connectRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
@@ -99,447 +109,318 @@ func New[T any](val T) *T {
 	return &val
 }
 
-func TestCombatStartGameplayUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.StartGameplay
-		wantError bool
-	}{
+func TestCombatStartGameplay(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "pve",
-			raw:  `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
-			want: combat.StartGameplay{
-				LogTime:      time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.Local),
-				GameMode:     "pve_raid_waterharvest_t5",
-				MapName:      "pve_raid_waterharvest",
-				ClientTeamID: nil,
+			name:  "pve",
+			input: `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
+			want: &combat.Start{
+				Time:              combat.Time(time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.UTC)),
+				What:              "PVE mission",
+				GameMode:          "pve_raid_waterharvest_t5",
+				MapName:           "pve_raid_waterharvest",
+				LocalClientTeamID: 0,
 			},
 		},
 		{
-			name: "pvp",
-			raw:  `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
-			want: combat.StartGameplay{
-				LogTime:      time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.Local),
-				GameMode:     "CaptureTheBase",
-				MapName:      "s1420_ceres3_asteroidcity",
-				ClientTeamID: New(1),
+			name:  "pvp",
+			input: `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
+			want: &combat.Start{
+				Time:              combat.Time(time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.UTC)),
+				What:              "gameplay",
+				GameMode:          "CaptureTheBase",
+				MapName:           "s1420_ceres3_asteroidcity",
+				LocalClientTeamID: 1,
 			},
 		},
 		{
 			name:      "cutted",
-			raw:       "19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest'",
+			input:     "19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid",
 			wantError: true,
 		},
 		{
 			name:      "empty",
-			raw:       "",
-			wantError: true,
+			input:     "",
+			wantError: false,
 		},
 		{
 			name:      "wrong time",
-			raw:       `19:42:14.60  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
+			input:     `19:42:14.60  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
 			wantError: true,
 		},
 	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.StartGameplay
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err)
-				return
-			} else {
-				r.NoError(err)
-			}
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(startRaw, "\n")
-
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.StartGameplay
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
-		}
+	p := combat.NewParser()
+	runTests(t, tests, startRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
+
 }
 
-func TestCombatDamageUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.Damage
-		wantError bool
-	}{
+func TestCombatDamage(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "ok",
-			raw:  `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel EMP`,
-			want: combat.Damage{
-				LogTime:      time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.Local),
-				Initiator:    "Gladiator",
-				InitiatorID:  3117,
-				Recipient:    "YanFei",
-				RecipientID:  167786,
-				DamageTotal:  73.78,
+			name:  "ok",
+			input: `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel EMP`,
+			want: &combat.Damage{
+				Time: combat.Time(time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.UTC)),
+				Initiator: combat.Object{
+					Name:     "Gladiator",
+					ObjectID: 3117,
+				},
+				Recipient: combat.Object{
+					Name:     "YanFei",
+					ObjectID: 167786,
+				},
+				DamageFull:   73.78,
 				DamageHull:   0,
 				DamageShield: 73.78,
-				ActionSource: "Weapon_PlasmaBursts_T5_Rel",
-				DamageModifiers: combat.DamageModifiersMap{
-					"EMP": {},
+				Source:       "Weapon_PlasmaBursts_T5_Rel",
+				DamageModifiers: combat.DamageModifiers{
+					"EMP",
 				},
 			},
 		},
 		{
-			name: "no action",
-			raw:  `19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC`,
-			want: combat.Damage{
-				LogTime:      time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.Local),
-				Initiator:    "Megabomb_RW_BlackHole",
-				InitiatorID:  155,
-				Recipient:    "tuman",
-				RecipientID:  824,
-				DamageTotal:  0,
+			name:  "no action",
+			input: `19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC`,
+			want: &combat.Damage{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.UTC)),
+				Initiator: combat.Object{
+					Name:     "Megabomb_RW_BlackHole",
+					ObjectID: 155,
+				},
+				Recipient: combat.Object{
+					Name:     "tuman",
+					ObjectID: 824,
+				},
+				DamageFull:   0,
 				DamageHull:   0,
 				DamageShield: 0,
-				ActionSource: "",
-				DamageModifiers: combat.DamageModifiersMap{
-					"KINETIC": {},
+				Source:       "",
+				DamageModifiers: combat.DamageModifiers{
+					"KINETIC",
 				},
 			},
 		},
 		{
-			name: "crash",
-			raw:  `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
-			want: combat.Damage{
-				LogTime:      time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.Local),
-				Initiator:    "Py6Jl",
-				InitiatorID:  395,
-				Recipient:    "Py6Jl",
-				RecipientID:  395,
-				DamageTotal:  0,
+			name:  "crash",
+			input: `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
+			want: &combat.Damage{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.UTC)),
+				Initiator: combat.Object{
+					Name:     "Py6Jl",
+					ObjectID: 395,
+				},
+				Recipient: combat.Object{
+					Name:     "Py6Jl",
+					ObjectID: 395,
+				},
+				DamageFull:   0,
 				DamageHull:   0,
 				DamageShield: 0,
-				ActionSource: "Weapon_OrbGun_T5_Epic",
+				Source:       "Weapon_OrbGun_T5_Epic",
 				FriendlyFire: true,
-				DamageModifiers: combat.DamageModifiersMap{
-					"EMP": {}, "PRIMARY_WEAPON": {}, "EXPLOSION": {},
+				DamageModifiers: combat.DamageModifiers{
+					"EMP", "PRIMARY_WEAPON", "EXPLOSION",
 				},
 			},
 		},
 
 		{
 			name:      "cutted",
-			raw:       `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel`,
+			input:     `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel`,
 			wantError: true,
 		},
 		{
 			name:      "empty",
-			raw:       "",
-			wantError: true,
+			input:     "",
+			wantError: false,
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.Damage
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err)
-				return
-			} else {
-				r.NoError(err)
-			}
-
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(damageRaw, "\n")
-
-		modifiers := make(map[combat.DamageModifier]int)
-		for _, line := range lines {
-			if line == "" {
-				break
-			}
-			var val combat.Damage
-			err := val.Unmarshal(line, now)
-			r.NoError(err)
-
-			for m := range val.DamageModifiers {
-				modifiers[m]++
-			}
-		}
-
-		fmt.Printf("%+#v\n", modifiers)
+	p := combat.NewParser()
+	runTests(t, tests, damageRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
-func TestCombatHealUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.Heal
-		wantError bool
-	}{
+func TestCombatHeal(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "ok",
-			raw:  `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic`,
-			want: combat.Heal{
-				LogTime:      time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.Local),
-				Initiator:    "Feresey",
-				InitiatorID:  204,
-				Recipient:    "Feresey",
-				RecipientID:  204,
-				Heal:         244,
-				ActionSource: "Module_Lynx2Shield_T4_Epic",
+			name:  "ok",
+			input: `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic`,
+			want: &combat.Heal{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.UTC)),
+				Initiator: combat.Object{
+					Name:     "Feresey",
+					ObjectID: 204,
+				},
+				Recipient: combat.Object{
+					Name:     "Feresey",
+					ObjectID: 204,
+				},
+				Heal:   244,
+				Source: "Module_Lynx2Shield_T4_Epic",
 			},
 		},
 
 		{
 			name:      "cutted",
-			raw:       `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00`,
+			input:     `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00`,
 			wantError: true,
 		},
 		{
 			name:      "empty",
-			raw:       "",
-			wantError: true,
+			input:     "",
+			wantError: false,
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.Heal
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err)
-				return
-			} else {
-				r.NoError(err)
-			}
-
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(healRaw, "\n")
-
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.Heal
-			err := val.Unmarshal(line, now)
-			r.NoError(err)
-		}
+	p := combat.NewParser()
+	runTests(t, tests, healRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
-func TestCombatKillUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.Kill
-		wantError bool
-	}{
+func TestCombatKill(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "player",
-			raw:  `19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
-			want: combat.Kill{
-				LogTime:       time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.Local),
-				Initiator:     "Feresey",
-				InitiatorID:   204,
-				RecipientName: "Py6Jl",
-				RecipientShip: "Ship_Race3_M_T2_Pirate",
-				RecipientID:   248,
-				ActionSource:  "Weapon_Plasmagun_Heavy_T5_Pirate",
+			name:  "player",
+			input: `19:33:59.527  CMBT   | Killed Py6Jl	Ship_Race3_M_T2_Pirate|0000000248;	killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
+			want: &combat.Kill{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.UTC)),
+				Killer: combat.Object{
+					Name:     "Feresey",
+					ObjectID: 204,
+				},
+				Killed: combat.Object{
+					Name: "Py6Jl",
+					PlayerObject: combat.PlayerObject{
+						ObjectName: "Ship_Race3_M_T2_Pirate",
+					},
+					ObjectID: 248,
+				},
+				Source: "Weapon_Plasmagun_Heavy_T5_Pirate",
 			},
 		},
 		{
-			name: "not player",
-			raw:  `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;     killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
-			want: combat.Kill{
-				LogTime:         time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.Local),
-				Initiator:       "Feresey",
-				InitiatorID:     766,
-				RecipientObject: "Alien_Destroyer_Life_02_T5",
-				RecipientID:     1154,
-				ActionSource:    "Weapon_PlasmaWebLaser_T5_Epic",
+			name:  "not player",
+			input: `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;	killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
+			want: &combat.Kill{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.UTC)),
+				Killer: combat.Object{
+					Name:     "Feresey",
+					ObjectID: 766,
+				},
+				Killed: combat.Object{
+					ObjectID: 1154,
+					Name:     "Alien_Destroyer_Life_02_T5",
+				},
+				Source: "Weapon_PlasmaWebLaser_T5_Epic",
 			},
 		},
 		{
-			name: "friendly fire",
-			raw:  `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
-			want: combat.Kill{
-				LogTime:              time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.Local),
-				Initiator:            "Therm0Nuclear",
-				InitiatorID:          39068,
-				RecipientObjectOwner: "Therm0Nuclear",
-				RecipientObjectName:  "HealBot_Armor",
-				RecipientID:          39068,
-				ActionSource:         "(suicide)",
-				FriendlyFire:         true,
+			name:  "friendly fire",
+			input: `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
+			want: &combat.Kill{
+				Time: combat.Time(time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.UTC)),
+				Killer: combat.Object{
+					Name:     "Therm0Nuclear",
+					ObjectID: 39068,
+				},
+				Killed: combat.Object{
+					PlayerObject: combat.PlayerObject{
+						ObjectOwner: "Therm0Nuclear",
+						ObjectName:  "HealBot_Armor",
+					},
+					ObjectID: 39068,
+				},
+				Source:       "(suicide)",
+				FriendlyFire: true,
 			},
 		},
 		{
-			name: "killed object",
-			raw:  `15:55:08.879  CMBT   | Killed SwarmPack3(MADEinHEAVEN)|0000056377;	 killer MADEinHEAVEN|0000056377 (suicide) <FriendlyFire>`,
-			want: combat.Kill{
-				LogTime:              time.Date(2023, 1, 0, 15, 55, 8, 879000000, time.Local),
-				Initiator:            "MADEinHEAVEN",
-				InitiatorID:          56377,
-				RecipientObjectOwner: "MADEinHEAVEN",
-				RecipientObjectName:  "SwarmPack3",
-				RecipientID:          56377,
-				ActionSource:         "(suicide)",
-				FriendlyFire:         true,
+			name:  "killed object",
+			input: `15:55:08.879  CMBT   | Killed SwarmPack3(MADEinHEAVEN)|0000056377;	 killer MADEinHEAVEN|0000056377 (suicide) <FriendlyFire>`,
+			want: &combat.Kill{
+				Time: combat.Time(time.Date(2023, 1, 0, 15, 55, 8, 879000000, time.UTC)),
+				Killer: combat.Object{
+					Name:     "MADEinHEAVEN",
+					ObjectID: 56377,
+				},
+				Killed: combat.Object{
+					ObjectID: 56377,
+					PlayerObject: combat.PlayerObject{
+						ObjectName:  "SwarmPack3",
+						ObjectOwner: "MADEinHEAVEN",
+					},
+				},
+				Source:       "(suicide)",
+				FriendlyFire: true,
 			},
 		},
 		{
 			name:      "cutted",
-			raw:       `19:33:59.527  CMBT   | Killed Py6Jl      Ship_Race3_M_T2_Pirate|0000000248;      killer Feresey|`,
+			input:     `19:33:59.527  CMBT   | Killed Py6Jl	Ship_Race3_M_T2_Pirate|0000000248;	killer Feresey|`,
 			wantError: true,
 		},
 		{
 			name:      "empty",
-			raw:       "",
-			wantError: true,
+			input:     "",
+			wantError: false,
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.Kill
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err)
-				return
-			} else {
-				r.NoError(err)
-			}
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(killRaw, "\n")
-
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.Kill
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
-		}
+	p := combat.NewParser()
+	runTests(t, tests, killRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
-func TestCombatGameFinishedUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.FinishedGameplay
-		wantError bool
-	}{
+func TestCombatGameFinished(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "ok",
-			raw:  `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
-			want: combat.FinishedGameplay{
-				LogTime:      time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.Local),
+			name:  "ok",
+			input: `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
+			want: &combat.Finished{
+				Time:         combat.Time(time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.UTC)),
 				WinnerTeamID: 1,
 				WinReason:    "PVE_MISSION_COMPLETE_ALT_2",
 				FinishReason: "Mission complete",
-				GameTime:     (275 * time.Second) + 900*time.Millisecond,
+				GameTime:     275.9,
 			},
 		},
 		{
 			name:      "cutted",
-			raw:       `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time`,
+			input:     `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time`,
 			wantError: true,
 		},
 		{
 			name:      "empty",
-			raw:       "",
-			wantError: true,
+			input:     "",
+			wantError: false,
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.FinishedGameplay
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err)
-				return
-			} else {
-				r.NoError(err)
-			}
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(finishedRaw, "\n")
-
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.FinishedGameplay
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
-		}
+	p := combat.NewParser()
+	runTests(t, tests, finishedRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
-func TestCombatRewardUnmarshal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-	tests := []struct {
-		name      string
-		raw       string
-		want      combat.Reward
-		wantError bool
-	}{
+func TestCombatReward(t *testing.T) {
+	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+	tests := []testData[combat.LogLine]{
 		{
-			name: "heal",
-			raw:  `19:42:59.796  CMBT   | Reward idanceandkillyou Ship_Race3_L_T5_Faction1        	   1 experience                for heal Feresey`,
-			want: combat.Reward{
-				LogTime:    time.Date(2023, 1, 0, 19, 42, 59, 796000000, time.Local),
+			name:  "heal",
+			input: `19:42:59.796  CMBT   | Reward idanceandkillyou Ship_Race3_L_T5_Faction1        	   1 experience                for heal Feresey`,
+			want: &combat.Reward{
+				Time:       combat.Time(time.Date(2023, 1, 0, 19, 42, 59, 796000000, time.UTC)),
 				Recipient:  "idanceandkillyou",
 				Ship:       "Ship_Race3_L_T5_Faction1",
 				Reward:     1,
@@ -548,10 +429,10 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "kill",
-			raw:  `21:51:39.757  CMBT   | Reward        Gladiator Ship_Race5_H_OVERSEER_Rank15_13 	  46 effective points          for kill Khushal64n6`,
-			want: combat.Reward{
-				LogTime:    time.Date(2023, 1, 0, 21, 51, 39, 757000000, time.Local),
+			name:  "kill",
+			input: `21:51:39.757  CMBT   | Reward        Gladiator Ship_Race5_H_OVERSEER_Rank15_13 	  46 effective points          for kill Khushal64n6`,
+			want: &combat.Reward{
+				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 39, 757000000, time.UTC)),
 				Recipient:  "Gladiator",
 				Ship:       "Ship_Race5_H_OVERSEER_Rank15_13",
 				Reward:     46,
@@ -560,10 +441,10 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "victory",
-			raw:  `21:51:41.115  CMBT   | Reward          Jigolee	722906 credits                   for victory`,
-			want: combat.Reward{
-				LogTime:    time.Date(2023, 1, 0, 21, 51, 41, 115000000, time.Local),
+			name:  "victory",
+			input: `21:51:41.115  CMBT   | Reward          Jigolee	722906 credits                   for victory`,
+			want: &combat.Reward{
+				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 41, 115000000, time.UTC)),
 				Recipient:  "Jigolee",
 				Ship:       "",
 				Reward:     722906,
@@ -573,10 +454,10 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 		},
 
 		{
-			name: "strange kill",
-			raw:  `21:51:31.180  CMBT   | Reward    PomogitePsixy Ship_Race2_M_T5_CraftUniq       	   9 effective points          for damage assist to kill `,
-			want: combat.Reward{
-				LogTime:    time.Date(2023, 1, 0, 21, 51, 31, 180000000, time.Local),
+			name:  "strange kill",
+			input: `21:51:31.180  CMBT   | Reward    PomogitePsixy Ship_Race2_M_T5_CraftUniq       	   9 effective points          for damage assist to kill `,
+			want: &combat.Reward{
+				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 31, 180000000, time.UTC)),
 				Recipient:  "PomogitePsixy",
 				Ship:       "Ship_Race2_M_T5_CraftUniq",
 				Reward:     9,
@@ -585,10 +466,10 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "cutted kill",
-			raw:  `21:51:36.614  CMBT   | Reward      Khushal64n6 Ship_Race3_H_T5_Uniq            	 123 experience                for kill `,
-			want: combat.Reward{
-				LogTime:    time.Date(2023, 1, 0, 21, 51, 36, 614000000, time.Local),
+			name:  "cutted kill",
+			input: `21:51:36.614  CMBT   | Reward      Khushal64n6 Ship_Race3_H_T5_Uniq            	 123 experience                for kill `,
+			want: &combat.Reward{
+				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 36, 614000000, time.UTC)),
 				Recipient:  "Khushal64n6",
 				Ship:       "Ship_Race3_H_T5_Uniq",
 				Reward:     123,
@@ -598,62 +479,35 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			r := require.New(t)
-
-			var val combat.Reward
-			err := val.Unmarshal(tt.raw, now)
-			if tt.wantError {
-				r.Error(err, "line: %s", tt.raw)
-				return
-			} else {
-				r.NoError(err, "line: %s", tt.raw)
-			}
-			r.Equal(tt.want, val)
-		})
-	}
-
-	t.Run("raw", func(t *testing.T) {
-		r := require.New(t)
-		lines := strings.Split(rewardRaw, "\n")
-
-		for _, line := range lines {
-			if line == "" {
-				return
-			}
-			var val combat.Reward
-			err := val.Unmarshal(line, now)
-			r.NoError(err, line)
-		}
+	p := combat.NewParser()
+	runTests(t, tests, rewardRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return p.Parse(now, raw)
 	})
 }
 
-// func TestCombatApplyAuraUnmarshal(t *testing.T) {
-// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.Local)
-// 	tests := []struct {
-// 		name      string
-// 		raw       string
-// 		want      combat.ApplyAura
-// 		wantError bool
-// 	}{
+// func TestCombatApplyAura(t *testing.T) {
+// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
+// 	tests := []testData[combat.LogLine]{
 // 		{
 // 			name: "apply aura",
-// 			raw:  `01:05:47.750  CMBT   | Apply aura 'TestKPMNormalizer_1' id 97 type AURA_RESIST_ALL to 'Taurefinne'`,
-// 			want: combat.ApplyAura{
-// 				LogTime:   time.Date(2023, 1, 0, 1, 5, 47, 750000000, time.Local),
+// 			input:  `01:05:47.750  CMBT   | Apply aura 'TestKPMNormalizer_1' id 97 type AURA_RESIST_ALL to 'Taurefinne'`,
+// 			want:combat.LogLine{
+// 				Time: combat.Time( time.Date(2023, 1, 0, 1, 5, 47, 750000000, time.UTC)),
+// Line: & combat.ApplyAura{
 // 				AuraName:  "TestKPMNormalizer_1",
 // 				AuraID:    97,
 // 				AuraType:  "AURA_RESIST_ALL",
-// 				Recipient: "Taurefinne",
-// 			},
+// 				Recipient: combat.Object{
+// Name:"Taurefinne",
+// 			ObjectID
+// },
 // 		},
 // 		{
 // 			name: "apply aura to object",
-// 			raw:  `23:04:41.679  CMBT   | Apply aura 'Spell_AdvancedHeal_T5_Epic' id 433 type AURA_HEALING_MOD to 'DestrMunition_SectorShield_T5_Mk3(Khushal64n6)'`,
-// 			want: combat.ApplyAura{
-// 				LogTime:     time.Date(2023, 1, 0, 23, 04, 41, 679000000, time.Local),
+// 			input:  `23:04:41.679  CMBT   | Apply aura 'Spell_AdvancedHeal_T5_Epic' id 433 type AURA_HEALING_MOD to 'DestrMunition_SectorShield_T5_Mk3(Khushal64n6)'`,
+// 			want:combat.LogLine{
+// 				Time: combat.Time(   time.Date(2023, 1, 0, 23, 04, 41, 679000000, time.UTC)),
+// Line: & combat.ApplyAura{
 // 				AuraName:    "Spell_AdvancedHeal_T5_Epic",
 // 				AuraID:      433,
 // 				AuraType:    "AURA_HEALING_MOD",
@@ -663,45 +517,18 @@ func TestCombatRewardUnmarshal(t *testing.T) {
 // 		},
 // 		{
 // 			name: "3aсtpeJIucb",
-// 			raw:  `00:39:57.865  CMBT   | Apply aura 'SpawnWarpInvulnerability' id 62 type AURA_INVULNERABILITY to '3acTPeJIuCb'`,
-// 			want: combat.ApplyAura{
-// 				LogTime:   time.Date(2023, 1, 0, 0, 39, 57, 865000000, time.Local),
+// 			input:  `00:39:57.865  CMBT   | Apply aura 'SpawnWarpInvulnerability' id 62 type AURA_INVULNERABILITY to '3acTPeJIuCb'`,
+// 			want:combat.LogLine{
+// 				Time: combat.Time( time.Date(2023, 1, 0, 0, 39, 57, 865000000, time.UTC)),
+// Line: & combat.ApplyAura{
 // 				AuraName:  "SpawnWarpInvulnerability",
 // 				AuraID:    62,
 // 				AuraType:  "AURA_INVULNERABILITY",
-// 				Recipient: "3acTPeJIuCb",
-// 			},
+// 				Recipient: combat.Object{
+// Name:"3acTPeJIuCb",
+// 			ObjectID
+// },
 // 		},
 // 	}
 
-// 	for _, tt := range tests {
-// 		tt := tt
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			r := require.New(t)
-
-// 			var val combat.ApplyAura
-// 			err := val.Unmarshal(tt.raw, now)
-// 			if tt.wantError {
-// 				r.Error(err, "line: %s", tt.raw)
-// 				return
-// 			} else {
-// 				r.NoError(err, "line: %s", tt.raw)
-// 			}
-// 			r.Equal(tt.want, val)
-// 		})
-// 	}
-
-// 	t.Run("raw", func(t *testing.T) {
-// 		r := require.New(t)
-// 		lines := strings.Split(applyAuraRaw, "\n")
-
-// 		for _, line := range lines {
-// 			if line == "" {
-// 				return
-// 			}
-// 			var val combat.ApplyAura
-// 			err := val.Unmarshal(line, now)
-// 			r.NoError(err, line)
-// 		}
-// 	})
 // }

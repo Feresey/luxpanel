@@ -7,8 +7,8 @@ import (
 )
 
 type PlayerKillsFilterConfig struct {
-	InitiatorName string `json:"initiator_name,omitempty"`
-	RecipientName string `json:"recipient_name,omitempty"`
+	Killer        string `json:"initiator_name,omitempty"`
+	Killed        string `json:"recipient_name,omitempty"`
 	DestroyObject bool   `json:"destroy_object,omitempty"`
 	FriendlyFire  bool   `json:"friendly_fire,omitempty"`
 }
@@ -24,17 +24,17 @@ func (f *PlayerKillsFilterConfig) String() string {
 		}
 	}
 
-	if f.InitiatorName != "" {
+	if f.Killer != "" {
 		space()
-		sb.WriteString("initiator: " + f.InitiatorName)
+		sb.WriteString("initiator: " + f.Killer)
 	}
 	if f.FriendlyFire {
 		space()
 		sb.WriteString("friendly_fire: true")
 	}
-	if f.RecipientName != "" {
+	if f.Killed != "" {
 		space()
-		sb.WriteString("recipient: " + f.RecipientName)
+		sb.WriteString("recipient: " + f.Killed)
 	}
 	if f.DestroyObject {
 		space()
@@ -76,25 +76,25 @@ type DetailedKill struct {
 // FilterPlayerKills суммирует урон игрока по указанным модификаторам
 func FilterPlayerKills(filter *PlayerKillsFilterConfig) Filter[*combat.Kill, *DetailedKill] {
 	return func(line *combat.Kill) (res *DetailedKill, ok bool) {
-		if filter.InitiatorName != "" && line.Initiator != filter.InitiatorName {
+		if filter.Killer != "" && line.Killer.Name != filter.Killer {
 			return res, false
 		}
-		if filter.RecipientName != "" && line.RecipientName != filter.RecipientName {
+		if filter.Killed != "" && line.Killed.Name != filter.Killed {
 			return res, false
 		}
 
-		if !filter.DestroyObject && line.RecipientName == "" {
+		if !filter.DestroyObject && line.Killed.ObjectName == "" {
 			return res, false
 		}
 
 		if filter.DestroyObject {
-			if line.RecipientObjectName == "" {
+			if line.Killed.ObjectName == "" {
 				return res, false
 			}
-			if filter.RecipientName != "" && filter.RecipientName != line.RecipientName {
+			if filter.Killed != "" && filter.Killed != line.Killer.Name {
 				return res, false
 			}
-			if filter.RecipientName != line.RecipientObjectOwner {
+			if filter.Killed != line.Killed.ObjectOwner {
 				return res, false
 			}
 		}
@@ -103,7 +103,7 @@ func FilterPlayerKills(filter *PlayerKillsFilterConfig) Filter[*combat.Kill, *De
 			return res, false
 		}
 
-		res = &DetailedKill{Source: line.ActionSource, Target: line.RecipientObjectName}
+		res = &DetailedKill{Source: line.Source, Target: line.Killed.Name}
 		return res, true
 	}
 }

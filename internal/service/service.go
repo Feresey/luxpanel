@@ -17,7 +17,6 @@ import (
 	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
-	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
@@ -97,9 +96,9 @@ func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Le
 		}
 		_, err = fmt.Fprintf(outFile, "\n===FINISH LEVEL=== time: %s, finish_reason: %s, win_reason: %s, winner_team_id: %d\n",
 			level.EndLevelTime,
-			level.CombatLog.Finished.GetFinishReason(),
-			level.CombatLog.Finished.GetWinReason(),
-			level.CombatLog.Finished.GetWinnerTeamID(),
+			level.CombatLog.Finished.FinishReason,
+			level.CombatLog.Finished.WinReason,
+			level.CombatLog.Finished.WinnerTeamID,
 		)
 
 		if err != nil {
@@ -277,38 +276,38 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 	return []*PlayerDamageFilterConfig{
 		copyFilter(DamageModifiersMap{}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageCrit: true,
+			"CRIT": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageExplosion: true,
+			"EXPLOSION": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageTypeEMP: true,
+			"EMP": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageTypeKinetic: true,
+			"KINETIC": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageTypeThermal: true,
+			"THERMAL": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageWeaponPrimary: true,
+			"PRIMARY_WEAPON": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageWeaponPrimary:   false,
-			combat.DamageWeaponSecondary: false,
-			combat.DamageCollision:       false,
-			combat.DamageCrit:            false,
-			combat.DamageIgoreShield:     false,
+			"PRIMARY_WEAPON":   false,
+			"SECONDARY_WEAPON": false,
+			"COLLISION":        false,
+			"CRIT":             false,
+			"IGOREsHIELD":      false,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageIgoreShield: true,
+			"IGNORE_SHIELD": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageCollision: true,
+			"COLLISION": true,
 		}),
 		copyFilter(DamageModifiersMap{
-			combat.DamageModule: true,
+			"MODULE": true,
 		}),
 	}
 }
@@ -424,19 +423,19 @@ func (s *Service) getKillsFilters(ctx context.Context, lvl *splitter.Level) (res
 			}
 
 			res = append(res, []*PlayerKillsFilterConfig{
-				{InitiatorName: player.Name},
-				{InitiatorName: player.Name, FriendlyFire: true},
+				{Killer: player.Name},
+				{Killer: player.Name, FriendlyFire: true},
 			}...)
 			for _, enemy := range enemies {
 				res = append(res, []*PlayerKillsFilterConfig{
 					{
-						InitiatorName: player.Name,
-						RecipientName: enemy.Name,
+						Killer: player.Name,
+						Killed: enemy.Name,
 					},
 					{
-						InitiatorName: player.Name,
-						RecipientName: enemy.Name,
-						FriendlyFire:  true,
+						Killer:       player.Name,
+						Killed:       enemy.Name,
+						FriendlyFire: true,
 					},
 				}...)
 			}

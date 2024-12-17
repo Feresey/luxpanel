@@ -43,7 +43,7 @@ func main() {
 	)
 
 	if err := run(app, svc); err != nil {
-		fmt.Fprintf(os.Stderr, err.Error()+"\n")
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }

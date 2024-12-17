@@ -74,30 +74,30 @@ type DetailedHeal struct {
 // FilterPlayerHeal суммирует урон игрока по указанным модификаторам
 func FilterPlayerHeal(filter *PlayerHealFilterConfig) Filter[*combat.Heal, *DetailedHeal] {
 	return func(line *combat.Heal) (res *DetailedHeal, ok bool) {
-		if filter.InitiatorName != "" && line.Initiator != filter.InitiatorName {
+		if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
 			return res, false
 		}
-		if filter.RecipientName != "" && line.Recipient != filter.RecipientName {
+		if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
 			return res, false
 		}
 
-		if !filter.HealToObject && line.Recipient == "" {
+		if !filter.HealToObject && line.Recipient.Name == "" {
 			return res, false
 		}
 
 		if filter.HealToObject {
-			if line.ObjectName == "" {
+			if line.Recipient.ObjectName == "" {
 				return res, false
 			}
-			if filter.RecipientName != "" && filter.RecipientName != line.Recipient {
+			if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
 				return res, false
 			}
-			if filter.RecipientName != line.ObjectOwner {
+			if filter.RecipientName != line.Recipient.ObjectOwner {
 				return res, false
 			}
 		}
 
-		res = &DetailedHeal{Source: line.ActionSource, Object: line.ObjectName, Heal: line.Heal}
+		res = &DetailedHeal{Source: line.Source, Object: line.Recipient.ObjectName, Heal: line.Heal}
 		return res, true
 	}
 }
