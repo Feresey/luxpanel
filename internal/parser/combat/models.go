@@ -2,17 +2,19 @@ package combat
 
 import (
 	"time"
+
+	"github.com/Feresey/luxpanel/internal/parser/common"
 )
 
-type Time time.Time
+type Time struct{ Time string }
 
-func (Time) combatLine()       {}
-func (c *Time) setTime(t Time) { *c = t }
+func (Time) combatLine()         {}
+func (t *Time) setTime(s string) { t.Time = s }
 
 type LogLine interface {
 	combatLine()
-	setTime(Time)
-	GetTime() time.Time
+	setTime(string)
+	GetTime(time.Time) time.Time
 }
 
 type ConnectToGameSession struct {
@@ -21,11 +23,15 @@ type ConnectToGameSession struct {
 	SessionID int
 }
 
-func (l *ConnectToGameSession) GetTime() time.Time {
+func (l *ConnectToGameSession) IsEmpty() bool {
+	return l.SessionID == 0
+}
+
+func (l *ConnectToGameSession) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
 }
 
 type Start struct {
@@ -37,11 +43,18 @@ type Start struct {
 	LocalClientTeamID int
 }
 
-func (l *Start) GetTime() time.Time {
+func (l *Start) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Start) IsEmpty() bool {
+	if l.What == "" || l.MapName == "" || l.LocalClientTeamID == 0 {
+		return true
+	}
+	return false
 }
 
 type Finished struct {
@@ -53,11 +66,18 @@ type Finished struct {
 	GameTime     float32
 }
 
-func (l *Finished) GetTime() time.Time {
+func (l *Finished) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Finished) IsEmpty() bool {
+	if l.WinnerTeamID == 0 || l.WinReason == "" || l.FinishReason == "" || l.GameTime < 1 {
+		return true
+	}
+	return false
 }
 
 type Reward struct {
@@ -70,11 +90,18 @@ type Reward struct {
 	Reason     string
 }
 
-func (l *Reward) GetTime() time.Time {
+func (l *Reward) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Reward) IsEmpty() bool {
+	if l.Recipient == "" {
+		return true
+	}
+	return false
 }
 
 type Damage struct {
@@ -93,11 +120,18 @@ type Damage struct {
 	Rocket       int
 }
 
-func (l *Damage) GetTime() time.Time {
+func (l *Damage) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Damage) IsEmpty() bool {
+	if l.DamageFull < 0.001 {
+		return true
+	}
+	return false
 }
 
 type Heal struct {
@@ -110,11 +144,18 @@ type Heal struct {
 	Heal float32
 }
 
-func (l *Heal) GetTime() time.Time {
+func (l *Heal) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Heal) IsEmpty() bool {
+	if l.Heal < 0.001 {
+		return true
+	}
+	return false
 }
 
 type Kill struct {
@@ -126,11 +167,18 @@ type Kill struct {
 	FriendlyFire bool
 }
 
-func (l *Kill) GetTime() time.Time {
+func (l *Kill) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Kill) IsEmpty() bool {
+	if l.Killed.ObjectID == 0 {
+		return true
+	}
+	return false
 }
 
 type Participant struct {
@@ -145,11 +193,18 @@ type Participant struct {
 	Modifiers ParticipationModifiers
 }
 
-func (l *Participant) GetTime() time.Time {
+func (l *Participant) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+func (l *Participant) IsEmpty() bool {
+	if l.Name == "" {
+		return true
+	}
+	return false
 }
 
 type ParticipationModifier string

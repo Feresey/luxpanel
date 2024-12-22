@@ -17,6 +17,7 @@ import (
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/common"
 	"github.com/Feresey/luxpanel/internal/parser/game"
 )
 
@@ -36,7 +37,7 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 	ctx, span := s.tr.Start(ctx, "SplitLevels")
 	defer span.End()
 
-	gameLog, combatLog, err := s.parseFiles(ctx, fs)
+	logTime, gameLog, combatLog, err := s.parseFiles(ctx, fs)
 	if err != nil {
 		return nil, fmt.Errorf("parseFiles: %w", err)
 	}
@@ -52,11 +53,11 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 		for i := range mx {
 			if i < len(gameLevels) {
 				gm := gameLevels[i].Result
-				s.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay, "end", gm.FinishGameplay)
+				s.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay.Time, "end", gm.FinishGameplay.Time)
 			}
 			if i < len(combatLevels) {
 				cm := combatLevels[i]
-				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start, "end", cm.Finished)
+				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.Time, "end", cm.Finished.Time)
 			}
 		}
 		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
@@ -74,7 +75,7 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 			cm = combatLevels[i]
 		}
 
-		lvl, err := s.makeLevel(ctx, gm, cm)
+		lvl, err := s.makeLevel(ctx, logTime, gm, cm)
 		if err != nil {
 			return nil, fmt.Errorf("makeLevel: %w", err)
 		}
@@ -86,6 +87,7 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 }
 
 func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
+	logTime time.Time,
 	game []parser.LogLine[game.LogLine],
 	combat []parser.LogLine[combat.LogLine],
 	err error,
@@ -95,30 +97,30 @@ func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
 
 	combatLog, err := fs.Open("combat.log")
 	if err != nil {
-		return nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
+		return logTime, nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
 	}
 	defer combatLog.Close()
 
 	gameLog, err := fs.Open("game.log")
 	if err != nil {
-		return nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
+		return logTime, nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
 	}
 	defer gameLog.Close()
 
-	combatLogLines, err := s.parser.ParseCombatLog(ctx, combatLog)
+	logTime, combatLogLines, err := s.parser.ParseCombatLog(ctx, combatLog)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parser.ParseCombatLog(game): %w", err)
+		return logTime, nil, nil, fmt.Errorf("parser.ParseCombatLog(game): %w", err)
 	}
 
-	gameLogLines, err := s.parser.ParseGameLog(ctx, gameLog)
+	logTime, gameLogLines, err := s.parser.ParseGameLog(ctx, gameLog)
 	if err != nil {
-		return nil, nil, fmt.Errorf("parser.ParseGameLog(game): %w", err)
+		return logTime, nil, nil, fmt.Errorf("parser.ParseGameLog(game): %w", err)
 	}
 
-	return gameLogLines, combatLogLines, nil
+	return logTime, gameLogLines, combatLogLines, nil
 }
 
-func (s *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
+func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
 	ctx, span := s.tr.Start(ctx, "makeLevel")
 	defer span.End()
 
@@ -128,19 +130,19 @@ func (s *Splitter) makeLevel(ctx context.Context, gameLevel *GameLogLevel, comba
 	}
 
 	if gameLevel != nil {
-		lvl.StartLevelTime = gameLevel.StartGameplay.GetTime()
+		lvl.StartLevelTime = gameLevel.StartGameplay.GetTime(logTime)
 	}
 	if combatLevel != nil {
-		if lvl.StartLevelTime.After(combatLevel.Start.GetTime()) {
-			lvl.StartLevelTime = combatLevel.Start.GetTime()
+		if lvl.StartLevelTime.After(combatLevel.Start.GetTime(logTime)) {
+			lvl.StartLevelTime = combatLevel.Start.GetTime(logTime)
 		}
-		if lvl.StartLevelTime.After(combatLevel.Connect.GetTime()) {
-			lvl.StartLevelTime = combatLevel.Connect.GetTime()
+		if lvl.StartLevelTime.After(combatLevel.Connect.GetTime(logTime)) {
+			lvl.StartLevelTime = combatLevel.Connect.GetTime(logTime)
 		}
 	}
-	lvl.EndLevelTime = gameLevel.FinishGameplay.GetTime()
-	if cmbt := combatLevel.Finished; lvl.EndLevelTime.Before(cmbt.GetTime()) {
-		lvl.EndLevelTime = cmbt.GetTime()
+	lvl.EndLevelTime = gameLevel.FinishGameplay.GetTime(logTime)
+	if cmbt := combatLevel.Finished; lvl.EndLevelTime.Before(cmbt.GetTime(logTime)) {
+		lvl.EndLevelTime = cmbt.GetTime(logTime)
 	}
 
 	playerTeamsMap := make(map[int]map[int]Player)
@@ -228,14 +230,15 @@ func (g *GameLogLevel) IsEmpty() bool {
 }
 
 type CombatLogLevel struct {
-	Lines []combat.LogLine
+	logTime time.Time
+	Lines   []combat.LogLine
 
-	Connect  *combat.ConnectToGameSession
-	Start    *combat.Start
+	Connect  combat.ConnectToGameSession
+	Start    combat.Start
 	Damage   []*combat.Damage
 	Heal     []*combat.Heal
 	Kill     []*combat.Kill
-	Finished *combat.Finished
+	Finished combat.Finished
 }
 
 func (g *CombatLogLevel) String() string {
@@ -246,23 +249,17 @@ func (g *CombatLogLevel) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("game level: ")
-	fmt.Fprintf(&sb, "time: %s ", g.Lines[0].GetTime())
+	fmt.Fprintf(&sb, "time: %s ", g.Lines[0].GetTime(g.logTime))
 	fmt.Fprintf(&sb, "lines: %d ", len(g.Lines))
-	if g.Connect != nil {
-		fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
-	}
-	if g.Start != nil {
-		fmt.Fprintf(&sb, "game_mode: %s map_name: %s ", g.Start.GameMode, g.Start.MapName)
-	}
-	if g.Finished != nil {
-		fmt.Fprintf(&sb, "finished: %s reason: %s game_time: %f", g.Finished.FinishReason, g.Finished.WinReason, g.Finished.GameTime)
-	}
+	fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
+	fmt.Fprintf(&sb, "game_mode: %s map_name: %s ", g.Start.GameMode, g.Start.MapName)
+	fmt.Fprintf(&sb, "finished: %s reason: %s game_time: %f", g.Finished.FinishReason, g.Finished.WinReason, g.Finished.GameTime)
 
 	return sb.String()
 }
 
 func (g *CombatLogLevel) IsEmpty() bool {
-	return len(g.Lines) == 0 || (g.Connect == nil && g.Start == nil && g.Finished == nil)
+	return len(g.Lines) == 0 || (g.Connect.IsEmpty() && g.Start.IsEmpty() && g.Finished.IsEmpty())
 }
 
 const (
@@ -294,7 +291,8 @@ func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.LogLine[
 			return next
 		}
 		for _, line := range lines {
-			if line.Err != nil && !errors.Is(line.Err, game.ErrLineIsNotFinished) {
+			var cutErr *common.LineIsNotFinishedError
+			if line.Err != nil && !errors.As(line.Err, &cutErr) {
 				errs = append(errs, line.Err)
 			}
 			if line.Data == nil {
@@ -341,7 +339,8 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLin
 
 	currLevel := new(CombatLogLevel)
 	for _, line := range lines {
-		if line.Err != nil && !errors.Is(line.Err, combat.ErrLineIsNotFinished) {
+		var cutErr *common.LineIsNotFinishedError
+		if line.Err != nil && !errors.As(line.Err, &cutErr) {
 			errs = append(errs, line.Err)
 		}
 		if line.Data == nil {
@@ -350,17 +349,17 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLin
 		currLevel.Lines = append(currLevel.Lines, line.Data)
 		switch line := line.Data.(type) {
 		case *combat.ConnectToGameSession:
-			if currLevel.Connect != nil && currLevel.Connect.SessionID != line.SessionID {
+			if !currLevel.Connect.IsEmpty() && currLevel.Connect.SessionID != line.SessionID {
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
-			currLevel.Connect = line
+			currLevel.Connect = *line
 		case *combat.Start:
-			if currLevel.Start != nil {
+			if !currLevel.Start.IsEmpty() {
 				res = append(res, currLevel)
 				currLevel = new(CombatLogLevel)
 			}
-			currLevel.Start = line
+			currLevel.Start = *line
 		case *combat.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)
 		case *combat.Heal:
@@ -368,7 +367,7 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLin
 		case *combat.Kill:
 			currLevel.Kill = append(currLevel.Kill, line)
 		case *combat.Finished:
-			currLevel.Finished = line
+			currLevel.Finished = *line
 		}
 	}
 

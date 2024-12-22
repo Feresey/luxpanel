@@ -14,8 +14,8 @@ import (
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/common"
 	"github.com/Feresey/luxpanel/internal/parser/game"
-	"go.opentelemetry.io/otel/trace/noop"
 )
 
 //go:embed testdata
@@ -28,17 +28,18 @@ func (s *Suite) TestParseGameLog() {
 	gameLog, err := parserFS.Open("testdata/game.log")
 	r.NoError(err)
 
-	it, err := s.parser.ParseGameLog(ctx, gameLog)
+	_, it, err := s.parser.ParseGameLog(ctx, gameLog)
 	r.NoError(err)
 
 	var res []game.LogLine
 	for _, line := range it {
 		// fmt.Fprintln(os.Stderr, line.Num, line.Raw)
 		if err := line.Err; err != nil {
-			if errors.Is(err, game.ErrLineIsNotFinished) {
+			var lErr common.LineIsNotFinishedError
+			if errors.As(err, &lErr) {
 				continue
 			}
-			var parseErr *game.GrammaError
+			var parseErr *common.GrammaError[game.Token]
 			if errors.As(err, &parseErr) {
 				fmt.Fprintln(os.Stderr, strings.Repeat("=", 150))
 				fmt.Fprintln(os.Stderr, line.Num, line.Raw)
@@ -71,7 +72,7 @@ func (s *Suite) TestParseGameLog() {
 }
 
 func BenchmarkParseGameLog(b *testing.B) {
-	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider())
+	p := parser.NewParser(logger.NewNop())
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -81,7 +82,7 @@ func BenchmarkParseGameLog(b *testing.B) {
 				b.FailNow()
 			}
 
-			res, err := p.ParseGameLog(context.TODO(), gameLog)
+			_, res, err := p.ParseGameLog(context.TODO(), gameLog)
 			if err != nil {
 				b.Errorf("parse: %v", err)
 				b.FailNow()
@@ -100,16 +101,18 @@ func (s *Suite) TestParseCombatLog() {
 	gameLog, err := parserFS.Open("testdata/combat.log")
 	r.NoError(err)
 
-	it, err := s.parser.ParseCombatLog(ctx, gameLog)
+	_, it, err := s.parser.ParseCombatLog(ctx, gameLog)
 	r.NoError(err)
 
 	var res []combat.LogLine
 	for _, line := range it {
 		if err := line.Err; err != nil {
-			if errors.Is(err, combat.ErrLineIsNotFinished) {
+			var lErr common.LineIsNotFinishedError
+			if errors.As(err, &lErr) {
 				continue
 			}
-			var parseErr *combat.GrammaError
+
+			var parseErr *common.GrammaError[combat.Token]
 			if errors.As(err, &parseErr) {
 				fmt.Fprintln(os.Stderr, strings.Repeat("=", 150))
 				fmt.Fprintln(os.Stderr, line.Num, line.Raw)
@@ -155,7 +158,7 @@ func Count[Map ~map[K]int, K comparable](m Map, seq iter.Seq[K]) {
 }
 
 func BenchmarkCombatGameLog(b *testing.B) {
-	p := parser.NewParser(logger.NewNop(), noop.NewTracerProvider())
+	p := parser.NewParser(logger.NewNop())
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
@@ -165,7 +168,7 @@ func BenchmarkCombatGameLog(b *testing.B) {
 				b.FailNow()
 			}
 
-			res, err := p.ParseCombatLog(context.TODO(), gameLog)
+			_, res, err := p.ParseCombatLog(context.TODO(), gameLog)
 			if err != nil {
 				b.Errorf("parse: %v", err)
 				b.FailNow()

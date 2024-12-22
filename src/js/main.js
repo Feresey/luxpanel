@@ -56,3 +56,5 @@ pickLogs.addEventListener('change', function () {
         }
     }
 })
+
+CreateCharts();

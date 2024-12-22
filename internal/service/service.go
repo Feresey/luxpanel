@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/maps"
@@ -118,19 +117,19 @@ func (s *Service) writeTeams(ctx context.Context, lvl *splitter.Level, w io.Writ
 	if len(teamIDs) == 0 {
 		return nil
 	}
-	if watchers, ok := lvl.Teams[0]; ok {
-		if _, err := fmt.Fprintln(w, strings.Repeat(" ", len(watchers))); err != nil {
-			return err
-		}
-		if os.Getenv("SHOW_WATCHERS") != "" {
-			fmt.Fprintln(w, watchers)
-		}
-		teamIDs = teamIDs[1:]
-	} else {
-		if _, err := fmt.Fprintln(w, ""); err != nil {
-			return err
-		}
-	}
+	// if watchers, ok := lvl.Teams[0]; ok {
+	// 	if _, err := fmt.Fprintln(w, strings.Repeat(" ", len(watchers))); err != nil {
+	// 		return err
+	// 	}
+	// 	// if os.Getenv("SHOW_WATCHERS") != "" {
+	// 	fmt.Fprintln(w, watchers)
+	// 	// }
+	// 	teamIDs = teamIDs[1:]
+	// } else {
+	// 	if _, err := fmt.Fprintln(w, ""); err != nil {
+	// 		return err
+	// 	}
+	// }
 	if _, err := fmt.Fprintf(w, "teams: %v\n", teamIDs); err != nil {
 		return err
 	}

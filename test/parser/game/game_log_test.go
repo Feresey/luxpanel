@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/parser/game"
 	"github.com/stretchr/testify/require"
 )
@@ -66,20 +66,19 @@ func runTests[Out any](t *testing.T, tests []testData[Out], rawTests string, run
 }
 
 func TestConnected(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[game.LogLine]{
 		{
 			name:  "ok",
 			input: "21:32:08.064         | client: connected to 185.253.20.243|35008, MTU 1492. setting up session...",
 			want: &game.ClientConnected{
-				Time:       game.Time(time.Date(2023, 1, 0, 21, 32, 8, 64000000, time.UTC)),
+				Time:       game.Time{Time: "21:32:08.064"},
 				ServerAddr: "185.253.20.243|35008",
 				MTU:        1492,
 			},
 		},
 		{
 			name:      "cutted",
-			input:     "21:32:08.064         | client: connected t",
+			input:     "21:32:08.064         | client: connected to",
 			wantError: true,
 		},
 		{
@@ -89,20 +88,19 @@ func TestConnected(t *testing.T) {
 		},
 	}
 
-	p := game.NewParser()
+	parse := parser.NewGameLogParser()
 	runTests(t, tests, connectedRaw, func(t *testing.T, raw string) (game.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestAddPlayer(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[game.LogLine]{
 		{
 			name:  "player on group",
 			input: "21:32:08.505         | client: ADD_PLAYER 0 (Omega33cz [], 3904235) status 6 team 1 group 5212392",
 			want: &game.ClientAddPlayer{
-				Time:           game.Time(time.Date(2023, 1, 0, 21, 32, 8, 505000000, time.UTC)),
+				Time:           game.Time{Time: "21:32:08.505"},
 				InGamePlayerID: 0,
 				Name:           "Omega33cz",
 				ClanTag:        "",
@@ -116,7 +114,7 @@ func TestAddPlayer(t *testing.T) {
 			name:  "player without group",
 			input: "19:32:59.001         | client: ADD_PLAYER 0 (Py6Jl [LuX], 2914804) status 6 team 1",
 			want: &game.ClientAddPlayer{
-				Time:           game.Time(time.Date(2023, 1, 0, 19, 32, 59, 1000000, time.UTC)),
+				Time:           game.Time{Time: "19:32:59.001"},
 				InGamePlayerID: 0,
 				Name:           "Py6Jl",
 				ClanTag:        "LuX",
@@ -129,7 +127,7 @@ func TestAddPlayer(t *testing.T) {
 			name:  "bot",
 			input: "18:10:24.379         | client: ADD_PLAYER 56 (maksprost, 0) status 4 team 1",
 			want: &game.ClientAddPlayer{
-				Time:           game.Time(time.Date(2023, 1, 0, 18, 10, 24, 379000000, time.UTC)),
+				Time:           game.Time{Time: "18:10:24.379"},
 				InGamePlayerID: 56,
 				Name:           "maksprost",
 				ClanTag:        "",
@@ -150,20 +148,19 @@ func TestAddPlayer(t *testing.T) {
 		},
 	}
 
-	p := game.NewParser()
+	parse := parser.NewGameLogParser()
 	runTests(t, tests, addPlayerRaw, func(t *testing.T, raw string) (game.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestFinished(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[game.LogLine]{
 		{
 			name:  "ok",
 			input: "21:37:38.024         | client: connection closed. DR_CLIENT_GAME_FINISHED",
 			want: &game.ClientConnectionClosed{
-				Time:   game.Time(time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.UTC)),
+				Time:   game.Time{Time: "21:37:38.024"},
 				Reason: "DR_CLIENT_GAME_FINISHED",
 			},
 		},
@@ -171,7 +168,7 @@ func TestFinished(t *testing.T) {
 			name:  "connection closed",
 			input: "21:37:38.024         | client: connection closed. DR_CLIENT_COULD_NOT_CONNECT",
 			want: &game.ClientConnectionClosed{
-				Time:   game.Time(time.Date(2023, 1, 0, 21, 37, 38, 24000000, time.UTC)),
+				Time:   game.Time{Time: "21:37:38.024"},
 				Reason: "DR_CLIENT_COULD_NOT_CONNECT",
 			},
 		},
@@ -187,20 +184,19 @@ func TestFinished(t *testing.T) {
 		},
 	}
 
-	p := game.NewParser()
+	parse := parser.NewGameLogParser()
 	runTests(t, tests, connectionClosedRaw, func(t *testing.T, raw string) (game.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestLeave(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[game.LogLine]{
 		{
 			name:  "ok",
 			input: "21:37:37.915         | client: player 12 leave game",
 			want: &game.ClientPlayerLeave{
-				Time:           game.Time(time.Date(2023, 1, 0, 21, 37, 37, 915000000, time.UTC)),
+				Time:           game.Time{Time: "21:37:37.915"},
 				InGamePlayerID: 12,
 			},
 		},
@@ -216,8 +212,8 @@ func TestLeave(t *testing.T) {
 		},
 	}
 
-	p := game.NewParser()
+	parse := parser.NewGameLogParser()
 	runTests(t, tests, leavePlayerRaw, func(t *testing.T, raw string) (game.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }

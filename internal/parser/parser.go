@@ -11,35 +11,73 @@ import (
 
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/parser/common"
 	"github.com/Feresey/luxpanel/internal/parser/game"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var (
-	ErrUndefinedLineType = errors.New("{{$packageNameCamel}}: undefined line type")
-	ErrWrongLineFormat   = errors.New("{{$packageNameCamel}}: wrong format")
+	ErrWrongLineFormat = errors.New("{{$packageNameCamel}}: wrong format")
 )
 
-func NewParser(lf logger.Factory, tr trace.TracerProvider) *Parser {
+func NewParser(lg logger.Factory) *Parser {
 	return &Parser{
-		lf: lf,
-		tr: tr.Tracer("parser"),
+		lg: lg,
 	}
 }
 
 type Parser struct {
-	lf logger.Factory
-	tr trace.Tracer
+	lg logger.Factory
 }
 
-func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) ([]LogLine[game.LogLine], error) {
-	parser := game.NewParser()
-	return parseLogFile(r, parser.Parse)
+var (
+	shortReConnectToGameSession = regexp.MustCompile(`^Connect to game session`)
+	shortReDamage               = regexp.MustCompile(`^Damage`)
+)
+
+func matchPrefix(line string, offset int, wantPrefix string) bool {
+	return len(line) >= offset+len(wantPrefix) && line[offset:offset+len(wantPrefix)] == wantPrefix
 }
 
-func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) ([]LogLine[combat.LogLine], error) {
-	parser := combat.NewParser()
-	return parseLogFile(r, parser.Parse)
+func NewGameLogParser() func(string) (game.LogLine, error) {
+	p := &common.Parser[game.Token, game.LogLine, game.YaccSymType, game.YaccLexer, game.YaccParser]{T: &game.Tokenizer{}, L: &game.Lexer{}, NewGramma: game.YaccNewParser}
+	return func(line string) (game.LogLine, error) {
+		switch {
+		case matchPrefix(line, 23, "client: ADD_PLAYER"):
+		case matchPrefix(line, 23, "client: connected to"):
+		case matchPrefix(line, 23, "client: connection closed"):
+		case matchPrefix(line, 23, "client: player"):
+		default:
+			return nil, nil
+		}
+		return p.Parse(line)
+	}
+}
+
+func NewCombatLogParser() func(string) (combat.LogLine, error) {
+	p := &common.Parser[combat.Token, combat.LogLine, combat.YaccSymType, combat.YaccLexer, combat.YaccParser]{T: &combat.Tokenizer{}, L: &combat.Lexer{}, NewGramma: combat.YaccNewParser}
+	return func(line string) (combat.LogLine, error) {
+		switch {
+		case matchPrefix(line, 23, "======= Connect to game session"):
+		case matchPrefix(line, 23, "Damage"):
+		case matchPrefix(line, 23, "Gameplay"):
+		case matchPrefix(line, 23, "Heal"):
+		case matchPrefix(line, 23, "Killed"):
+		case matchPrefix(line, 26, "Participant"):
+		case matchPrefix(line, 23, "Reward"):
+		case matchPrefix(line, 23, "======= Start"):
+		default:
+			return nil, nil
+		}
+		return p.Parse(line)
+	}
+}
+
+func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) (time.Time, []LogLine[game.LogLine], error) {
+	return parseLogFile(ctx, r, p.lg, NewGameLogParser())
+}
+
+func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) (time.Time, []LogLine[combat.LogLine], error) {
+	return parseLogFile(ctx, r, p.lg, NewCombatLogParser())
 }
 
 type LogLine[T any] struct {
@@ -49,11 +87,17 @@ type LogLine[T any] struct {
 	Err  error
 }
 
-func parseLogFile[T any](r io.Reader, parseLine func(time.Time, string) (T, error)) (res []LogLine[T], err error) {
+func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, parseLine func(string) (T, error)) (logTime time.Time, res []LogLine[T], err error) {
+	startTime := time.Now()
+	lg.For(ctx).Debugw("start parse")
+	defer func() {
+		lg.For(ctx).Debugw("end parse", "total_time", time.Since(startTime))
+	}()
+
 	rd := bufio.NewReader(r)
-	logTime, err := getLogTime(rd)
+	logTime, err = getLogTime(rd)
 	if err != nil {
-		return nil, fmt.Errorf("getLogTime: %w", err)
+		return logTime, nil, fmt.Errorf("getLogTime: %w", err)
 	}
 
 	// time parse offset
@@ -67,7 +111,7 @@ func parseLogFile[T any](r io.Reader, parseLine func(time.Time, string) (T, erro
 		}
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				return res, nil
+				return logTime, res, nil
 			}
 
 			next.Err = fmt.Errorf("read log: %w", err)
@@ -79,7 +123,7 @@ func parseLogFile[T any](r io.Reader, parseLine func(time.Time, string) (T, erro
 			res = append(res, next)
 		}
 
-		line, err := parseLine(logTime, string(rawLine))
+		line, err := parseLine(rawLine)
 		next.Data = line
 		if err != nil {
 			next.Err = fmt.Errorf("gramma.Parse: %w", err)

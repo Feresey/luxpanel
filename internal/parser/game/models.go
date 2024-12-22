@@ -1,17 +1,21 @@
 package game
 
-import "time"
+import (
+	"time"
+
+	"github.com/Feresey/luxpanel/internal/parser/common"
+)
 
 type LogLine interface {
 	gameLine()
-	setTime(Time)
-	GetTime() time.Time
+	setTime(string)
+	GetTime(time.Time) time.Time
 }
 
-type Time time.Time
+type Time struct{ Time string }
 
-func (Time) gameLine()         {}
-func (c *Time) setTime(t Time) { *c = t }
+func (Time) gameLine()           {}
+func (t *Time) setTime(s string) { t.Time = s }
 
 type ClientAddPlayer struct {
 	Time
@@ -25,11 +29,11 @@ type ClientAddPlayer struct {
 	GroupID        int
 }
 
-func (l *ClientAddPlayer) GetTime() time.Time {
+func (l *ClientAddPlayer) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
 }
 
 type ClientPlayerLeave struct {
@@ -38,11 +42,11 @@ type ClientPlayerLeave struct {
 	InGamePlayerID int
 }
 
-func (l *ClientPlayerLeave) GetTime() time.Time {
+func (l *ClientPlayerLeave) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
 }
 
 type ClientConnected struct {
@@ -52,11 +56,11 @@ type ClientConnected struct {
 	MTU        int
 }
 
-func (l *ClientConnected) GetTime() time.Time {
+func (l *ClientConnected) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
 }
 
 type ClientConnectionClosed struct {
@@ -65,9 +69,9 @@ type ClientConnectionClosed struct {
 	Reason String
 }
 
-func (l *ClientConnectionClosed) GetTime() time.Time {
+func (l *ClientConnectionClosed) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}
-	return time.Time(l.Time)
+	return common.ParseTime(logTime, l.Time.Time)
 }

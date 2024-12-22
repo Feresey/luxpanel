@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
-	"time"
 
+	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"github.com/stretchr/testify/require"
 )
@@ -35,6 +35,10 @@ type testData[Out any] struct {
 	input     string
 	want      Out
 	wantError bool
+}
+
+func newParser() func(string) (combat.LogLine, error) {
+	return parser.NewCombatLogParser()
 }
 
 func runTests[Out any](t *testing.T, tests []testData[Out], rawTests string, runFunc func(*testing.T, string) (Out, error)) {
@@ -72,13 +76,12 @@ func runTests[Out any](t *testing.T, tests []testData[Out], rawTests string, run
 }
 
 func TestCombatConnect(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "ok",
 			input: "19:32:58.666  CMBT   | ======= Connect to game session 50419619 =======",
 			want: &combat.ConnectToGameSession{
-				Time:      combat.Time(time.Date(2023, 1, 0, 19, 32, 58, 666000000, time.UTC)),
+				Time:      combat.Time{Time: "19:32:58.666"},
 				SessionID: 50419619,
 			},
 		},
@@ -95,13 +98,13 @@ func TestCombatConnect(t *testing.T) {
 		{
 			name:      "wrong time",
 			input:     "19:32:58.66  CMBT   | ======= Connect to game session 50419619 =======",
-			wantError: true,
+			wantError: false,
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, connectRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
@@ -110,13 +113,12 @@ func New[T any](val T) *T {
 }
 
 func TestCombatStartGameplay(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "pve",
 			input: `19:42:14.670  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
 			want: &combat.Start{
-				Time:              combat.Time(time.Date(2023, 1, 0, 19, 42, 14, 670000000, time.UTC)),
+				Time:              combat.Time{Time: "19:42:14.670"},
 				What:              "PVE mission",
 				GameMode:          "pve_raid_waterharvest_t5",
 				MapName:           "pve_raid_waterharvest",
@@ -127,7 +129,7 @@ func TestCombatStartGameplay(t *testing.T) {
 			name:  "pvp",
 			input: `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
 			want: &combat.Start{
-				Time:              combat.Time(time.Date(2023, 1, 0, 20, 21, 0o2, 744000000, time.UTC)),
+				Time:              combat.Time{Time: "20:21:02.744"},
 				What:              "gameplay",
 				GameMode:          "CaptureTheBase",
 				MapName:           "s1420_ceres3_asteroidcity",
@@ -147,24 +149,23 @@ func TestCombatStartGameplay(t *testing.T) {
 		{
 			name:      "wrong time",
 			input:     `19:42:14.60  CMBT   | ======= Start PVE mission 'pve_raid_waterharvest_t5' map 'pve_raid_waterharvest' =======`,
-			wantError: true,
+			wantError: false,
 		},
 	}
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, startRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 
 }
 
 func TestCombatDamage(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "ok",
 			input: `21:17:13.938  CMBT   | Damage        Gladiator|0000003117 ->           YanFei|0000167786  73.78 (h:0.00 s:73.78) Weapon_PlasmaBursts_T5_Rel EMP`,
 			want: &combat.Damage{
-				Time: combat.Time(time.Date(2023, 1, 0, 21, 17, 13, 938000000, time.UTC)),
+				Time: combat.Time{Time: "21:17:13.938"},
 				Initiator: combat.Object{
 					Name:     "Gladiator",
 					ObjectID: 3117,
@@ -186,7 +187,7 @@ func TestCombatDamage(t *testing.T) {
 			name:  "no action",
 			input: `19:44:04.074  CMBT   | Damage Megabomb_RW_BlackHole|0000000155 ->            tuman|0000000824   0.00 (h:0.00 s:0.00)  KINETIC`,
 			want: &combat.Damage{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 44, 4, 74000000, time.UTC)),
+				Time: combat.Time{Time: "19:44:04.074"},
 				Initiator: combat.Object{
 					Name:     "Megabomb_RW_BlackHole",
 					ObjectID: 155,
@@ -208,7 +209,7 @@ func TestCombatDamage(t *testing.T) {
 			name:  "crash",
 			input: `19:42:53.450  CMBT   | Damage            Py6Jl|0000000395 ->            Py6Jl|0000000395   0.00 (h:0.00 s:0.00) Weapon_OrbGun_T5_Epic EMP|PRIMARY_WEAPON|EXPLOSION <FriendlyFire>`,
 			want: &combat.Damage{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 42, 53, 450000000, time.UTC)),
+				Time: combat.Time{Time: "19:42:53.450"},
 				Initiator: combat.Object{
 					Name:     "Py6Jl",
 					ObjectID: 395,
@@ -240,20 +241,19 @@ func TestCombatDamage(t *testing.T) {
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, damageRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestCombatHeal(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "ok",
 			input: `19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic`,
 			want: &combat.Heal{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 33, 24, 732000000, time.UTC)),
+				Time: combat.Time{Time: "19:33:24.732"},
 				Initiator: combat.Object{
 					Name:     "Feresey",
 					ObjectID: 204,
@@ -279,20 +279,19 @@ func TestCombatHeal(t *testing.T) {
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, healRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestCombatKill(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "player",
 			input: `19:33:59.527  CMBT   | Killed Py6Jl	Ship_Race3_M_T2_Pirate|0000000248;	killer Feresey|0000000204 Weapon_Plasmagun_Heavy_T5_Pirate`,
 			want: &combat.Kill{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 33, 59, 527000000, time.UTC)),
+				Time: combat.Time{Time: "19:33:59.527"},
 				Killer: combat.Object{
 					Name:     "Feresey",
 					ObjectID: 204,
@@ -311,7 +310,7 @@ func TestCombatKill(t *testing.T) {
 			name:  "not player",
 			input: `19:43:01.146  CMBT   | Killed Alien_Destroyer_Life_02_T5|0000001154;	killer Feresey|0000000766 Weapon_PlasmaWebLaser_T5_Epic`,
 			want: &combat.Kill{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 43, 1, 146000000, time.UTC)),
+				Time: combat.Time{Time: "19:43:01.146"},
 				Killer: combat.Object{
 					Name:     "Feresey",
 					ObjectID: 766,
@@ -327,7 +326,7 @@ func TestCombatKill(t *testing.T) {
 			name:  "friendly fire",
 			input: `19:46:16.971  CMBT   | Killed HealBot_Armor(Therm0Nuclear)|0000039068;	 killer Therm0Nuclear|0000039068 (suicide) <FriendlyFire>`,
 			want: &combat.Kill{
-				Time: combat.Time(time.Date(2023, 1, 0, 19, 46, 16, 971000000, time.UTC)),
+				Time: combat.Time{Time: "19:46:16.971"},
 				Killer: combat.Object{
 					Name:     "Therm0Nuclear",
 					ObjectID: 39068,
@@ -347,7 +346,7 @@ func TestCombatKill(t *testing.T) {
 			name:  "killed object",
 			input: `15:55:08.879  CMBT   | Killed SwarmPack3(MADEinHEAVEN)|0000056377;	 killer MADEinHEAVEN|0000056377 (suicide) <FriendlyFire>`,
 			want: &combat.Kill{
-				Time: combat.Time(time.Date(2023, 1, 0, 15, 55, 8, 879000000, time.UTC)),
+				Time: combat.Time{Time: "15:55:08.879"},
 				Killer: combat.Object{
 					Name:     "MADEinHEAVEN",
 					ObjectID: 56377,
@@ -375,20 +374,19 @@ func TestCombatKill(t *testing.T) {
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, killRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestCombatGameFinished(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "ok",
 			input: `19:47:09.448  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE_ALT_2). Finish reason: 'Mission complete'. Actual game time 275.9 sec`,
 			want: &combat.Finished{
-				Time:         combat.Time(time.Date(2023, 1, 0, 19, 47, 9, 448000000, time.UTC)),
+				Time:         combat.Time{Time: "19:47:09.448"},
 				WinnerTeamID: 1,
 				WinReason:    "PVE_MISSION_COMPLETE_ALT_2",
 				FinishReason: "Mission complete",
@@ -407,20 +405,19 @@ func TestCombatGameFinished(t *testing.T) {
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, finishedRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 func TestCombatReward(t *testing.T) {
-	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 	tests := []testData[combat.LogLine]{
 		{
 			name:  "heal",
 			input: `19:42:59.796  CMBT   | Reward idanceandkillyou Ship_Race3_L_T5_Faction1        	   1 experience                for heal Feresey`,
 			want: &combat.Reward{
-				Time:       combat.Time(time.Date(2023, 1, 0, 19, 42, 59, 796000000, time.UTC)),
+				Time:       combat.Time{Time: "19:42:59.796"},
 				Recipient:  "idanceandkillyou",
 				Ship:       "Ship_Race3_L_T5_Faction1",
 				Reward:     1,
@@ -432,7 +429,7 @@ func TestCombatReward(t *testing.T) {
 			name:  "kill",
 			input: `21:51:39.757  CMBT   | Reward        Gladiator Ship_Race5_H_OVERSEER_Rank15_13 	  46 effective points          for kill Khushal64n6`,
 			want: &combat.Reward{
-				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 39, 757000000, time.UTC)),
+				Time:       combat.Time{Time: "21:51:39.757"},
 				Recipient:  "Gladiator",
 				Ship:       "Ship_Race5_H_OVERSEER_Rank15_13",
 				Reward:     46,
@@ -444,7 +441,7 @@ func TestCombatReward(t *testing.T) {
 			name:  "victory",
 			input: `21:51:41.115  CMBT   | Reward          Jigolee	722906 credits                   for victory`,
 			want: &combat.Reward{
-				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 41, 115000000, time.UTC)),
+				Time:       combat.Time{Time: "21:51:41.115"},
 				Recipient:  "Jigolee",
 				Ship:       "",
 				Reward:     722906,
@@ -457,7 +454,7 @@ func TestCombatReward(t *testing.T) {
 			name:  "strange kill",
 			input: `21:51:31.180  CMBT   | Reward    PomogitePsixy Ship_Race2_M_T5_CraftUniq       	   9 effective points          for damage assist to kill `,
 			want: &combat.Reward{
-				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 31, 180000000, time.UTC)),
+				Time:       combat.Time{Time: "21:51:31.180"},
 				Recipient:  "PomogitePsixy",
 				Ship:       "Ship_Race2_M_T5_CraftUniq",
 				Reward:     9,
@@ -469,7 +466,7 @@ func TestCombatReward(t *testing.T) {
 			name:  "cutted kill",
 			input: `21:51:36.614  CMBT   | Reward      Khushal64n6 Ship_Race3_H_T5_Uniq            	 123 experience                for kill `,
 			want: &combat.Reward{
-				Time:       combat.Time(time.Date(2023, 1, 0, 21, 51, 36, 614000000, time.UTC)),
+				Time:       combat.Time{Time: "21:51:36.614"},
 				Recipient:  "Khushal64n6",
 				Ship:       "Ship_Race3_H_T5_Uniq",
 				Reward:     123,
@@ -479,14 +476,13 @@ func TestCombatReward(t *testing.T) {
 		},
 	}
 
-	p := combat.NewParser()
+	parse := newParser()
 	runTests(t, tests, rewardRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
-		return p.Parse(now, raw)
+		return parse(raw)
 	})
 }
 
 // func TestCombatApplyAura(t *testing.T) {
-// 	now := time.Date(2023, time.January, 0, 0, 0, 0, 0, time.UTC)
 // 	tests := []testData[combat.LogLine]{
 // 		{
 // 			name: "apply aura",

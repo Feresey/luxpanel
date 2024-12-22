@@ -3,3 +3,7 @@ node_modules/
 *out*
 testlogs
 testout
+*.test
+*.svg
+luxpanel
+.venv

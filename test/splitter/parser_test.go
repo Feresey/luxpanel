@@ -10,7 +10,27 @@ import (
 //go:embed testdata
 var daysFS embed.FS
 
-func (s *Suite) TestParseGameLog() {
+func (s *Suite) Test() {
+	r := s.Require()
+	ctx := context.Background()
+
+	days, err := daysFS.ReadDir("testdata")
+	r.NoError(err)
+
+	for _, day := range days {
+		if !day.IsDir() {
+			continue
+		}
+		f, err := fs.Sub(daysFS, filepath.Join("testdata", day.Name()))
+		r.NoError(err)
+
+		levels, err := s.splitter.SplitLevels(ctx, f)
+		r.NoError(err, "level: %s", day.Name())
+		r.NotEmpty(levels)
+	}
+}
+
+func (s *Suite) Bench() {
 	r := s.Require()
 	ctx := context.Background()
 
