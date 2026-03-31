@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	// mg contains helpful utility functions, like Deps
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -86,6 +87,7 @@ func GOJS() error {
 }
 
 func Start() error {
+	mg.Deps(GOJS)
 	return sh.RunV("yarn", "start")
 }
 

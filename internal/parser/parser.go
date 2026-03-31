@@ -94,7 +94,7 @@ func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, pa
 		lg.For(ctx).Debugw("end parse", "total_time", time.Since(startTime))
 	}()
 
-	rd := bufio.NewReader(r)
+	rd := bufio.NewReaderSize(r, 1<<20)
 	logTime, err = getLogTime(rd)
 	if err != nil {
 		return logTime, nil, fmt.Errorf("getLogTime: %w", err)

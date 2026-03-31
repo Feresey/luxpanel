@@ -4,12 +4,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"runtime/pprof"
+	"strings"
 	"syscall/js"
-
-	"net/http"
-	_ "net/http/pprof"
 )
 
 func main() {
@@ -27,15 +25,15 @@ func main() {
 		println("processing")
 		if len(args) != 2 {
 			println("exit on error")
-			return fmt.Sprintf("2 arguments required, %d got", len(args))
+			return js.Error{Value: js.ValueOf(fmt.Sprintf("2 arguments required, %d got", len(args)))}
 		}
 		if args[0].Type() != js.TypeString || args[1].Type() != js.TypeString {
 			println("exit on error 2")
-			return fmt.Sprintf("string arguments expected, but got: %s %s", args[0].Type(), args[1].Type())
+			return js.Error{Value: js.ValueOf(fmt.Sprintf("string arguments expected, but got: %s %s", args[0].Type(), args[1].Type()))}
 		}
 		if err := r.LoadFiles(ctx, args[0].String(), args[1].String()); err != nil {
 			println("exit on error 3", err.Error())
-			return fmt.Sprintf("LoadFiles: %v", err)
+			return js.Error{Value: js.ValueOf(fmt.Sprintf("LoadFiles: %v", err))}
 		}
 		println("processed")
 		return nil
@@ -45,11 +43,15 @@ func main() {
 		return len(r.Data.Levels)
 	}))
 
-	if err := http.ListenAndServe(":8888", http.DefaultServeMux); err != nil {
-		if !errors.Is(err, http.ErrServerClosed) {
-			println(err.Error())
+	js.Global().Set("profile", js.FuncOf(func(this js.Value, args []js.Value) any {
+		var buf strings.Builder
+		err := pprof.WriteHeapProfile(&buf)
+		if err != nil {
+			return fmt.Errorf("write profile: %w", err)
 		}
-		println("server stopped")
-	}
+
+		return buf.String()
+	}))
+
 	select {}
 }

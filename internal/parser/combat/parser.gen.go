@@ -1783,12 +1783,12 @@ t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
 tr64:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 56; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st56
 	st56:
@@ -1804,12 +1804,12 @@ tr64:
 tr132:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 57; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st57
 	st57:
@@ -1870,12 +1870,12 @@ tr132:
 tr599:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 522; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st522
 tr442:
@@ -2352,12 +2352,12 @@ tr106:
 tr131:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 96; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st96
 	st96:
@@ -3112,12 +3112,12 @@ tr160:
 tr162:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 146; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st146
 	st146:
@@ -3458,12 +3458,12 @@ tr180:
 tr182:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 161; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st161
 	st161:
@@ -4769,12 +4769,12 @@ tr273:
 tr275:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 244; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st244
 	st244:
@@ -5780,12 +5780,12 @@ tr347:
 tr349:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 312; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st312
 	st312:
@@ -6126,12 +6126,12 @@ tr367:
 tr369:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 327; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st327
 	st327:
@@ -6985,12 +6985,12 @@ tr410:
 tr412:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 360; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
@@ -7233,12 +7233,12 @@ tr427:
 tr429:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 530; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st530
 	st530:
@@ -9019,12 +9019,12 @@ tr542:
 tr544:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 478; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 	goto st478
 	st478:
@@ -10232,12 +10232,12 @@ tr534:
 		case 527:
 //line internal/parser/combat/ext/parser.rl:82
 
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			{( t.p)++;  t.cs = 0; goto _out }
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 

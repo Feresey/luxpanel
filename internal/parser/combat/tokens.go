@@ -21,21 +21,21 @@ type Token interface {
 
 type strTok string
 
-func (s strTok) set(out *YaccSymType) { out.String = string(s) }
+func (s strTok) set(out *YaccSymType) { out.string = string(s) }
 func (strTok) token() int             { return STRING }
 func (s strTok) show() string         { return string(s) }
 func (s strTok) String() string       { return showTok(s) }
 
 type intTok int
 
-func (s intTok) set(out *YaccSymType) { out.Int = Int(s) }
+func (s intTok) set(out *YaccSymType) { out.int = int(s) }
 func (intTok) token() int             { return INT }
 func (s intTok) show() string         { return strconv.Itoa(int(s)) }
 func (s intTok) String() string       { return showTok(s) }
 
 type floatTok float32
 
-func (s floatTok) set(out *YaccSymType) { out.Float = Float(s) }
+func (s floatTok) set(out *YaccSymType) { out.float32 = float32(s) }
 func (floatTok) token() int             { return FLOAT }
 func (s floatTok) show() string         { return strconv.FormatFloat(float64(s), 'f', -1, 32) }
 func (s floatTok) String() string       { return showTok(s) }

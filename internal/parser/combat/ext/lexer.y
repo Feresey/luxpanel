@@ -5,14 +5,6 @@ import (
 	"fmt"
 )
 
-type (
-	Int = int
-	String = string
-	Strings = []string
-	Float = float32
-	Bool = bool
-)
-
 type Lexer struct {
 	line LogLine
 
@@ -53,111 +45,99 @@ func (y *YaccParserImpl) New() *YaccParserImpl {
 %}
 
 %union {
-	// Common
-	String;
-	Strings;
-	Int;
-	Float;
-	Bool;
-	// Combat log
-	*Damage;
-	DamageModifiers;
-	*Object;
-	*Heal;
-	*Kill;
-	*Participant;
+	any;
+	string;
+	int;
+	float32;
+	bool;
 	ParticipationModifiers;
-	*ConnectToGameSession;
-	*Start;
-	*Finished;
-	*Reward;
-	LogLine;
 }
 
 // MAIN TOKENS
 
 // BASIC TYPES
-%token <Int> INT
-%token <String> STRING
-%left <String> TIME
+%token <int> INT
+%token <string> STRING
+%left <string> TIME
 
 // TYPES
 
 %left COMBAT
 %token ARROW
-%token <Float> FLOAT
-%token <String> SOURCE
+%token <float32> FLOAT
+%token <string> SOURCE
 %token FRIENDLY_FIRE
 
 // COMBAT
 
-%type <Object> object
-%type <Object> player_or_object
+%type <any> object
+%type <any> player_or_object
 
 // Damage
 %left DAMAGE
-%token<String> DAMAGE_MODIFIER
+%token<string> DAMAGE_MODIFIER
 %token ROCKET
 
-%type <String> source
-%type <Damage> damage
-%type <DamageModifiers> damage_modifiers
-%type <Bool> friendly_fire
-%type <Int> rocket
+%type <string> source
+%type <any> damage
+%type <any> damage_modifiers
+%type <bool> friendly_fire
+%type <int> rocket
 
 // Heal
 %left HEAL
 
-%type <Heal> heal
+%type <any> heal
 
 // Kill
 %left KILL
 
-%type <Kill> kill
+%type <any> kill
 
 // Participation
 %left PARTICIPANT
-%token <String> PARTICIPATION_MODIFIER
+%token <string> PARTICIPATION_MODIFIER
 %right PARTICIPATION_MODIFIERS_END
 
-%type <String> string
-%type <Participant> participation
-%type <Participant> participation_damage
+%type <string> string
+%type <any> participation
+%type <any> participation_damage
 %type <ParticipationModifiers> participation_modifiers
 
 // Connect to game session
 %left CONNECT_TO_GAME_SESSION_PREFIX
 
-%type <ConnectToGameSession> connect_to_game_session
-%type <Int> local_client_team
+%type <any> connect_to_game_session
+%type <int> local_client_team
 
 // Start
 %left START
 
-%type <Start> start
+%type <any> start
 
 // Finish
 %left GAMEPLAY_FINISHED
 
-%type <Finished> finished
+%type <any> finished
 
 // Reward
 %left REWARD
 
-%type <Reward> reward
-%type <String> ship
+%type <any> reward
+%type <string> ship
 
 // RESULT
 
-%type <LogLine> action
+%type <any> action
 
 %right EOL
 
 %%
 
 main: TIME COMBAT action EOL {
-	$3.setTime($1)
-	Yacclex.(*Lexer).line = $3
+	ll := $3.(LogLine)
+	ll.setTime($1)
+	Yacclex.(*Lexer).line = ll
 }
 
 action:
@@ -225,13 +205,13 @@ damage:
 	friendly_fire
 	rocket {
 	$$ = &Damage{
-		Initiator: *$2,
-		Recipient: *$4,
+		Initiator: *$2.(*Object),
+		Recipient: *$4.(*Object),
 		DamageFull: $5,
 		DamageHull: $6,
 		DamageShield: $7,
 		Source: $8,
-		DamageModifiers: $9,
+		DamageModifiers: $9.([]DamageModifier),
 		FriendlyFire: $10,
 		Rocket: $11,
 	}
@@ -240,7 +220,7 @@ damage:
 damage_modifiers: DAMAGE_MODIFIER {
 	$$ = []DamageModifier{DamageModifier($1)}
 } | damage_modifiers '|' DAMAGE_MODIFIER {
-	$$ = append($$, DamageModifier($3))
+	$$ = append($$.([]DamageModifier), DamageModifier($3))
 }
 
 // Heal
@@ -248,8 +228,8 @@ damage_modifiers: DAMAGE_MODIFIER {
 // 19:33:24.732  CMBT   | Heal            Feresey|0000000204 ->          Feresey|0000000204 244.00 Module_Lynx2Shield_T4_Epic
 heal: HEAL object ARROW object FLOAT SOURCE {
 	$$ = &Heal{
-		Initiator: *$2,
-		Recipient: *$4,
+		Initiator: *$2.(*Object),
+		Recipient: *$4.(*Object),
 		Heal: $5,
 		Source: $6,
 	}
@@ -262,8 +242,8 @@ heal: HEAL object ARROW object FLOAT SOURCE {
 // 19:44:55.746  CMBT   | Killed SwarmPack2(georgeatg)|0000001044;	 killer georgeatg|0000001044 (suicide) <FriendlyFire>
 kill: KILL player_or_object ';' object source friendly_fire {
 	$$ = &Kill{
-		Killed: *$2,
-		Killer: *$4,
+		Killed: *$2.(*Object),
+		Killer: *$4.(*Object),
 		Source: $5,
 		FriendlyFire: $6,
 	}
@@ -273,9 +253,9 @@ player_or_object: STRING '\t' object {
 	$$ = &Object{
 		Name: $1,
 		PlayerObject: PlayerObject{
-			ObjectName: $3.Name,
+			ObjectName: $3.(*Object).Name,
 		},
-		ObjectID: $3.ObjectID,
+		ObjectID: $3.(*Object).ObjectID,
 	}
 } | object {
 	$$ = $1
@@ -302,23 +282,17 @@ participation: PARTICIPANT STRING string participation_damage participation_modi
 	$$ = &Participant{
 		Name: $2,
 		Ship: $3,
-		Damage: $4.Damage,
-		MostDamageWith: $4.MostDamageWith,
+		Damage: $4.([]any)[0].(float32),
+		MostDamageWith: $4.([]any)[1].(string),
 		Modifiers: $5,
 		FriendlyFire: $6,
 	}
 }
 
 participation_damage: FLOAT SOURCE {
-	$$ = &Participant{
-		Damage: $1,
-		MostDamageWith: $2,
-	}
+	$$ = []any{$1, $2}
 } | {
-	$$ = &Participant{
-		Damage: 0,
-		MostDamageWith: "",
-	}
+	$$ = []any{float32(0), ""}
 }
 
 // Start gameplay

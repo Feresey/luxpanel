@@ -6,12 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
 
 	"go.opentelemetry.io/otel/trace"
-	"golang.org/x/exp/maps"
 
 	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
@@ -112,7 +113,7 @@ func (s *Service) writeTeams(ctx context.Context, lvl *splitter.Level, w io.Writ
 	ctx, span := s.tr.Start(ctx, "writeTeams")
 	defer span.End()
 
-	teamIDs := maps.Keys(lvl.Teams)
+	teamIDs := slices.Collect(maps.Keys(lvl.Teams))
 	slices.Sort(teamIDs)
 	if len(teamIDs) == 0 {
 		return nil
@@ -168,17 +169,42 @@ func (s *Service) writeLevelStatistics(ctx context.Context, lvl *splitter.Level,
 	return nil
 }
 
+type Pair[T, V any] struct {
+	First  T
+	Second V
+}
+
+func getFiltersResult[
+	T, V any,
+	F Filter[T, V],
+	R Aggregator[V],
+](
+	filters []F,
+	newResulter func() R,
+	source []T,
+) iter.Seq[Pair[F, R]] {
+	return func(yield func(Pair[F, R]) bool) {
+		for _, filter := range filters {
+			res := newResulter()
+			res.Aggregate(ApplyFilter(source, filter))
+			if !yield(Pair[F, R]{
+				First:  filter,
+				Second: res,
+			}) {
+				return
+			}
+		}
+	}
+}
+
 func (s *Service) writeDamage(ctx context.Context, lvl *splitter.Level, w io.Writer) error {
 	filters := s.getDamageFilters(ctx, lvl)
-	for _, filter := range filters {
-		res := ProcessArray(lvl.CombatLog.Damage, FilterPlayerDamage(filter), SummDamageBySource)
-		if res == nil || len(res.BySource) == 0 {
-			continue
-		}
-
+	for fr := range getFiltersResult(filters, NewDamageResult, lvl.CombatLog.Damage) {
+		res := fr.Second
+		filter := fr.First
 		if len(res.BySource) > 1 {
 			var total float32
-			keys := maps.Keys(res.BySource)
+			keys := slices.Collect(maps.Keys(res.BySource))
 			slices.Sort(keys)
 			for _, key := range keys {
 				total += res.BySource[key].Value
@@ -202,14 +228,15 @@ func (s *Service) writeDamage(ctx context.Context, lvl *splitter.Level, w io.Wri
 func (s *Service) writeHeal(ctx context.Context, lvl *splitter.Level, w io.Writer) error {
 	filters := s.getHealFilters(ctx, lvl)
 	for _, filter := range filters {
-		res := ProcessArray(lvl.CombatLog.Heal, FilterPlayerHeal(filter), SummHealBySource)
+		res := NewHealResult()
+		res.Aggregate(ApplyFilter(lvl.CombatLog.Heal, filter))
 		if res == nil || len(res.BySource) == 0 {
 			continue
 		}
 
 		if len(res.BySource) > 1 {
 			var total float32
-			keys := maps.Keys(res.BySource)
+			keys := slices.Collect(maps.Keys(res.BySource))
 			slices.Sort(keys)
 			for _, key := range keys {
 				total += res.BySource[key].Value
@@ -233,14 +260,15 @@ func (s *Service) writeHeal(ctx context.Context, lvl *splitter.Level, w io.Write
 func (s *Service) writeKills(ctx context.Context, lvl *splitter.Level, w io.Writer) error {
 	filters := s.getKillsFilters(ctx, lvl)
 	for _, filter := range filters {
-		res := ProcessArray(lvl.CombatLog.Kill, FilterPlayerKills(filter), SummKillsBySource)
+		res := NewKillsResult()
+		res.Aggregate(ApplyFilter(lvl.CombatLog.Kill, filter))
 		if res == nil || len(res.BySource) == 0 {
 			continue
 		}
 
 		if len(res.BySource) > 1 {
 			var total int
-			keys := maps.Keys(res.BySource)
+			keys := slices.Collect(maps.Keys(res.BySource))
 			slices.Sort(keys)
 			for _, key := range keys {
 				total += res.BySource[key].Count

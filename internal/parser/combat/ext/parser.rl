@@ -80,12 +80,12 @@ type Tokenizer struct {
 		t.tokval(strTok(t.data[t.prev:t.p]))
 	}
 	action setInt {
-		temp.Int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
 			fbreak;
 		}
-		t.tokval(intTok(temp.Int))
+		t.tokval(intTok(temp.int))
 	}
 	action setFloat {
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)

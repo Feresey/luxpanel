@@ -1,6 +1,7 @@
 package service
 
 import (
+	"iter"
 	"slices"
 	"strconv"
 	"strings"
@@ -86,25 +87,25 @@ type DamageResult struct {
 	ToObject map[string]AggCount[float32]
 }
 
-func SummDamageBySource(res *DamageResult, elem *DetailedDamage) *DamageResult {
-	if res == nil {
-		res = &DamageResult{
-			BySource: make(map[string]AggCount[float32]),
-			ToObject: make(map[string]AggCount[float32]),
-		}
+func NewDamageResult() *DamageResult {
+	return &DamageResult{
+		BySource: make(map[string]AggCount[float32]),
+		ToObject: make(map[string]AggCount[float32]),
 	}
+}
 
-	src := res.BySource[elem.Source]
-	src.Count++
-	src.Value += elem.Damage
-	res.BySource[elem.Source] = src
+func (res *DamageResult) Aggregate(it iter.Seq[*DetailedDamage]) {
+	for elem := range it {
+		src := res.BySource[elem.Source]
+		src.Count++
+		src.Value += elem.Damage
+		res.BySource[elem.Source] = src
 
-	obj := res.ToObject[elem.Object]
-	obj.Count++
-	obj.Value += elem.Damage
-	res.ToObject[elem.Object] = obj
-
-	return res
+		obj := res.ToObject[elem.Object]
+		obj.Count++
+		obj.Value += elem.Damage
+		res.ToObject[elem.Object] = obj
+	}
 }
 
 type DetailedDamage struct {
@@ -114,51 +115,54 @@ type DetailedDamage struct {
 }
 
 // FilterPlayerDamage суммирует урон игрока по указанным модификаторам
-func FilterPlayerDamage(filter *PlayerDamageFilterConfig) Filter[*combat.Damage, *DetailedDamage] {
-	return func(line *combat.Damage) (res *DetailedDamage, ok bool) {
-		if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
-			return res, false
-		}
-		if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
-			return res, false
-		}
-
-		if filter.DamageToObject {
-			if line.Recipient.ObjectName == "" {
-				return res, false
-			}
-			if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
-				return res, false
-			}
-			if filter.RecipientName != line.Recipient.ObjectOwner {
-				return res, false
-			}
-		}
-
-		if filter.FriendlyFire && !line.FriendlyFire {
-			return res, false
-		}
-
-		if filter.DamageModifiers != nil {
-			for _, modifier := range line.DamageModifiers {
-				if want, exists := filter.DamageModifiers[modifier]; exists {
-					if !want {
-						return res, false
-					}
-				}
-
-			}
-		}
-
-		res = &DetailedDamage{Source: line.Source, Object: line.Recipient.ObjectName}
-		switch filter.DamageType {
-		case DamageTypeTotal:
-			res.Damage = line.DamageFull
-		case DamageTypeHull:
-			res.Damage = line.DamageHull
-		case DamageTypeShield:
-			res.Damage = line.DamageShield
-		}
-		return res, true
+func (filter *PlayerDamageFilterConfig) Filter(line *combat.Damage) (res *DetailedDamage, ok bool) {
+	if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
+		return res, false
 	}
+	if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
+		return res, false
+	}
+
+	if filter.DamageToObject {
+		if line.Recipient.ObjectName == "" {
+			return res, false
+		}
+		if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
+			return res, false
+		}
+		if filter.RecipientName != line.Recipient.ObjectOwner {
+			return res, false
+		}
+	}
+
+	if filter.FriendlyFire && !line.FriendlyFire {
+		return res, false
+	}
+
+	if filter.DamageModifiers != nil {
+		for wantModifier, shouldBe := range filter.DamageModifiers {
+			var exists bool
+			for _, modifier := range line.DamageModifiers {
+				if modifier == wantModifier {
+					exists = true
+					break
+				}
+			}
+
+			if exists != shouldBe {
+				return res, false
+			}
+		}
+	}
+
+	res = &DetailedDamage{Source: line.Source, Object: line.Recipient.ObjectName}
+	switch filter.DamageType {
+	case DamageTypeTotal:
+		res.Damage = line.DamageFull
+	case DamageTypeHull:
+		res.Damage = line.DamageHull
+	case DamageTypeShield:
+		res.Damage = line.DamageShield
+	}
+	return res, true
 }

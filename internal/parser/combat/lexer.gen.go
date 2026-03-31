@@ -7,14 +7,6 @@ import (
 	"fmt"
 )
 
-type (
-	Int     = int
-	String  = string
-	Strings = []string
-	Float   = float32
-	Bool    = bool
-)
-
 type Lexer struct {
 	line LogLine
 
@@ -54,25 +46,12 @@ func (y *YaccParserImpl) New() *YaccParserImpl {
 
 type YaccSymType struct {
 	yys int
-	// Common
-	String
-	Strings
-	Int
-	Float
-	Bool
-	// Combat log
-	*Damage
-	DamageModifiers
-	*Object
-	*Heal
-	*Kill
-	*Participant
+	any
+	string
+	int
+	float32
+	bool
 	ParticipationModifiers
-	*ConnectToGameSession
-	*Start
-	*Finished
-	*Reward
-	LogLine
 }
 
 const INT = 57346
@@ -579,163 +558,164 @@ Yaccdefault:
 	case 1:
 		YaccDollar = YaccS[Yaccpt-4 : Yaccpt+1]
 		{
-			YaccDollar[3].LogLine.setTime(YaccDollar[1].String)
-			Yacclex.(*Lexer).line = YaccDollar[3].LogLine
+			ll := YaccDollar[3].any.(LogLine)
+			ll.setTime(YaccDollar[1].string)
+			Yacclex.(*Lexer).line = ll
 		}
 	case 2:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Damage
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 3:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Heal
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 4:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Kill
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 5:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Participant
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 6:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Start
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 7:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Finished
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 8:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].Reward
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 9:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.LogLine = YaccDollar[1].ConnectToGameSession
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 10:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
-			YaccVAL.Object = &Object{
-				Name:     YaccDollar[1].String,
-				ObjectID: YaccDollar[3].Int,
+			YaccVAL.any = &Object{
+				Name:     YaccDollar[1].string,
+				ObjectID: YaccDollar[3].int,
 			}
 		}
 	case 11:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
-			YaccVAL.Object = &Object{
+			YaccVAL.any = &Object{
 				PlayerObject: PlayerObject{
-					ObjectName:  YaccDollar[1].String,
-					ObjectOwner: YaccDollar[3].String,
+					ObjectName:  YaccDollar[1].string,
+					ObjectOwner: YaccDollar[3].string,
 				},
-				ObjectID: YaccDollar[6].Int,
+				ObjectID: YaccDollar[6].int,
 			}
 		}
 	case 12:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.Bool = true
+			YaccVAL.bool = true
 		}
 	case 13:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.Bool = false
+			YaccVAL.bool = false
 		}
 	case 14:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
-			YaccVAL.Int = YaccDollar[2].Int
+			YaccVAL.int = YaccDollar[2].int
 		}
 	case 15:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.Int = 0
+			YaccVAL.int = 0
 		}
 	case 16:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.String = YaccDollar[1].String
+			YaccVAL.string = YaccDollar[1].string
 		}
 	case 17:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.String = ""
+			YaccVAL.string = ""
 		}
 	case 18:
 		YaccDollar = YaccS[Yaccpt-11 : Yaccpt+1]
 		{
-			YaccVAL.Damage = &Damage{
-				Initiator:       *YaccDollar[2].Object,
-				Recipient:       *YaccDollar[4].Object,
-				DamageFull:      YaccDollar[5].Float,
-				DamageHull:      YaccDollar[6].Float,
-				DamageShield:    YaccDollar[7].Float,
-				Source:          YaccDollar[8].String,
-				DamageModifiers: YaccDollar[9].DamageModifiers,
-				FriendlyFire:    YaccDollar[10].Bool,
-				Rocket:          YaccDollar[11].Int,
+			YaccVAL.any = &Damage{
+				Initiator:       *YaccDollar[2].any.(*Object),
+				Recipient:       *YaccDollar[4].any.(*Object),
+				DamageFull:      YaccDollar[5].float32,
+				DamageHull:      YaccDollar[6].float32,
+				DamageShield:    YaccDollar[7].float32,
+				Source:          YaccDollar[8].string,
+				DamageModifiers: YaccDollar[9].any.([]DamageModifier),
+				FriendlyFire:    YaccDollar[10].bool,
+				Rocket:          YaccDollar[11].int,
 			}
 		}
 	case 19:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.DamageModifiers = []DamageModifier{DamageModifier(YaccDollar[1].String)}
+			YaccVAL.any = []DamageModifier{DamageModifier(YaccDollar[1].string)}
 		}
 	case 20:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
-			YaccVAL.DamageModifiers = append(YaccVAL.DamageModifiers, DamageModifier(YaccDollar[3].String))
+			YaccVAL.any = append(YaccVAL.any.([]DamageModifier), DamageModifier(YaccDollar[3].string))
 		}
 	case 21:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
-			YaccVAL.Heal = &Heal{
-				Initiator: *YaccDollar[2].Object,
-				Recipient: *YaccDollar[4].Object,
-				Heal:      YaccDollar[5].Float,
-				Source:    YaccDollar[6].String,
+			YaccVAL.any = &Heal{
+				Initiator: *YaccDollar[2].any.(*Object),
+				Recipient: *YaccDollar[4].any.(*Object),
+				Heal:      YaccDollar[5].float32,
+				Source:    YaccDollar[6].string,
 			}
 		}
 	case 22:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
-			YaccVAL.Kill = &Kill{
-				Killed:       *YaccDollar[2].Object,
-				Killer:       *YaccDollar[4].Object,
-				Source:       YaccDollar[5].String,
-				FriendlyFire: YaccDollar[6].Bool,
+			YaccVAL.any = &Kill{
+				Killed:       *YaccDollar[2].any.(*Object),
+				Killer:       *YaccDollar[4].any.(*Object),
+				Source:       YaccDollar[5].string,
+				FriendlyFire: YaccDollar[6].bool,
 			}
 		}
 	case 23:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
-			YaccVAL.Object = &Object{
-				Name: YaccDollar[1].String,
+			YaccVAL.any = &Object{
+				Name: YaccDollar[1].string,
 				PlayerObject: PlayerObject{
-					ObjectName: YaccDollar[3].Object.Name,
+					ObjectName: YaccDollar[3].any.(*Object).Name,
 				},
-				ObjectID: YaccDollar[3].Object.ObjectID,
+				ObjectID: YaccDollar[3].any.(*Object).ObjectID,
 			}
 		}
 	case 24:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.Object = YaccDollar[1].Object
+			YaccVAL.any = YaccDollar[1].any
 		}
 	case 25:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
-			YaccVAL.ParticipationModifiers = append(YaccDollar[1].ParticipationModifiers, ParticipationModifier(YaccDollar[2].String))
+			YaccVAL.ParticipationModifiers = append(YaccDollar[1].ParticipationModifiers, ParticipationModifier(YaccDollar[2].string))
 		}
 	case 26:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
@@ -750,97 +730,91 @@ Yaccdefault:
 	case 28:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.String = YaccDollar[1].String
+			YaccVAL.string = YaccDollar[1].string
 		}
 	case 29:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.String = ""
+			YaccVAL.string = ""
 		}
 	case 30:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
-			YaccVAL.Participant = &Participant{
-				Name:           YaccDollar[2].String,
-				Ship:           YaccDollar[3].String,
-				Damage:         YaccDollar[4].Participant.Damage,
-				MostDamageWith: YaccDollar[4].Participant.MostDamageWith,
+			YaccVAL.any = &Participant{
+				Name:           YaccDollar[2].string,
+				Ship:           YaccDollar[3].string,
+				Damage:         YaccDollar[4].any.([]any)[0].(float32),
+				MostDamageWith: YaccDollar[4].any.([]any)[1].(string),
 				Modifiers:      YaccDollar[5].ParticipationModifiers,
-				FriendlyFire:   YaccDollar[6].Bool,
+				FriendlyFire:   YaccDollar[6].bool,
 			}
 		}
 	case 31:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
-			YaccVAL.Participant = &Participant{
-				Damage:         YaccDollar[1].Float,
-				MostDamageWith: YaccDollar[2].String,
-			}
+			YaccVAL.any = []any{YaccDollar[1].float32, YaccDollar[2].string}
 		}
 	case 32:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.Participant = &Participant{
-				Damage:         0,
-				MostDamageWith: "",
-			}
+			YaccVAL.any = []any{float32(0), ""}
 		}
 	case 33:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.Int = YaccDollar[1].Int
+			YaccVAL.int = YaccDollar[1].int
 		}
 	case 34:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.Int = 0
+			YaccVAL.int = 0
 		}
 	case 35:
 		YaccDollar = YaccS[Yaccpt-5 : Yaccpt+1]
 		{
-			YaccVAL.Start = &Start{
-				What:              YaccDollar[2].String,
-				GameMode:          YaccDollar[3].String,
-				MapName:           YaccDollar[4].String,
-				LocalClientTeamID: YaccDollar[5].Int,
+			YaccVAL.any = &Start{
+				What:              YaccDollar[2].string,
+				GameMode:          YaccDollar[3].string,
+				MapName:           YaccDollar[4].string,
+				LocalClientTeamID: YaccDollar[5].int,
 			}
 		}
 	case 36:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
-			YaccVAL.ConnectToGameSession = &ConnectToGameSession{
-				SessionID: YaccDollar[2].Int,
+			YaccVAL.any = &ConnectToGameSession{
+				SessionID: YaccDollar[2].int,
 			}
 		}
 	case 37:
 		YaccDollar = YaccS[Yaccpt-5 : Yaccpt+1]
 		{
-			YaccVAL.Finished = &Finished{
-				WinnerTeamID: YaccDollar[2].Int,
-				WinReason:    YaccDollar[3].String,
-				FinishReason: YaccDollar[4].String,
-				GameTime:     YaccDollar[5].Float,
+			YaccVAL.any = &Finished{
+				WinnerTeamID: YaccDollar[2].int,
+				WinReason:    YaccDollar[3].string,
+				FinishReason: YaccDollar[4].string,
+				GameTime:     YaccDollar[5].float32,
 			}
 		}
 	case 38:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
-			YaccVAL.String = YaccDollar[1].String
+			YaccVAL.string = YaccDollar[1].string
 		}
 	case 39:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
-			YaccVAL.String = ""
+			YaccVAL.string = ""
 		}
 	case 40:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
-			YaccVAL.Reward = &Reward{
-				Recipient:  YaccDollar[2].String,
-				Ship:       YaccDollar[3].String,
-				Reward:     YaccDollar[4].Int,
-				RewardType: YaccDollar[5].String,
-				Reason:     YaccDollar[6].String,
+			YaccVAL.any = &Reward{
+				Recipient:  YaccDollar[2].string,
+				Ship:       YaccDollar[3].string,
+				Reward:     YaccDollar[4].int,
+				RewardType: YaccDollar[5].string,
+				Reason:     YaccDollar[6].string,
 			}
 		}
 	}

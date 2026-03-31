@@ -1,6 +1,7 @@
 package service
 
 import (
+	"iter"
 	"strings"
 
 	"github.com/Feresey/luxpanel/internal/parser/combat"
@@ -44,25 +45,25 @@ type HealResult struct {
 	ToObject map[string]AggCount[float32]
 }
 
-func SummHealBySource(res *HealResult, elem *DetailedHeal) *HealResult {
-	if res == nil {
-		res = &HealResult{
-			BySource: make(map[string]AggCount[float32]),
-			ToObject: make(map[string]AggCount[float32]),
-		}
+func NewHealResult() *HealResult {
+	return &HealResult{
+		BySource: make(map[string]AggCount[float32]),
+		ToObject: make(map[string]AggCount[float32]),
 	}
+}
 
-	src := res.BySource[elem.Source]
-	src.Count++
-	src.Value += elem.Heal
-	res.BySource[elem.Source] = src
+func (res *HealResult) Aggregate(it iter.Seq[*DetailedHeal]) {
+	for elem := range it {
+		src := res.BySource[elem.Source]
+		src.Count++
+		src.Value += elem.Heal
+		res.BySource[elem.Source] = src
 
-	obj := res.ToObject[elem.Object]
-	obj.Count++
-	obj.Value += elem.Heal
-	res.ToObject[elem.Object] = obj
-
-	return res
+		obj := res.ToObject[elem.Object]
+		obj.Count++
+		obj.Value += elem.Heal
+		res.ToObject[elem.Object] = obj
+	}
 }
 
 type DetailedHeal struct {
@@ -72,34 +73,32 @@ type DetailedHeal struct {
 }
 
 // FilterPlayerHeal суммирует урон игрока по указанным модификаторам
-func FilterPlayerHeal(filter *PlayerHealFilterConfig) Filter[*combat.Heal, *DetailedHeal] {
-	return func(line *combat.Heal) (res *DetailedHeal, ok bool) {
-		if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
-			return res, false
-		}
-		if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
-			return res, false
-		}
-
-		if !filter.HealToObject && line.Recipient.Name == "" {
-			return res, false
-		}
-
-		if filter.HealToObject {
-			if line.Recipient.ObjectName == "" {
-				return res, false
-			}
-			if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
-				return res, false
-			}
-			if filter.RecipientName != line.Recipient.ObjectOwner {
-				return res, false
-			}
-		}
-
-		res = &DetailedHeal{Source: line.Source, Object: line.Recipient.ObjectName, Heal: line.Heal}
-		return res, true
+func (filter *PlayerHealFilterConfig) Filter(line *combat.Heal) (res *DetailedHeal, ok bool) {
+	if filter.InitiatorName != "" && line.Initiator.Name != filter.InitiatorName {
+		return res, false
 	}
+	if filter.RecipientName != "" && line.Recipient.Name != filter.RecipientName {
+		return res, false
+	}
+
+	if !filter.HealToObject && line.Recipient.Name == "" {
+		return res, false
+	}
+
+	if filter.HealToObject {
+		if line.Recipient.ObjectName == "" {
+			return res, false
+		}
+		if filter.RecipientName != "" && filter.RecipientName != line.Recipient.Name {
+			return res, false
+		}
+		if filter.RecipientName != line.Recipient.ObjectOwner {
+			return res, false
+		}
+	}
+
+	res = &DetailedHeal{Source: line.Source, Object: line.Recipient.ObjectName, Heal: line.Heal}
+	return res, true
 }
 
 // type PlayerHeal struct {

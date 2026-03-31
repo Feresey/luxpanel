@@ -65,7 +65,7 @@ Vue.component('import', {
 						{
 							uuid: 38508,
 							name: 'Eta',
-							corp: 'luX',
+							corp: 'LuX',
 							team: 2,
 							main: true
 						}

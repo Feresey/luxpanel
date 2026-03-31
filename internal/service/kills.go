@@ -1,6 +1,7 @@
 package service
 
 import (
+	"iter"
 	"strings"
 
 	"github.com/Feresey/luxpanel/internal/parser/combat"
@@ -49,23 +50,23 @@ type KillsResult struct {
 	ToObject map[string]AggCount[int]
 }
 
-func SummKillsBySource(res *KillsResult, elem *DetailedKill) *KillsResult {
-	if res == nil {
-		res = &KillsResult{
-			BySource: make(map[string]AggCount[int]),
-			ToObject: make(map[string]AggCount[int]),
-		}
+func NewKillsResult() *KillsResult {
+	return &KillsResult{
+		BySource: make(map[string]AggCount[int]),
+		ToObject: make(map[string]AggCount[int]),
 	}
+}
 
-	src := res.BySource[elem.Source]
-	src.Count++
-	res.BySource[elem.Source] = src
+func (res *KillsResult) Aggregate(it iter.Seq[*DetailedKill]) {
+	for elem := range it {
+		src := res.BySource[elem.Source]
+		src.Count++
+		res.BySource[elem.Source] = src
 
-	obj := res.ToObject[elem.Target]
-	obj.Count++
-	res.ToObject[elem.Target] = obj
-
-	return res
+		obj := res.ToObject[elem.Target]
+		obj.Count++
+		res.ToObject[elem.Target] = obj
+	}
 }
 
 type DetailedKill struct {
@@ -74,36 +75,34 @@ type DetailedKill struct {
 }
 
 // FilterPlayerKills суммирует урон игрока по указанным модификаторам
-func FilterPlayerKills(filter *PlayerKillsFilterConfig) Filter[*combat.Kill, *DetailedKill] {
-	return func(line *combat.Kill) (res *DetailedKill, ok bool) {
-		if filter.Killer != "" && line.Killer.Name != filter.Killer {
-			return res, false
-		}
-		if filter.Killed != "" && line.Killed.Name != filter.Killed {
-			return res, false
-		}
-
-		if !filter.DestroyObject && line.Killed.ObjectName == "" {
-			return res, false
-		}
-
-		if filter.DestroyObject {
-			if line.Killed.ObjectName == "" {
-				return res, false
-			}
-			if filter.Killed != "" && filter.Killed != line.Killer.Name {
-				return res, false
-			}
-			if filter.Killed != line.Killed.ObjectOwner {
-				return res, false
-			}
-		}
-
-		if filter.FriendlyFire && !line.FriendlyFire {
-			return res, false
-		}
-
-		res = &DetailedKill{Source: line.Source, Target: line.Killed.Name}
-		return res, true
+func (filter *PlayerKillsFilterConfig) Filter(line *combat.Kill) (res *DetailedKill, ok bool) {
+	if filter.Killer != "" && line.Killer.Name != filter.Killer {
+		return res, false
 	}
+	if filter.Killed != "" && line.Killed.Name != filter.Killed {
+		return res, false
+	}
+
+	if !filter.DestroyObject && line.Killed.ObjectName == "" {
+		return res, false
+	}
+
+	if filter.DestroyObject {
+		if line.Killed.ObjectName == "" {
+			return res, false
+		}
+		if filter.Killed != "" && filter.Killed != line.Killer.Name {
+			return res, false
+		}
+		if filter.Killed != line.Killed.ObjectOwner {
+			return res, false
+		}
+	}
+
+	if filter.FriendlyFire && !line.FriendlyFire {
+		return res, false
+	}
+
+	res = &DetailedKill{Source: line.Source, Target: line.Killed.Name}
+	return res, true
 }
