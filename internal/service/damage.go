@@ -28,6 +28,7 @@ type PlayerDamageFilterConfig struct {
 	DamageType      DamageType         `json:"damage_type,omitempty"`
 	DamageModifiers DamageModifiersMap `json:"damage_modifiers,omitempty"`
 	FriendlyFire    bool               `json:"friendly_fire,omitempty"`
+	Weapon          string             `json:"weapon,omitempty"`
 }
 
 func (f *PlayerDamageFilterConfig) String() string {
@@ -56,6 +57,10 @@ func (f *PlayerDamageFilterConfig) String() string {
 	if f.DamageToObject {
 		space()
 		sb.WriteString("damage_to_object: true")
+	}
+	if f.Weapon != "" {
+		space()
+		sb.WriteString("weapon: " + f.Weapon)
 	}
 
 	space()
@@ -152,6 +157,12 @@ func (filter *PlayerDamageFilterConfig) Filter(line *combat.Damage) (res *Detail
 			if exists != shouldBe {
 				return res, false
 			}
+		}
+	}
+
+	if filter.Weapon != "" {
+		if line.Source != filter.Weapon {
+			return res, false
 		}
 	}
 

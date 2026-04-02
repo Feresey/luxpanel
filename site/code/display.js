@@ -3,47 +3,44 @@ Vue.component('display', {
 	},
 	template: `<div class="display row">
 
-		<div class="display" v-for="(mode, id) in modes">
-			<div class="half-row">
-				<button class="button192" v-for="(tab) in tabs" @click="displayMode(id, tab)" v-bind:class="{ on: modes[id] === tab }">{{tab}}</button>
+		<div class="display" v-for="(pie, id) in pies" :key="'pie-' + id">
+			<div class="title-box team-heading">
+				<p class="title" style="font-size:22px;margin:4px 0;">{{ teamHeading(id) }}</p>
 			</div>
-			
-			<display-pie   class="display-box" v-if="modes[id] === 'pie'" :index="id" :data="pies[id]"></display-pie>
-			<display-chart class="display-box" v-if="modes[id] === 'chart'" :index="id" :data="charts[id]"></display-chart>
-			<display-table class="display-box" v-if="modes[id] === 'table'" :index="id" :data="tables[id]"></display-table>
+			<display-pie class="display-box" :index="id" :data="pie"></display-pie>
 		</div>
-	
+
 	</div>`,
 	data() {
 		return {
-			tabs: ['pie', 'chart', 'table'],
-			modes: ['pie', 'pie'],
 			pies: [[], []],
-			charts: [[], []],
-			tables: [[], []],
+			teams: null,
 		}
 	},
 	methods: {
-		loadData(pies, charts, tables) {
-			this.pies = pies;
-			this.charts = charts;
-			this.tables = tables;
-			console.log('display data are ready');
-			//this.displayMode(0, 'pie');
-			//this.displayMode(1, 'pie');
+		teamHeading(id) {
+			if (this.teams && this.teams[id] && this.teams[id].length) {
+				return 'Team ' + (id + 1) + ': ' + this.teams[id].join(', ');
+			}
+			return 'Team ' + (id + 1);
 		},
-		displayMode(index, mode) {
-			this.modes[index] = mode;
-			//force update
-			this.modes = [this.modes[0], this.modes[1]];
-		}
+		loadData(pies) {
+			this.pies = pies;
+			console.log('display data are ready');
+		},
+		setTeams(teams) {
+			this.teams = teams;
+		},
 	},
 	computed: {
 
 	},
 	mounted() {
-		this.$root.$on('display', (pies, charts, tables) => {
-			this.loadData(pies, charts, tables);
+		this.$root.$on('display', (pies) => {
+			this.loadData(pies);
+		});
+		this.$root.$on('display-teams', (teams) => {
+			this.setTeams(teams);
 		});
 	}
 });

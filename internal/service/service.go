@@ -68,6 +68,17 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
+func (s *Service) Parse(ctx context.Context) ([]*splitter.Level, error) {
+	ctx, span := s.tr.Start(ctx, "Parse")
+	defer span.End()
+
+	levels, err := s.splitter.SplitLevels(ctx, os.DirFS(s.cfg.InputDir))
+	if err != nil {
+		return nil, fmt.Errorf("splitter.SplitLevels: %w", err)
+	}
+	return levels, nil
+}
+
 const fileModePerm = 0600
 
 func (s *Service) writeTextStatistics(ctx context.Context, levels []*splitter.Level) (err error) {
@@ -325,7 +336,7 @@ func makeDamageFilters(filter *PlayerDamageFilterConfig) []*PlayerDamageFilterCo
 			"SECONDARY_WEAPON": false,
 			"COLLISION":        false,
 			"CRIT":             false,
-			"IGOREsHIELD":      false,
+			"IGNORE_SHIELD":    false,
 		}),
 		copyFilter(DamageModifiersMap{
 			"IGNORE_SHIELD": true,

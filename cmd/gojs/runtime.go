@@ -17,6 +17,7 @@ import (
 )
 
 type Runtime struct {
+	lg       logger.Factory
 	app      *fx.App
 	splitter *splitter.Splitter
 	Data     struct {
@@ -32,7 +33,6 @@ func NewRuntime(ctx context.Context) *Runtime {
 	logConfig.OutputPaths = []string{"stderr"}
 
 	res.app = fx.New(
-		fx.NopLogger,
 		fx.Supply(
 			&config.TraceConfig{
 				ServiceName: "luxpanel",
@@ -47,7 +47,10 @@ func NewRuntime(ctx context.Context) *Runtime {
 			splitter.NewSplitter,
 			parser.NewParser,
 		),
-		fx.Populate(&res.splitter),
+		fx.Populate(
+			&res.splitter,
+			&res.lg,
+		),
 	)
 
 	return &res

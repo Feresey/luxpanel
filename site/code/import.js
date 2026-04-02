@@ -21,14 +21,14 @@ Vue.component('import', {
 		</div>
 
 		<div v-show="ready" class="import-box">
-			<p>Select your game</p>
+			<p>Игра (сессия)</p>
 			<select v-model="gameId" @change="gameChange($event)">
-				<option v-for="(game, id) in games" :value="id">{{game.type  + ' (' + game.time + ')'}}</option>
+				<option v-for="(game, id) in games" :value="id">{{ gameOptionLabel(game) }}</option>
 			</select>
 		</div>
-		
+
 		<div v-show="ready" class="import-box">
-			<p>Chose a particular life</p>
+			<p>Жизнь / корабль</p>
 			<select class="" v-model="lifeId" @change="lifeChange($event)" v-if="gameId">
 				<option class="" v-for="(life, id) in games[gameId].lives" :value="id">{{life.ship  + ' (' + formatTime(life.duration) + ')'}}</option>
 			</select>
@@ -93,6 +93,13 @@ Vue.component('import', {
 		}
 	},
 	methods: {
+		gameOptionLabel(game) {
+			if (!game || game.type === 'none' || game.type === 'none selected') {
+				return game.type + ' — ' + game.time;
+			}
+			const map = game.map ? game.map + ' — ' : '';
+			return game.type + ' — ' + map + game.time;
+		},
 		searchFiles() {
 			const loader = document.getElementById('file');
 			this.ready = false;
@@ -143,6 +150,13 @@ Vue.component('import', {
 			this.ready = true;
 			this.processGame();
 			this.processCombat();
+			if (typeof parseFiles === 'function') {
+				try {
+					parseFiles(this.rawGame.join('\n'), this.rawCombat.join('\n'));
+				} catch (e) {
+					console.warn('parseFiles', e);
+				}
+			}
 		},
 		processGame() {
 			const date = this.rawGame[2].substring(10, 20);

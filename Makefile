@@ -5,7 +5,8 @@ all:
 
 .PHONY: gojs
 gojs:
-	GOOS=js GOARCH=wasm go build -o src/dist/gojs.wasm ./cmd/gojs
+	GOOS=js GOARCH=wasm go build -o mysite/code/gojs.wasm ./cmd/gojs
+	mkdir -p src/dist && cp mysite/code/gojs.wasm src/dist/gojs.wasm
 
 .PHONY: start
 start: gojs

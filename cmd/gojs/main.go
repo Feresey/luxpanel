@@ -43,6 +43,105 @@ func main() {
 		return len(r.Data.Levels)
 	}))
 
+	js.Global().Set("getLevelsMetaJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		s, err := marshalLevelsMetaJSON(r.Data.Levels)
+		if err != nil {
+			return "[]"
+		}
+		return s
+	}))
+
+	js.Global().Set("getDamageChartsJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) < 1 {
+			return "null"
+		}
+		idx := args[0].Int()
+		if idx < 0 || idx >= len(r.Data.Levels) {
+			return "null"
+		}
+		s, err := marshalDamageCharts(r.Data.Levels[idx])
+		if err != nil {
+			return "null"
+		}
+		return s
+	}))
+
+	js.Global().Set("getChartsJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) < 2 {
+			return "null"
+		}
+		idx := args[0].Int()
+		if idx < 0 || idx >= len(r.Data.Levels) {
+			return "null"
+		}
+		mode := "damage"
+		if args[1].Type() == js.TypeString {
+			mode = args[1].String()
+		}
+		s, err := marshalChartsJSON(r.Data.Levels[idx], mode)
+		if err != nil {
+			return "null"
+		}
+		return s
+	}))
+
+	js.Global().Set("getDamageFilterMetaJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) < 1 {
+			return "null"
+		}
+		idx := args[0].Int()
+		if idx < 0 || idx >= len(r.Data.Levels) {
+			return "null"
+		}
+		initiator := ""
+		if len(args) >= 2 && args[1].Type() == js.TypeString {
+			initiator = args[1].String()
+		}
+		s, err := r.marshalDamageFilterMetaJSON(r.Data.Levels[idx], initiator)
+		if err != nil {
+			return "null"
+		}
+		return s
+	}))
+
+	js.Global().Set("getDamageTableJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) < 2 {
+			return "null"
+		}
+		idx := args[0].Int()
+		if idx < 0 || idx >= len(r.Data.Levels) {
+			return "null"
+		}
+		filterJSON := ""
+		if args[1].Type() == js.TypeString {
+			filterJSON = args[1].String()
+		}
+		s, err := r.marshalDamageTableJSON(r.Data.Levels[idx], filterJSON)
+		if err != nil {
+			return "null"
+		}
+		return s
+	}))
+
+	js.Global().Set("getDamageDefaultTableJSON", js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) < 2 {
+			return "null"
+		}
+		idx := args[0].Int()
+		if idx < 0 || idx >= len(r.Data.Levels) {
+			return "null"
+		}
+		filterJSON := ""
+		if args[1].Type() == js.TypeString {
+			filterJSON = args[1].String()
+		}
+		s, err := r.marshalDamageDefaultFiltersTableJSON(r.Data.Levels[idx], filterJSON)
+		if err != nil {
+			return "null"
+		}
+		return s
+	}))
+
 	js.Global().Set("profile", js.FuncOf(func(this js.Value, args []js.Value) any {
 		var buf strings.Builder
 		err := pprof.WriteHeapProfile(&buf)

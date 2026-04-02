@@ -4,7 +4,8 @@ import '../scss/styles.scss'
 // Импортируйте весь JS Bootstrap
 import * as bootstrap from 'bootstrap'
 
-import { CreateCharts } from './charts.js'
+import { CreateCharts, ApplyParsedCharts } from './charts.js'
+import { setupDamageTablePanel } from './damage_table.js'
 
 import './wasm_exec.js'
 
@@ -12,12 +13,126 @@ if (WebAssembly) {
     const go = new Go();
     WebAssembly.instantiateStreaming(fetch("gojs.wasm"), go.importObject).then((result) => {
         go.run(result.instance);
+        refreshAll();
     });
 } else {
     console.log("WebAssembly is not supported in your browser")
 }
 
 const pickLogs = document.getElementById('pick_logs');
+const matchSelect = document.getElementById('match_select');
+
+let currentMetric = 'damage';
+
+function getSelectedMatchIndex() {
+    if (!matchSelect || matchSelect.disabled) {
+        return 0;
+    }
+    return Number(matchSelect.value) || 0;
+}
+
+function refreshCharts() {
+    ApplyParsedCharts(getSelectedMatchIndex(), currentMetric);
+}
+
+const damagePanel = setupDamageTablePanel(getSelectedMatchIndex);
+
+function refreshAll() {
+    refreshCharts();
+    if (damagePanel && typeof damagePanel.refresh === 'function') {
+        damagePanel.refresh();
+    }
+}
+
+function setupMetricButtons() {
+    const wrap = document.querySelector('.metric-buttons');
+    if (!wrap) {
+        return;
+    }
+    wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('.metric-btn');
+        if (!btn || !btn.dataset.metric) {
+            return;
+        }
+        currentMetric = btn.dataset.metric;
+        wrap.querySelectorAll('.metric-btn').forEach((b) => b.classList.toggle('active', b === btn));
+        refreshCharts();
+    });
+}
+setupMetricButtons();
+
+function renderMatchOptions() {
+    if (!matchSelect) {
+        return;
+    }
+    let meta = [];
+    if (typeof getLevelsMetaJSON === 'function') {
+        try {
+            const raw = getLevelsMetaJSON();
+            meta = JSON.parse(raw);
+            if (!Array.isArray(meta)) {
+                meta = [];
+            }
+        } catch (e) {
+            console.warn('getLevelsMetaJSON', e);
+            meta = [];
+        }
+    }
+    let levels = meta.length;
+    if (levels === 0 && typeof showLevels === 'function') {
+        levels = Number(showLevels()) || 0;
+    }
+    matchSelect.innerHTML = "";
+    if (levels <= 0) {
+        const opt = document.createElement('option');
+        opt.value = "0";
+        opt.textContent = "Match 1";
+        matchSelect.appendChild(opt);
+        matchSelect.disabled = true;
+        refreshAll();
+        return;
+    }
+    for (let i = 0; i < levels; i++) {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        const m = meta[i];
+        if (m && m.label) {
+            opt.textContent = m.label;
+        } else {
+            opt.textContent = `Match ${i + 1}`;
+        }
+        if (m) {
+            const parts = [];
+            if (m.game_mode) {
+                parts.push(m.game_mode);
+            }
+            if (m.map_name) {
+                parts.push(m.map_name);
+            }
+            if (m.session_id) {
+                parts.push(`session ${m.session_id}`);
+            }
+            if (m.start_time) {
+                parts.push(m.start_time);
+            }
+            opt.title = parts.join(' · ');
+        }
+        matchSelect.appendChild(opt);
+    }
+    matchSelect.disabled = false;
+    matchSelect.value = "0";
+    refreshAll();
+}
+
+if (matchSelect) {
+    matchSelect.addEventListener('change', () => {
+        refreshAll();
+    });
+}
+
+if (document.getElementById('pieChart1') && document.getElementById('pieChart2')) {
+    CreateCharts();
+}
 
 pickLogs.addEventListener('change', function () {
     var data = {
@@ -37,6 +152,7 @@ pickLogs.addEventListener('change', function () {
                 console.log('combat.log loaded', data.rawCombat.length);
                 if (data.rawGame.length) {
                     parseFiles(data.rawGame, data.rawCombat);
+                    renderMatchOptions();
                 }
             }.bind(this);
             reader.onerror = function (stuff) { console.log('combat error', stuff); };
@@ -49,6 +165,7 @@ pickLogs.addEventListener('change', function () {
                 console.log('combat.log loaded', data.rawGame.length);
                 if (data.rawCombat.length) {
                     parseFiles(data.rawGame, data.rawCombat);
+                    renderMatchOptions();
                 }
             }.bind(this);
             reader.onerror = function (stuff) { console.log('game error', stuff); };

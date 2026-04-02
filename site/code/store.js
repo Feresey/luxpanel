@@ -3,19 +3,23 @@ Vue.component('store', {
 	},
 	template: `<div class="store row">
 
-		<div class="half-row">
-			<button class="button256" v-for="(menu, id) in menus" @click="openMenu(menu)" v-bind:class="{ on: active === menu }">{{menu}}</button>
+		<div class="half-row metric-row">
+			<button class="button256" v-for="m in menus" :key="m.key" @click="openMenu(m.key)" v-bind:class="{ on: active === m.key }">{{ m.label }}</button>
 		</div>
-		
-    	<damage v-show="active === 'damage'"></damage>
-    	<heal   v-show="active === 'heal'"  ></heal>
-    	<kill   v-show="active === 'kill'"  ></kill>
-	
+
+		<damage v-show="active === 'damage'"></damage>
+		<heal   v-show="active === 'heal'"></heal>
+		<kill   v-show="active === 'kill'"></kill>
+
 	</div>`,
 	data() {
 		return {
 			active: 'damage',
-			menus: ['damage', 'heal', 'kill'],
+			menus: [
+				{ key: 'damage', label: 'Damage' },
+				{ key: 'heal', label: 'Heal' },
+				{ key: 'kill', label: 'Kill' },
+			],
 			game: null,
 			damages: [{
 				source: 'Eta',
@@ -192,6 +196,9 @@ Vue.component('store', {
 						}
 					}
 				}
+			}
+			if (game && game.teams) {
+				this.$root.$emit('display-teams', game.teams);
 			}
 			this.openMenu(this.active);
 		},

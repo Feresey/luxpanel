@@ -83,7 +83,11 @@ func ShowGramma() error {
 }
 
 func GOJS() error {
-	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "src/dist/gojs.wasm", "./cmd/gojs")
+	if err := sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "mysite/code/gojs.wasm", "./cmd/gojs"); err != nil {
+		return err
+	}
+	_ = sh.Run("mkdir", "-p", "src/dist")
+	return sh.Run("cp", "mysite/code/gojs.wasm", "src/dist/gojs.wasm")
 }
 
 func Start() error {

@@ -1,15 +1,7 @@
 Vue.component('damage', {
 	props: {
 	},
-	template: `<div class="half-row">
-
-		<button class="button256" @click="playerDamage()"  v-bind:class="{ on: active === 'damage/player' }">Damage / Player</button>
-		
-		<button class="button256" @click="lifeDamage()"  v-bind:class="{ on: active === 'damage/life' }">Damage / Life</button>
-		
-		<button class="button256" @click="typeDamage()"  v-bind:class="{ on: active === 'damage/type' }">Damage / Type</button>
-	
-	</div>`,
+	template: `<div class="metric-panel"></div>`,
 	data() {
 		return {
 			active: 'damage/player',
@@ -22,37 +14,31 @@ Vue.component('damage', {
 		playerDamage() {
 			this.active = 'damage/player';
 			this.initProcess(this, 'Damage', 0, 1);
-			//fill damages
 			for (let d = 0; d < this.damages.length; d++) {
 				const item = this.damages[d];
 				this.fillProcess(this, item);
 			}
-			this.$root.$emit('display', this.pies, this.charts, this.tables);
+			this.$root.$emit('display', this.pies);
 		},
 		lifeDamage() {
 			this.active = 'damage/life';
 			this.initProcess(this, 'Damage', 0, 1);
 			this.initLives(this);
-			//fill damages
 			for (let d = 0; d < this.damages.length; d++) {
 				const item = this.damages[d];
-				//negate values
 				while (this.killIndex < this.kills.length && this.kills[this.killIndex].time < item.time) {
 					this.negatePartial(this, this.kills[this.killIndex]);
 					this.killIndex++;
 				}
-				//fill amounts
 				this.fillPartial(this, item);
 			}
-			//fix total amounts
 			this.fillTotals(this);
-			this.$root.$emit('display', this.pies, this.charts, this.tables);
+			this.$root.$emit('display', this.pies);
 		},
 		typeDamage() {
 			this.active = 'damage/type';
 			const types = ['emp', 'thermal', 'kinetic'];
 			this.initCustom(this, 'Types', types, 0, 1);
-			//fill damages
 			for (let d = 0; d < this.damages.length; d++) {
 				const damage = this.damages[d];
 				const item = {
@@ -66,7 +52,7 @@ Vue.component('damage', {
 					this.fillCustom(this, item, types);
 				}
 			}
-			this.$root.$emit('display', this.pies, this.charts, this.tables);
+			this.$root.$emit('display', this.pies);
 		}
 	},
 	computed: {
