@@ -43,7 +43,7 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 	}
 
 	gameLevelsIt := s.GetGameLogLevels(ctx, gameLog)
-	combatLevels, _ := s.GetCombatLogLevels(ctx, combatLog)
+	combatLevels, _ := s.GetCombatLogLevels(ctx, logTime, combatLog)
 
 	gameLevels := slices.Collect(gameLevelsIt)
 
@@ -231,26 +231,29 @@ func (g *GameLogLevel) IsEmpty() bool {
 
 type CombatLogLevel struct {
 	logTime time.Time
-	Lines   []combat.LogLine
+	// LogLines — распарсенные записи combat.log в порядке файла (только успешно распознанные строки).
+	LogLines []combat.LogLine
 
 	Connect  combat.ConnectToGameSession
 	Start    combat.Start
 	Damage   []*combat.Damage
 	Heal     []*combat.Heal
 	Kill     []*combat.Kill
+	Spawn    []*combat.Spawn
+	Reward   []*combat.Reward
 	Finished combat.Finished
 }
 
 func (g *CombatLogLevel) String() string {
-	if len(g.Lines) == 0 {
+	if len(g.LogLines) == 0 {
 		return "empty game level"
 	}
 
 	var sb strings.Builder
 
 	sb.WriteString("game level: ")
-	fmt.Fprintf(&sb, "time: %s ", g.Lines[0].GetTime(g.logTime))
-	fmt.Fprintf(&sb, "lines: %d ", len(g.Lines))
+	fmt.Fprintf(&sb, "time: %s ", g.LogLines[0].GetTime(g.logTime))
+	fmt.Fprintf(&sb, "lines: %d ", len(g.LogLines))
 	fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
 	fmt.Fprintf(&sb, "game_mode: %s map_name: %s ", g.Start.GameMode, g.Start.MapName)
 	fmt.Fprintf(&sb, "finished: %s reason: %s game_time: %f", g.Finished.FinishReason, g.Finished.WinReason, g.Finished.GameTime)
@@ -259,7 +262,15 @@ func (g *CombatLogLevel) String() string {
 }
 
 func (g *CombatLogLevel) IsEmpty() bool {
-	return len(g.Lines) == 0 || (g.Connect.IsEmpty() && g.Start.IsEmpty() && g.Finished.IsEmpty())
+	return len(g.LogLines) == 0 || (g.Connect.IsEmpty() && g.Start.IsEmpty() && g.Finished.IsEmpty())
+}
+
+// LogAnchorTime is the calendar date from the combat log header; used with line clocks in GetTime.
+func (g *CombatLogLevel) LogAnchorTime() time.Time {
+	if g == nil {
+		return time.Time{}
+	}
+	return g.logTime
 }
 
 const (
@@ -333,11 +344,16 @@ func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.LogLine[
 	}
 }
 
-func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLine[combat.LogLine]) (res []*CombatLogLevel, errs []error) {
+func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, lines []parser.LogLine[combat.LogLine]) (res []*CombatLogLevel, errs []error) {
 	ctx, span := s.tr.Start(ctx, "GetCombatLogLevels")
 	defer span.End()
 
-	currLevel := new(CombatLogLevel)
+	newLevel := func() *CombatLogLevel {
+		l := new(CombatLogLevel)
+		l.logTime = logTime
+		return l
+	}
+	currLevel := newLevel()
 	for _, line := range lines {
 		var cutErr *common.LineIsNotFinishedError
 		if line.Err != nil && !errors.As(line.Err, &cutErr) {
@@ -346,18 +362,18 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLin
 		if line.Data == nil {
 			continue
 		}
-		currLevel.Lines = append(currLevel.Lines, line.Data)
+		currLevel.LogLines = append(currLevel.LogLines, line.Data)
 		switch line := line.Data.(type) {
 		case *combat.ConnectToGameSession:
 			if !currLevel.Connect.IsEmpty() && currLevel.Connect.SessionID != line.SessionID {
 				res = append(res, currLevel)
-				currLevel = new(CombatLogLevel)
+				currLevel = newLevel()
 			}
 			currLevel.Connect = *line
 		case *combat.Start:
 			if !currLevel.Start.IsEmpty() {
 				res = append(res, currLevel)
-				currLevel = new(CombatLogLevel)
+				currLevel = newLevel()
 			}
 			currLevel.Start = *line
 		case *combat.Damage:
@@ -366,6 +382,10 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, lines []parser.LogLin
 			currLevel.Heal = append(currLevel.Heal, line)
 		case *combat.Kill:
 			currLevel.Kill = append(currLevel.Kill, line)
+		case *combat.Spawn:
+			currLevel.Spawn = append(currLevel.Spawn, line)
+		case *combat.Reward:
+			currLevel.Reward = append(currLevel.Reward, line)
 		case *combat.Finished:
 			currLevel.Finished = *line
 		}

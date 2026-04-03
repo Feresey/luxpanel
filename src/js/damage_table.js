@@ -5,6 +5,8 @@
  * - columns: source, targets (multi if recipient empty), modifiers (no nil), summary
  */
 
+import { getTimeRangeJSON } from './timeline.js';
+
 const emptyOptionValue = '';
 
 const MODIFIER_ORDER_LEFT = ['EMP', 'THERMAL', 'KINETIC'];
@@ -27,6 +29,17 @@ function formatNum(n) {
         return String(n);
     }
     return n.toFixed(2);
+}
+
+function formatTime(sec) {
+    if (typeof sec !== 'number' || Number.isNaN(sec)) {
+        return '—';
+    }
+    const m = Math.floor(sec / 60);
+    const s = sec - m * 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = s < 10 ? `0${s.toFixed(2)}` : s.toFixed(2);
+    return `${mm}:${ss}`;
 }
 
 function getMetaFn() {
@@ -105,6 +118,42 @@ function renderTargetsCell(targets) {
     return targets.map((t) => `<div>${escapeHtml(t)}</div>`).join('');
 }
 
+function appendDetailBreakdown(tbody, events) {
+    const trDetail = document.createElement('tr');
+    trDetail.className = 'df-row-detail df-row-detail-hidden';
+    const td = document.createElement('td');
+    td.colSpan = 8;
+    const innerWrap = document.createElement('div');
+    innerWrap.className = 'df-detail-inner';
+    const table = document.createElement('table');
+    table.className = 'df-inner-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = '<tr>'
+        + '<th>Время</th><th>Источник</th><th>Цель</th><th>Оружие</th><th>Модификаторы</th><th>Урон</th>'
+        + '</tr>';
+    table.appendChild(thead);
+    const itbody = document.createElement('tbody');
+    for (let j = 0; j < events.length; j++) {
+        const e = events[j] || {};
+        const itr = document.createElement('tr');
+        const modsHtml = buildModifiersCell(e.modifiers || {});
+        itr.innerHTML = `
+            <td>${escapeHtml(formatTime(e.time_sec))}</td>
+            <td>${escapeHtml(e.initiator || '')}</td>
+            <td>${escapeHtml(e.recipient || '')}</td>
+            <td>${escapeHtml(e.weapon || '')}</td>
+            <td class="df-cell-mods">${modsHtml}</td>
+            <td>${escapeHtml(formatNum(e.amount))}</td>
+        `;
+        itbody.appendChild(itr);
+    }
+    table.appendChild(itbody);
+    innerWrap.appendChild(table);
+    td.appendChild(innerWrap);
+    trDetail.appendChild(td);
+    tbody.appendChild(trDetail);
+}
+
 function renderTableBody(tbody, rows) {
     tbody.innerHTML = '';
     if (!Array.isArray(rows) || rows.length === 0) {
@@ -120,19 +169,41 @@ function renderTableBody(tbody, rows) {
 
     for (let i = 0; i < rows.length; i++) {
         const r = rows[i] || {};
+        const isEvent = !!r.__event;
         const s = r.summary || {};
+        const hits = isEvent ? 1 : (typeof s.hits === 'number' ? s.hits : 0);
+        const dmg = isEvent ? r.amount : s.damage;
+        const source = isEvent ? r.initiator : r.source;
+        const targets = isEvent ? [r.recipient] : r.targets;
+        const weapon = isEvent ? (r.weapon || '') : '—';
+        const time = isEvent ? formatTime(r.time_sec) : '—';
+
+        const evs = r.events;
+        const expandable = !isEvent && Array.isArray(evs) && evs.length > 0;
+
+        let expandCell = '<td class="df-cell-expand"></td>';
+        if (!isEvent && expandable) {
+            expandCell = '<td class="df-cell-expand">'
+                + '<button type="button" class="df-expand-btn" aria-expanded="false" '
+                + 'aria-label="Показать исходные строки урона">▶</button>'
+                + '</td>';
+        }
+
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${escapeHtml(r.source || '')}</td>
-            <td>${renderTargetsCell(r.targets)}</td>
-            <td>${buildModifiersCell(r.modifiers || {})}</td>
-            <td>${escapeHtml(String(typeof s.hits === 'number' ? s.hits : 0))}</td>
-            <td>${escapeHtml(formatNum(s.damage))}</td>
-            <td>${escapeHtml(formatNum(s.hull))}</td>
-            <td>${escapeHtml(formatNum(s.shield))}</td>
-            <td>${escapeHtml(formatNum(s.avg_damage))}</td>
-        `;
+        tr.className = 'df-row-main';
+        tr.innerHTML = expandCell
+            + `<td>${escapeHtml(time)}</td>`
+            + `<td>${escapeHtml(source || '')}</td>`
+            + `<td>${renderTargetsCell(targets)}</td>`
+            + `<td>${escapeHtml(weapon)}</td>`
+            + `<td>${buildModifiersCell(r.modifiers || {})}</td>`
+            + `<td>${escapeHtml(String(hits))}</td>`
+            + `<td>${escapeHtml(formatNum(dmg))}</td>`;
         tbody.appendChild(tr);
+
+        if (expandable) {
+            appendDetailBreakdown(tbody, evs);
+        }
     }
 }
 
@@ -165,10 +236,23 @@ function applySingleRowTable(levelIndex, filters) {
     if (parsed && parsed.error) {
         throw new Error(parsed.error);
     }
-    if (!parsed || !parsed.row) {
+    if (!parsed) {
         return [];
     }
-    return [parsed.row];
+    const aggregate = filters.aggregate !== false;
+    if (aggregate && parsed.row) {
+        return [{
+            ...parsed.row,
+            events: Array.isArray(parsed.events) ? parsed.events : [],
+        }];
+    }
+    if (Array.isArray(parsed.events) && parsed.events.length) {
+        return parsed.events.map((e) => ({ ...e, __event: true }));
+    }
+    if (parsed.row) {
+        return [parsed.row];
+    }
+    return [];
 }
 
 function buildTriStateSelect(mod) {
@@ -221,17 +305,20 @@ function populateCustomModifiers(modifiersAvailable) {
     const columns = document.createElement('div');
     columns.className = 'df-mod-columns';
 
-    const makeColumn = (list) => {
+    const makeColumn = (list, compact) => {
         const col = document.createElement('div');
         col.className = 'df-mod-column';
+        if (compact) {
+            col.classList.add('compact');
+        }
         for (let i = 0; i < list.length; i++) {
             col.appendChild(buildTriStateSelect(list[i]));
         }
         return col;
     };
 
-    columns.appendChild(makeColumn(left));
-    columns.appendChild(makeColumn(right));
+    columns.appendChild(makeColumn(left, true));
+    columns.appendChild(makeColumn(right, false));
 
     wrap.appendChild(columns);
 
@@ -269,6 +356,18 @@ function getLevelIndex(getMatchIndex) {
     return typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
 }
 
+function mergeTimeRange(base) {
+    let tr = {};
+    try {
+        if (typeof getTimeRangeJSON === 'function') {
+            tr = JSON.parse(getTimeRangeJSON());
+        }
+    } catch (_) {
+        tr = {};
+    }
+    return { ...base, ...tr };
+}
+
 function refreshModifiersMeta(levelIndex) {
     if (!panelEls) {
         return;
@@ -278,7 +377,8 @@ function refreshModifiersMeta(levelIndex) {
         return;
     }
     const initiator = panelEls.initiator.value.trim();
-    const raw = metaFn(levelIndex, initiator);
+    const tr = typeof getTimeRangeJSON === 'function' ? getTimeRangeJSON() : '{}';
+    const raw = metaFn(levelIndex, initiator, tr);
     if (!raw || raw === 'null') {
         populateCustomModifiers([]);
         return;
@@ -299,7 +399,6 @@ function refreshTable() {
     const initiator = panelEls.initiator.value.trim();
     const recipient = panelEls.recipient.value.trim();
     const weapon = panelEls.weapon.value.trim();
-    const damageType = panelEls.damageType.value || 'total';
     const mode = panelEls.mode.value || 'defaults';
 
     if (!initiator) {
@@ -310,17 +409,16 @@ function refreshTable() {
 
     if (hint) hint.textContent = '';
 
-    const baseFilters = {
+    const baseFilters = mergeTimeRange({
         initiator,
         recipient: recipient || '',
         weapon: weapon || '',
-        damage_type: damageType,
-    };
+    });
 
     try {
         if (mode === 'single') {
             const modifiers = collectCustomModifiers();
-            const rows = applySingleRowTable(levelIndex, { ...baseFilters, modifiers });
+            const rows = applySingleRowTable(levelIndex, { ...baseFilters, modifiers, aggregate: true });
             renderTableBody(tbody, rows);
         } else {
             const rows = applyDefaultsTable(levelIndex, baseFilters);
@@ -334,7 +432,7 @@ function refreshTable() {
 
     if (panelEls.foot) {
         const modeText = mode === 'single' ? 'Фильтр' : 'Наборы';
-        const n = mode === 'single' ? 1 : (panelEls.tbody.rows.length || 0);
+        const n = panelEls.tbody.querySelectorAll('tr.df-row-main').length || 0;
         panelEls.foot.textContent = n ? `${modeText}: ${n}` : '';
     }
 }
@@ -350,7 +448,8 @@ function refreshMeta(levelIndex) {
         return;
     }
 
-    let raw = metaFn(levelIndex, '');
+    const tr0 = typeof getTimeRangeJSON === 'function' ? getTimeRangeJSON() : '{}';
+    let raw = metaFn(levelIndex, '', tr0);
     if (!raw || raw === 'null') {
         fillSelect(panelEls.initiator, [], '— нет данных —');
         fillSelect(panelEls.recipient, [], 'Любая цель');
@@ -380,7 +479,7 @@ function refreshMeta(levelIndex) {
         return;
     }
 
-    raw = metaFn(levelIndex, initiator);
+    raw = metaFn(levelIndex, initiator, tr0);
     if (!raw || raw === 'null') {
         fillSelect(panelEls.recipient, [], 'Любая цель');
         fillSelect(panelEls.weapon, [], 'Любое оружие');
@@ -407,16 +506,14 @@ export function setupDamageTablePanel(getMatchIndex) {
     const initiator = document.getElementById('df_initiator');
     const recipient = document.getElementById('df_recipient');
     const weapon = document.getElementById('df_weapon');
-    const damageType = document.getElementById('df_damage_type');
     const tbody = document.getElementById('df_tbody');
     const hint = document.getElementById('df_hint');
     const foot = document.getElementById('df_foot');
-    const applyBtn = document.getElementById('df_apply');
     const clearMods = document.getElementById('df_clear_modifiers');
     const mode = document.getElementById('df_table_mode');
     const customBlock = document.getElementById('df_custom_modifiers_block');
 
-    if (!initiator || !recipient || !weapon || !damageType || !tbody || !mode || !customBlock) {
+    if (!initiator || !recipient || !weapon || !tbody || !mode || !customBlock) {
         return;
     }
 
@@ -425,7 +522,6 @@ export function setupDamageTablePanel(getMatchIndex) {
         initiator,
         recipient,
         weapon,
-        damageType,
         tbody,
         hint,
         foot,
@@ -447,12 +543,7 @@ export function setupDamageTablePanel(getMatchIndex) {
     });
     recipient.addEventListener('change', () => refreshTable());
     weapon.addEventListener('change', () => refreshTable());
-    damageType.addEventListener('change', () => refreshTable());
     mode.addEventListener('change', () => setModeVisibility());
-
-    if (applyBtn) {
-        applyBtn.addEventListener('click', () => refreshTable());
-    }
 
     if (clearMods) {
         clearMods.addEventListener('click', () => {
@@ -474,6 +565,26 @@ export function setupDamageTablePanel(getMatchIndex) {
             }
         });
     }
+
+    tbody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.df-expand-btn');
+        if (!btn || !tbody.contains(btn)) {
+            return;
+        }
+        e.preventDefault();
+        const tr = btn.closest('tr');
+        if (!tr || !tr.classList.contains('df-row-main')) {
+            return;
+        }
+        const detail = tr.nextElementSibling;
+        if (!detail || !detail.classList.contains('df-row-detail')) {
+            return;
+        }
+        detail.classList.toggle('df-row-detail-hidden');
+        const isHidden = detail.classList.contains('df-row-detail-hidden');
+        btn.setAttribute('aria-expanded', String(!isHidden));
+        btn.textContent = isHidden ? '▶' : '▼';
+    });
 
     // Initial load.
     const levelIndex = getLevelIndex(getMatchIndex);

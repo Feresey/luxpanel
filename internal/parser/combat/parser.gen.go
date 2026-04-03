@@ -15,7 +15,7 @@ import (
 
 //line internal/parser/combat/parser.gen.go:15
 const logparser_start int = 1
-const logparser_first_final int = 522
+const logparser_first_final int = 562
 const logparser_error int = 0
 
 const logparser_en_main int = 1
@@ -70,7 +70,7 @@ type Tokenizer struct {
 }
 
 
-//line internal/parser/combat/ext/parser.rl:176
+//line internal/parser/combat/ext/parser.rl:180
 
 
 func (t *Tokenizer) Parse(data string) ([]Token, error) {
@@ -85,7 +85,7 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 	 t.cs = logparser_start
 	}
 
-//line internal/parser/combat/ext/parser.rl:185
+//line internal/parser/combat/ext/parser.rl:189
 
 	t.prev = 0
 	t.pe = len(data)
@@ -227,8 +227,8 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_61
 	case 62:
 		goto st_case_62
-	case 522:
-		goto st_case_522
+	case 562:
+		goto st_case_562
 	case 63:
 		goto st_case_63
 	case 64:
@@ -459,10 +459,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_176
 	case 177:
 		goto st_case_177
-	case 523:
-		goto st_case_523
-	case 524:
-		goto st_case_524
+	case 563:
+		goto st_case_563
+	case 564:
+		goto st_case_564
 	case 178:
 		goto st_case_178
 	case 179:
@@ -489,10 +489,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_189
 	case 190:
 		goto st_case_190
-	case 525:
-		goto st_case_525
-	case 526:
-		goto st_case_526
+	case 565:
+		goto st_case_565
+	case 566:
+		goto st_case_566
 	case 191:
 		goto st_case_191
 	case 192:
@@ -509,8 +509,8 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_197
 	case 198:
 		goto st_case_198
-	case 527:
-		goto st_case_527
+	case 567:
+		goto st_case_567
 	case 199:
 		goto st_case_199
 	case 200:
@@ -779,10 +779,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_331
 	case 332:
 		goto st_case_332
-	case 528:
-		goto st_case_528
-	case 529:
-		goto st_case_529
+	case 568:
+		goto st_case_568
+	case 569:
+		goto st_case_569
 	case 333:
 		goto st_case_333
 	case 334:
@@ -867,10 +867,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_373
 	case 374:
 		goto st_case_374
-	case 530:
-		goto st_case_530
-	case 531:
-		goto st_case_531
+	case 570:
+		goto st_case_570
+	case 571:
+		goto st_case_571
 	case 375:
 		goto st_case_375
 	case 376:
@@ -901,10 +901,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_388
 	case 389:
 		goto st_case_389
-	case 532:
-		goto st_case_532
-	case 533:
-		goto st_case_533
+	case 572:
+		goto st_case_572
+	case 573:
+		goto st_case_573
 	case 390:
 		goto st_case_390
 	case 391:
@@ -947,10 +947,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_409
 	case 410:
 		goto st_case_410
-	case 534:
-		goto st_case_534
-	case 535:
-		goto st_case_535
+	case 574:
+		goto st_case_574
+	case 575:
+		goto st_case_575
 	case 411:
 		goto st_case_411
 	case 412:
@@ -961,10 +961,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_414
 	case 415:
 		goto st_case_415
-	case 536:
-		goto st_case_536
-	case 537:
-		goto st_case_537
+	case 576:
+		goto st_case_576
+	case 577:
+		goto st_case_577
 	case 416:
 		goto st_case_416
 	case 417:
@@ -1049,8 +1049,8 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_456
 	case 457:
 		goto st_case_457
-	case 538:
-		goto st_case_538
+	case 578:
+		goto st_case_578
 	case 458:
 		goto st_case_458
 	case 459:
@@ -1115,10 +1115,10 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_488
 	case 489:
 		goto st_case_489
-	case 539:
-		goto st_case_539
-	case 540:
-		goto st_case_540
+	case 579:
+		goto st_case_579
+	case 580:
+		goto st_case_580
 	case 490:
 		goto st_case_490
 	case 491:
@@ -1183,6 +1183,86 @@ func (t *Tokenizer) Parse(data string) ([]Token, error) {
 		goto st_case_520
 	case 521:
 		goto st_case_521
+	case 522:
+		goto st_case_522
+	case 523:
+		goto st_case_523
+	case 524:
+		goto st_case_524
+	case 525:
+		goto st_case_525
+	case 526:
+		goto st_case_526
+	case 527:
+		goto st_case_527
+	case 528:
+		goto st_case_528
+	case 529:
+		goto st_case_529
+	case 530:
+		goto st_case_530
+	case 531:
+		goto st_case_531
+	case 532:
+		goto st_case_532
+	case 533:
+		goto st_case_533
+	case 534:
+		goto st_case_534
+	case 535:
+		goto st_case_535
+	case 536:
+		goto st_case_536
+	case 537:
+		goto st_case_537
+	case 538:
+		goto st_case_538
+	case 539:
+		goto st_case_539
+	case 540:
+		goto st_case_540
+	case 541:
+		goto st_case_541
+	case 542:
+		goto st_case_542
+	case 543:
+		goto st_case_543
+	case 544:
+		goto st_case_544
+	case 545:
+		goto st_case_545
+	case 546:
+		goto st_case_546
+	case 547:
+		goto st_case_547
+	case 548:
+		goto st_case_548
+	case 549:
+		goto st_case_549
+	case 550:
+		goto st_case_550
+	case 551:
+		goto st_case_551
+	case 552:
+		goto st_case_552
+	case 553:
+		goto st_case_553
+	case 554:
+		goto st_case_554
+	case 555:
+		goto st_case_555
+	case 556:
+		goto st_case_556
+	case 557:
+		goto st_case_557
+	case 558:
+		goto st_case_558
+	case 559:
+		goto st_case_559
+	case 560:
+		goto st_case_560
+	case 561:
+		goto st_case_561
 	}
 	goto st_out
 	st_case_1:
@@ -1208,7 +1288,7 @@ tr0:
 			goto _test_eof2
 		}
 	st_case_2:
-//line internal/parser/combat/parser.gen.go:1205
+//line internal/parser/combat/parser.gen.go:1285
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st3
 		}
@@ -1321,7 +1401,7 @@ t.tokval(newAnyVal(TIME, strTok(t.data[t.prev:t.p])))
 			goto _test_eof14
 		}
 	st_case_14:
-//line internal/parser/combat/parser.gen.go:1318
+//line internal/parser/combat/parser.gen.go:1398
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st14
@@ -1343,7 +1423,7 @@ tr15:
 			goto _test_eof15
 		}
 	st_case_15:
-//line internal/parser/combat/parser.gen.go:1340
+//line internal/parser/combat/parser.gen.go:1420
 		if ( t.data)[( t.p)] == 77 {
 			goto st16
 		}
@@ -1402,7 +1482,7 @@ tr20:
 			goto _test_eof20
 		}
 	st_case_20:
-//line internal/parser/combat/parser.gen.go:1399
+//line internal/parser/combat/parser.gen.go:1479
 		if ( t.data)[( t.p)] == 32 {
 			goto st21
 		}
@@ -1429,6 +1509,8 @@ tr20:
 			goto tr27
 		case 82:
 			goto tr28
+		case 83:
+			goto tr29
 		}
 		goto st0
 tr22:
@@ -1445,7 +1527,7 @@ tr22:
 			goto _test_eof22
 		}
 	st_case_22:
-//line internal/parser/combat/parser.gen.go:1442
+//line internal/parser/combat/parser.gen.go:1524
 		if ( t.data)[( t.p)] == 61 {
 			goto st23
 		}
@@ -1729,14 +1811,14 @@ tr22:
 		}
 	st_case_53:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr61
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr62
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr63
+		}
 		goto st0
-tr61:
-//line internal/parser/combat/ext/parser.rl:160
+tr62:
+//line internal/parser/combat/ext/parser.rl:161
 t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
 //line internal/parser/combat/ext/parser.rl:98
 
@@ -1751,13 +1833,13 @@ t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
 			goto _test_eof54
 		}
 	st_case_54:
-//line internal/parser/combat/parser.gen.go:1748
+//line internal/parser/combat/parser.gen.go:1830
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st55
 		}
 		goto st0
-tr62:
-//line internal/parser/combat/ext/parser.rl:160
+tr63:
+//line internal/parser/combat/ext/parser.rl:161
 t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
 //line internal/parser/combat/ext/parser.rl:98
 
@@ -1772,15 +1854,15 @@ t.tok(CONNECT_TO_GAME_SESSION_PREFIX)
 			goto _test_eof55
 		}
 	st_case_55:
-//line internal/parser/combat/parser.gen.go:1769
+//line internal/parser/combat/parser.gen.go:1851
 		if ( t.data)[( t.p)] == 32 {
-			goto tr64
+			goto tr65
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st55
 		}
 		goto st0
-tr64:
+tr65:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -1796,12 +1878,12 @@ tr64:
 			goto _test_eof56
 		}
 	st_case_56:
-//line internal/parser/combat/parser.gen.go:1793
+//line internal/parser/combat/parser.gen.go:1875
 		if ( t.data)[( t.p)] == 61 {
 			goto st57
 		}
 		goto st0
-tr132:
+tr133:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -1817,7 +1899,7 @@ tr132:
 			goto _test_eof57
 		}
 	st_case_57:
-//line internal/parser/combat/parser.gen.go:1814
+//line internal/parser/combat/parser.gen.go:1896
 		if ( t.data)[( t.p)] == 61 {
 			goto st58
 		}
@@ -1864,47 +1946,56 @@ tr132:
 		}
 	st_case_62:
 		if ( t.data)[( t.p)] == 61 {
-			goto st522
+			goto st562
 		}
 		goto st0
-tr599:
+tr643:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
-			{( t.p)++;  t.cs = 522; goto _out }
+			{( t.p)++;  t.cs = 562; goto _out }
 		}
 		t.tokval(intTok(temp.int))
 	
-	goto st522
-tr442:
-//line internal/parser/combat/ext/parser.rl:138
-t.tok(FRIENDLY_FIRE)
-	goto st522
-tr600:
-//line internal/parser/combat/ext/parser.rl:129
-t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
-	goto st522
-tr611:
-//line internal/parser/combat/ext/parser.rl:141
-t.tok(PARTICIPATION_MODIFIERS_END)
-	goto st522
-tr616:
-//line internal/parser/combat/ext/parser.rl:163
-t.tokval(strTok(t.data[t.p:]))
-	goto st522
-	st522:
-		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof522
+	goto st562
+tr633:
+//line internal/parser/combat/ext/parser.rl:76
+
+		if debugTokenizer {
+			fmt.Printf("set string: %s %s\n", t.data[t.prev:t.p],t.state)
 		}
-	st_case_522:
-//line internal/parser/combat/parser.gen.go:1896
+		t.tokval(strTok(t.data[t.prev:t.p]))
+	
+	goto st562
+tr443:
+//line internal/parser/combat/ext/parser.rl:139
+t.tok(FRIENDLY_FIRE)
+	goto st562
+tr644:
+//line internal/parser/combat/ext/parser.rl:130
+t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
+	goto st562
+tr655:
+//line internal/parser/combat/ext/parser.rl:142
+t.tok(PARTICIPATION_MODIFIERS_END)
+	goto st562
+tr660:
+//line internal/parser/combat/ext/parser.rl:164
+t.tokval(strTok(t.data[t.p:]))
+	goto st562
+	st562:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof562
+		}
+	st_case_562:
+//line internal/parser/combat/parser.gen.go:1987
 		if ( t.data)[( t.p)] == 32 {
-			goto st522
+			goto st562
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
 	st63:
@@ -1940,10 +2031,10 @@ t.tokval(strTok(t.data[t.p:]))
 		}
 	st_case_66:
 		if ( t.data)[( t.p)] == 116 {
-			goto tr75
+			goto tr76
 		}
 		goto st0
-tr75:
+tr76:
 //line internal/parser/combat/ext/parser.rl:121
  t.tok(START) 
 	goto st67
@@ -1952,7 +2043,7 @@ tr75:
 			goto _test_eof67
 		}
 	st_case_67:
-//line internal/parser/combat/parser.gen.go:1949
+//line internal/parser/combat/parser.gen.go:2040
 		if ( t.data)[( t.p)] == 32 {
 			goto st68
 		}
@@ -1964,13 +2055,13 @@ tr75:
 	st_case_68:
 		switch ( t.data)[( t.p)] {
 		case 80:
-			goto tr77
-		case 103:
 			goto tr78
+		case 103:
+			goto tr79
 		}
 		goto st0
-tr77:
-//line internal/parser/combat/ext/parser.rl:156
+tr78:
+//line internal/parser/combat/ext/parser.rl:157
 t.tokval(strTok("PVE mission"))
 	goto st69
 	st69:
@@ -1978,7 +2069,7 @@ t.tokval(strTok("PVE mission"))
 			goto _test_eof69
 		}
 	st_case_69:
-//line internal/parser/combat/parser.gen.go:1975
+//line internal/parser/combat/parser.gen.go:2066
 		if ( t.data)[( t.p)] == 86 {
 			goto st70
 		}
@@ -2089,24 +2180,24 @@ t.tokval(strTok("PVE mission"))
 	st_case_81:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr91
-		case 95:
 			goto tr92
+		case 95:
+			goto tr93
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr92
+				goto tr93
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr92
+				goto tr93
 			}
 		default:
-			goto tr92
+			goto tr93
 		}
 		goto st0
-tr91:
+tr92:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2120,7 +2211,7 @@ tr91:
 			goto _test_eof82
 		}
 	st_case_82:
-//line internal/parser/combat/parser.gen.go:2117
+//line internal/parser/combat/parser.gen.go:2208
 		if ( t.data)[( t.p)] == 95 {
 			goto st83
 		}
@@ -2167,10 +2258,10 @@ tr91:
 		}
 	st_case_84:
 		if ( t.data)[( t.p)] == 39 {
-			goto tr95
+			goto tr96
 		}
 		goto st0
-tr95:
+tr96:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -2184,7 +2275,7 @@ tr95:
 			goto _test_eof85
 		}
 	st_case_85:
-//line internal/parser/combat/parser.gen.go:2181
+//line internal/parser/combat/parser.gen.go:2272
 		if ( t.data)[( t.p)] == 32 {
 			goto st86
 		}
@@ -2241,24 +2332,24 @@ tr95:
 	st_case_91:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr102
-		case 95:
 			goto tr103
+		case 95:
+			goto tr104
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr103
+				goto tr104
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr103
+				goto tr104
 			}
 		default:
-			goto tr103
+			goto tr104
 		}
 		goto st0
-tr102:
+tr103:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2272,7 +2363,7 @@ tr102:
 			goto _test_eof92
 		}
 	st_case_92:
-//line internal/parser/combat/parser.gen.go:2269
+//line internal/parser/combat/parser.gen.go:2360
 		if ( t.data)[( t.p)] == 95 {
 			goto st93
 		}
@@ -2319,10 +2410,10 @@ tr102:
 		}
 	st_case_94:
 		if ( t.data)[( t.p)] == 39 {
-			goto tr106
+			goto tr107
 		}
 		goto st0
-tr106:
+tr107:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -2336,7 +2427,7 @@ tr106:
 			goto _test_eof95
 		}
 	st_case_95:
-//line internal/parser/combat/parser.gen.go:2333
+//line internal/parser/combat/parser.gen.go:2424
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st96
@@ -2349,7 +2440,7 @@ tr106:
 			goto st96
 		}
 		goto st0
-tr131:
+tr132:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -2365,7 +2456,7 @@ tr131:
 			goto _test_eof96
 		}
 	st_case_96:
-//line internal/parser/combat/parser.gen.go:2362
+//line internal/parser/combat/parser.gen.go:2453
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st96
@@ -2553,13 +2644,13 @@ tr131:
 		}
 	st_case_116:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr128
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr129
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr130
+		}
 		goto st0
-tr128:
+tr129:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2573,12 +2664,12 @@ tr128:
 			goto _test_eof117
 		}
 	st_case_117:
-//line internal/parser/combat/parser.gen.go:2570
+//line internal/parser/combat/parser.gen.go:2661
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st118
 		}
 		goto st0
-tr129:
+tr130:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2592,12 +2683,12 @@ tr129:
 			goto _test_eof118
 		}
 	st_case_118:
-//line internal/parser/combat/parser.gen.go:2589
+//line internal/parser/combat/parser.gen.go:2680
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr131
-		case 61:
 			goto tr132
+		case 61:
+			goto tr133
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -2605,10 +2696,10 @@ tr129:
 				goto st118
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr131
+			goto tr132
 		}
 		goto st0
-tr103:
+tr104:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2622,10 +2713,10 @@ tr103:
 			goto _test_eof119
 		}
 	st_case_119:
-//line internal/parser/combat/parser.gen.go:2619
+//line internal/parser/combat/parser.gen.go:2710
 		switch ( t.data)[( t.p)] {
 		case 39:
-			goto tr106
+			goto tr107
 		case 95:
 			goto st119
 		}
@@ -2642,7 +2733,7 @@ tr103:
 			goto st119
 		}
 		goto st0
-tr92:
+tr93:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2656,10 +2747,10 @@ tr92:
 			goto _test_eof120
 		}
 	st_case_120:
-//line internal/parser/combat/parser.gen.go:2653
+//line internal/parser/combat/parser.gen.go:2744
 		switch ( t.data)[( t.p)] {
 		case 39:
-			goto tr95
+			goto tr96
 		case 95:
 			goto st120
 		}
@@ -2676,8 +2767,8 @@ tr92:
 			goto st120
 		}
 		goto st0
-tr78:
-//line internal/parser/combat/ext/parser.rl:155
+tr79:
+//line internal/parser/combat/ext/parser.rl:156
 t.tokval(strTok("gameplay"))
 	goto st121
 	st121:
@@ -2685,7 +2776,7 @@ t.tokval(strTok("gameplay"))
 			goto _test_eof121
 		}
 	st_case_121:
-//line internal/parser/combat/parser.gen.go:2682
+//line internal/parser/combat/parser.gen.go:2773
 		if ( t.data)[( t.p)] == 97 {
 			goto st122
 		}
@@ -2758,7 +2849,7 @@ tr23:
 			goto _test_eof128
 		}
 	st_case_128:
-//line internal/parser/combat/parser.gen.go:2755
+//line internal/parser/combat/parser.gen.go:2846
 		if ( t.data)[( t.p)] == 97 {
 			goto st129
 		}
@@ -2796,10 +2887,10 @@ tr23:
 		}
 	st_case_132:
 		if ( t.data)[( t.p)] == 101 {
-			goto tr145
+			goto tr146
 		}
 		goto st0
-tr145:
+tr146:
 //line internal/parser/combat/ext/parser.rl:117
  t.tok(DAMAGE) 
 	goto st133
@@ -2808,7 +2899,7 @@ tr145:
 			goto _test_eof133
 		}
 	st_case_133:
-//line internal/parser/combat/parser.gen.go:2805
+//line internal/parser/combat/parser.gen.go:2896
 		if ( t.data)[( t.p)] == 32 {
 			goto st134
 		}
@@ -2825,9 +2916,9 @@ tr145:
 		case 32:
 			goto st134
 		case 40:
-			goto tr147
-		case 95:
 			goto tr148
+		case 95:
+			goto tr149
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -2838,16 +2929,16 @@ tr145:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr148
+					goto tr149
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr148
+				goto tr149
 			}
 		default:
-			goto tr148
+			goto tr149
 		}
 		goto st0
-tr147:
+tr148:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2861,7 +2952,7 @@ tr147:
 			goto _test_eof135
 		}
 	st_case_135:
-//line internal/parser/combat/parser.gen.go:2858
+//line internal/parser/combat/parser.gen.go:2949
 		if ( t.data)[( t.p)] == 95 {
 			goto st136
 		}
@@ -2909,12 +3000,12 @@ tr147:
 	st_case_137:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr151
-		case 124:
 			goto tr152
+		case 124:
+			goto tr153
 		}
 		goto st0
-tr151:
+tr152:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -2930,27 +3021,27 @@ tr151:
 			goto _test_eof138
 		}
 	st_case_138:
-//line internal/parser/combat/parser.gen.go:2927
+//line internal/parser/combat/parser.gen.go:3018
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr153
-		case 95:
 			goto tr154
+		case 95:
+			goto tr155
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr154
+				goto tr155
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr154
+				goto tr155
 			}
 		default:
-			goto tr154
+			goto tr155
 		}
 		goto st0
-tr153:
+tr154:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -2964,7 +3055,7 @@ tr153:
 			goto _test_eof139
 		}
 	st_case_139:
-//line internal/parser/combat/parser.gen.go:2961
+//line internal/parser/combat/parser.gen.go:3052
 		if ( t.data)[( t.p)] == 95 {
 			goto st140
 		}
@@ -3011,10 +3102,10 @@ tr153:
 		}
 	st_case_141:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr157
+			goto tr158
 		}
 		goto st0
-tr157:
+tr158:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -3030,12 +3121,12 @@ tr157:
 			goto _test_eof142
 		}
 	st_case_142:
-//line internal/parser/combat/parser.gen.go:3027
+//line internal/parser/combat/parser.gen.go:3118
 		if ( t.data)[( t.p)] == 124 {
-			goto tr158
+			goto tr159
 		}
 		goto st0
-tr152:
+tr153:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -3046,7 +3137,7 @@ tr152:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st143
-tr158:
+tr159:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st143
@@ -3055,15 +3146,15 @@ tr158:
 			goto _test_eof143
 		}
 	st_case_143:
-//line internal/parser/combat/parser.gen.go:3052
+//line internal/parser/combat/parser.gen.go:3143
 		if ( t.data)[( t.p)] == 45 {
-			goto tr159
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr160
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr161
+		}
 		goto st0
-tr159:
+tr160:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3077,12 +3168,12 @@ tr159:
 			goto _test_eof144
 		}
 	st_case_144:
-//line internal/parser/combat/parser.gen.go:3074
+//line internal/parser/combat/parser.gen.go:3165
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st145
 		}
 		goto st0
-tr160:
+tr161:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3096,9 +3187,9 @@ tr160:
 			goto _test_eof145
 		}
 	st_case_145:
-//line internal/parser/combat/parser.gen.go:3093
+//line internal/parser/combat/parser.gen.go:3184
 		if ( t.data)[( t.p)] == 32 {
-			goto tr162
+			goto tr163
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -3106,10 +3197,10 @@ tr160:
 				goto st145
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr162
+			goto tr163
 		}
 		goto st0
-tr162:
+tr163:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -3125,7 +3216,7 @@ tr162:
 			goto _test_eof146
 		}
 	st_case_146:
-//line internal/parser/combat/parser.gen.go:3122
+//line internal/parser/combat/parser.gen.go:3213
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st146
@@ -3142,11 +3233,11 @@ tr162:
 		}
 	st_case_147:
 		if ( t.data)[( t.p)] == 62 {
-			goto tr165
+			goto tr166
 		}
 		goto st0
-tr165:
-//line internal/parser/combat/ext/parser.rl:135
+tr166:
+//line internal/parser/combat/ext/parser.rl:136
 t.tok(ARROW)
 	goto st148
 	st148:
@@ -3154,7 +3245,7 @@ t.tok(ARROW)
 			goto _test_eof148
 		}
 	st_case_148:
-//line internal/parser/combat/parser.gen.go:3151
+//line internal/parser/combat/parser.gen.go:3242
 		if ( t.data)[( t.p)] == 32 {
 			goto st149
 		}
@@ -3171,9 +3262,9 @@ t.tok(ARROW)
 		case 32:
 			goto st149
 		case 40:
-			goto tr167
-		case 95:
 			goto tr168
+		case 95:
+			goto tr169
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -3184,16 +3275,16 @@ t.tok(ARROW)
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr168
+					goto tr169
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr168
+				goto tr169
 			}
 		default:
-			goto tr168
+			goto tr169
 		}
 		goto st0
-tr167:
+tr168:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3207,7 +3298,7 @@ tr167:
 			goto _test_eof150
 		}
 	st_case_150:
-//line internal/parser/combat/parser.gen.go:3204
+//line internal/parser/combat/parser.gen.go:3295
 		if ( t.data)[( t.p)] == 95 {
 			goto st151
 		}
@@ -3255,12 +3346,12 @@ tr167:
 	st_case_152:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr171
-		case 124:
 			goto tr172
+		case 124:
+			goto tr173
 		}
 		goto st0
-tr171:
+tr172:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -3276,27 +3367,27 @@ tr171:
 			goto _test_eof153
 		}
 	st_case_153:
-//line internal/parser/combat/parser.gen.go:3273
+//line internal/parser/combat/parser.gen.go:3364
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr173
-		case 95:
 			goto tr174
+		case 95:
+			goto tr175
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr174
+				goto tr175
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr174
+				goto tr175
 			}
 		default:
-			goto tr174
+			goto tr175
 		}
 		goto st0
-tr173:
+tr174:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3310,7 +3401,7 @@ tr173:
 			goto _test_eof154
 		}
 	st_case_154:
-//line internal/parser/combat/parser.gen.go:3307
+//line internal/parser/combat/parser.gen.go:3398
 		if ( t.data)[( t.p)] == 95 {
 			goto st155
 		}
@@ -3357,10 +3448,10 @@ tr173:
 		}
 	st_case_156:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr177
+			goto tr178
 		}
 		goto st0
-tr177:
+tr178:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -3376,12 +3467,12 @@ tr177:
 			goto _test_eof157
 		}
 	st_case_157:
-//line internal/parser/combat/parser.gen.go:3373
+//line internal/parser/combat/parser.gen.go:3464
 		if ( t.data)[( t.p)] == 124 {
-			goto tr178
+			goto tr179
 		}
 		goto st0
-tr172:
+tr173:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -3392,7 +3483,7 @@ tr172:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st158
-tr178:
+tr179:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st158
@@ -3401,15 +3492,15 @@ tr178:
 			goto _test_eof158
 		}
 	st_case_158:
-//line internal/parser/combat/parser.gen.go:3398
+//line internal/parser/combat/parser.gen.go:3489
 		if ( t.data)[( t.p)] == 45 {
-			goto tr179
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr180
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr181
+		}
 		goto st0
-tr179:
+tr180:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3423,12 +3514,12 @@ tr179:
 			goto _test_eof159
 		}
 	st_case_159:
-//line internal/parser/combat/parser.gen.go:3420
+//line internal/parser/combat/parser.gen.go:3511
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st160
 		}
 		goto st0
-tr180:
+tr181:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3442,9 +3533,9 @@ tr180:
 			goto _test_eof160
 		}
 	st_case_160:
-//line internal/parser/combat/parser.gen.go:3439
+//line internal/parser/combat/parser.gen.go:3530
 		if ( t.data)[( t.p)] == 32 {
-			goto tr182
+			goto tr183
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -3452,10 +3543,10 @@ tr180:
 				goto st160
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr182
+			goto tr183
 		}
 		goto st0
-tr182:
+tr183:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -3471,23 +3562,23 @@ tr182:
 			goto _test_eof161
 		}
 	st_case_161:
-//line internal/parser/combat/parser.gen.go:3468
+//line internal/parser/combat/parser.gen.go:3559
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st161
 		case 45:
-			goto tr184
+			goto tr185
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr185
+				goto tr186
 			}
 		case ( t.data)[( t.p)] >= 9:
 			goto st161
 		}
 		goto st0
-tr184:
+tr185:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3501,12 +3592,12 @@ tr184:
 			goto _test_eof162
 		}
 	st_case_162:
-//line internal/parser/combat/parser.gen.go:3498
+//line internal/parser/combat/parser.gen.go:3589
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st163
 		}
 		goto st0
-tr185:
+tr186:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3520,10 +3611,10 @@ tr185:
 			goto _test_eof163
 		}
 	st_case_163:
-//line internal/parser/combat/parser.gen.go:3517
+//line internal/parser/combat/parser.gen.go:3608
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr187
+			goto tr188
 		case 46:
 			goto st205
 		}
@@ -3533,10 +3624,10 @@ tr185:
 				goto st163
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr187
+			goto tr188
 		}
 		goto st0
-tr187:
+tr188:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -3552,7 +3643,7 @@ tr187:
 			goto _test_eof164
 		}
 	st_case_164:
-//line internal/parser/combat/parser.gen.go:3549
+//line internal/parser/combat/parser.gen.go:3640
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st164
@@ -3587,13 +3678,13 @@ tr187:
 		}
 	st_case_167:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr193
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr194
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr195
+		}
 		goto st0
-tr193:
+tr194:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3607,12 +3698,12 @@ tr193:
 			goto _test_eof168
 		}
 	st_case_168:
-//line internal/parser/combat/parser.gen.go:3604
+//line internal/parser/combat/parser.gen.go:3695
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st169
 		}
 		goto st0
-tr194:
+tr195:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3626,10 +3717,10 @@ tr194:
 			goto _test_eof169
 		}
 	st_case_169:
-//line internal/parser/combat/parser.gen.go:3623
+//line internal/parser/combat/parser.gen.go:3714
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr196
+			goto tr197
 		case 46:
 			goto st204
 		}
@@ -3639,10 +3730,10 @@ tr194:
 				goto st169
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr196
+			goto tr197
 		}
 		goto st0
-tr196:
+tr197:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -3658,7 +3749,7 @@ tr196:
 			goto _test_eof170
 		}
 	st_case_170:
-//line internal/parser/combat/parser.gen.go:3655
+//line internal/parser/combat/parser.gen.go:3746
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st170
@@ -3684,13 +3775,13 @@ tr196:
 		}
 	st_case_172:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr201
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr202
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr203
+		}
 		goto st0
-tr201:
+tr202:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3704,12 +3795,12 @@ tr201:
 			goto _test_eof173
 		}
 	st_case_173:
-//line internal/parser/combat/parser.gen.go:3701
+//line internal/parser/combat/parser.gen.go:3792
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st174
 		}
 		goto st0
-tr202:
+tr203:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3723,10 +3814,10 @@ tr202:
 			goto _test_eof174
 		}
 	st_case_174:
-//line internal/parser/combat/parser.gen.go:3720
+//line internal/parser/combat/parser.gen.go:3811
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr204
+			goto tr205
 		case 46:
 			goto st203
 		}
@@ -3734,7 +3825,7 @@ tr202:
 			goto st174
 		}
 		goto st0
-tr204:
+tr205:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -3750,7 +3841,7 @@ tr204:
 			goto _test_eof175
 		}
 	st_case_175:
-//line internal/parser/combat/parser.gen.go:3747
+//line internal/parser/combat/parser.gen.go:3838
 		if ( t.data)[( t.p)] == 32 {
 			goto st176
 		}
@@ -3764,29 +3855,29 @@ tr204:
 		case 32:
 			goto st177
 		case 40:
-			goto tr208
-		case 95:
 			goto tr209
+		case 95:
+			goto tr210
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr209
+				goto tr210
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr209
+				goto tr210
 			}
 		default:
-			goto tr209
+			goto tr210
 		}
 		goto st0
-tr235:
-//line internal/parser/combat/ext/parser.rl:129
+tr236:
+//line internal/parser/combat/ext/parser.rl:130
 t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
 	goto st177
-tr594:
-//line internal/parser/combat/ext/parser.rl:130
+tr638:
+//line internal/parser/combat/ext/parser.rl:131
 t.tokval(newAnyVal(DAMAGE_MODIFIER, strTok(t.data[t.prev:t.p])))
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
@@ -3796,15 +3887,15 @@ t.tokval(newAnyVal(DAMAGE_MODIFIER, strTok(t.data[t.prev:t.p])))
 			goto _test_eof177
 		}
 	st_case_177:
-//line internal/parser/combat/parser.gen.go:3793
+//line internal/parser/combat/parser.gen.go:3884
 		if ( t.data)[( t.p)] == 95 {
-			goto tr210
+			goto tr211
 		}
 		if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
-			goto tr210
+			goto tr211
 		}
 		goto st0
-tr210:
+tr211:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -3812,50 +3903,50 @@ tr210:
 		}
 		t.prev = t.p
 	
-	goto st523
-	st523:
+	goto st563
+	st563:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof523
+			goto _test_eof563
 		}
-	st_case_523:
-//line internal/parser/combat/parser.gen.go:3815
+	st_case_563:
+//line internal/parser/combat/parser.gen.go:3906
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr592
+			goto tr636
 		case 95:
-			goto st523
+			goto st563
 		case 124:
-			goto tr594
+			goto tr638
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 65 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 90 {
-				goto st523
+				goto st563
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr592
+			goto tr636
 		}
 		goto st0
-tr592:
-//line internal/parser/combat/ext/parser.rl:130
+tr636:
+//line internal/parser/combat/ext/parser.rl:131
 t.tokval(newAnyVal(DAMAGE_MODIFIER, strTok(t.data[t.prev:t.p])))
-	goto st524
-	st524:
+	goto st564
+	st564:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof524
+			goto _test_eof564
 		}
-	st_case_524:
-//line internal/parser/combat/parser.gen.go:3842
+	st_case_564:
+//line internal/parser/combat/parser.gen.go:3933
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st524
+			goto st564
 		case 60:
 			goto st178
 		case 82:
-			goto tr597
+			goto tr641
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st524
+			goto st564
 		}
 		goto st0
 	st178:
@@ -3972,43 +4063,43 @@ t.tokval(newAnyVal(DAMAGE_MODIFIER, strTok(t.data[t.prev:t.p])))
 		}
 	st_case_190:
 		if ( t.data)[( t.p)] == 62 {
-			goto tr223
+			goto tr224
 		}
 		goto st0
-tr223:
-//line internal/parser/combat/ext/parser.rl:138
+tr224:
+//line internal/parser/combat/ext/parser.rl:139
 t.tok(FRIENDLY_FIRE)
-	goto st525
-	st525:
+	goto st565
+	st565:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof525
+			goto _test_eof565
 		}
-	st_case_525:
-//line internal/parser/combat/parser.gen.go:3981
+	st_case_565:
+//line internal/parser/combat/parser.gen.go:4072
 		if ( t.data)[( t.p)] == 32 {
-			goto st526
+			goto st566
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st526
+			goto st566
 		}
 		goto st0
-	st526:
+	st566:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof526
+			goto _test_eof566
 		}
-	st_case_526:
+	st_case_566:
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st526
+			goto st566
 		case 82:
-			goto tr597
+			goto tr641
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st526
+			goto st566
 		}
 		goto st0
-tr597:
-//line internal/parser/combat/ext/parser.rl:139
+tr641:
+//line internal/parser/combat/ext/parser.rl:140
 t.tok(ROCKET)
 	goto st191
 	st191:
@@ -4016,7 +4107,7 @@ t.tok(ROCKET)
 			goto _test_eof191
 		}
 	st_case_191:
-//line internal/parser/combat/parser.gen.go:4013
+//line internal/parser/combat/parser.gen.go:4104
 		if ( t.data)[( t.p)] == 111 {
 			goto st192
 		}
@@ -4078,18 +4169,18 @@ t.tok(ROCKET)
 		case 32:
 			goto st197
 		case 45:
-			goto tr230
+			goto tr231
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr231
+				goto tr232
 			}
 		case ( t.data)[( t.p)] >= 9:
 			goto st197
 		}
 		goto st0
-tr230:
+tr231:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4103,12 +4194,12 @@ tr230:
 			goto _test_eof198
 		}
 	st_case_198:
-//line internal/parser/combat/parser.gen.go:4100
+//line internal/parser/combat/parser.gen.go:4191
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-			goto st527
+			goto st567
 		}
 		goto st0
-tr231:
+tr232:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4116,26 +4207,26 @@ tr231:
 		}
 		t.prev = t.p
 	
-	goto st527
-	st527:
+	goto st567
+	st567:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof527
+			goto _test_eof567
 		}
-	st_case_527:
-//line internal/parser/combat/parser.gen.go:4119
+	st_case_567:
+//line internal/parser/combat/parser.gen.go:4210
 		if ( t.data)[( t.p)] == 32 {
-			goto tr599
+			goto tr643
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto st527
+				goto st567
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr599
+			goto tr643
 		}
 		goto st0
-tr208:
+tr209:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4149,7 +4240,7 @@ tr208:
 			goto _test_eof199
 		}
 	st_case_199:
-//line internal/parser/combat/parser.gen.go:4146
+//line internal/parser/combat/parser.gen.go:4237
 		if ( t.data)[( t.p)] == 95 {
 			goto st200
 		}
@@ -4196,10 +4287,10 @@ tr208:
 		}
 	st_case_201:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr235
+			goto tr236
 		}
 		goto st0
-tr209:
+tr210:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4213,10 +4304,10 @@ tr209:
 			goto _test_eof202
 		}
 	st_case_202:
-//line internal/parser/combat/parser.gen.go:4210
+//line internal/parser/combat/parser.gen.go:4301
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr235
+			goto tr236
 		case 95:
 			goto st202
 		}
@@ -4239,7 +4330,7 @@ tr209:
 		}
 	st_case_203:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr204
+			goto tr205
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st203
@@ -4251,7 +4342,7 @@ tr209:
 		}
 	st_case_204:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr196
+			goto tr197
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -4259,7 +4350,7 @@ tr209:
 				goto st204
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr196
+			goto tr197
 		}
 		goto st0
 	st205:
@@ -4268,7 +4359,7 @@ tr209:
 		}
 	st_case_205:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr187
+			goto tr188
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -4276,10 +4367,10 @@ tr209:
 				goto st205
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr187
+			goto tr188
 		}
 		goto st0
-tr174:
+tr175:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4293,10 +4384,10 @@ tr174:
 			goto _test_eof206
 		}
 	st_case_206:
-//line internal/parser/combat/parser.gen.go:4290
+//line internal/parser/combat/parser.gen.go:4381
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr177
+			goto tr178
 		case 95:
 			goto st206
 		}
@@ -4313,7 +4404,7 @@ tr174:
 			goto st206
 		}
 		goto st0
-tr168:
+tr169:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4327,14 +4418,14 @@ tr168:
 			goto _test_eof207
 		}
 	st_case_207:
-//line internal/parser/combat/parser.gen.go:4324
+//line internal/parser/combat/parser.gen.go:4415
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr171
+			goto tr172
 		case 95:
 			goto st207
 		case 124:
-			goto tr172
+			goto tr173
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -4349,7 +4440,7 @@ tr168:
 			goto st207
 		}
 		goto st0
-tr154:
+tr155:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4363,10 +4454,10 @@ tr154:
 			goto _test_eof208
 		}
 	st_case_208:
-//line internal/parser/combat/parser.gen.go:4360
+//line internal/parser/combat/parser.gen.go:4451
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr157
+			goto tr158
 		case 95:
 			goto st208
 		}
@@ -4383,7 +4474,7 @@ tr154:
 			goto st208
 		}
 		goto st0
-tr148:
+tr149:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4397,14 +4488,14 @@ tr148:
 			goto _test_eof209
 		}
 	st_case_209:
-//line internal/parser/combat/parser.gen.go:4394
+//line internal/parser/combat/parser.gen.go:4485
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr151
+			goto tr152
 		case 95:
 			goto st209
 		case 124:
-			goto tr152
+			goto tr153
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -4433,7 +4524,7 @@ tr24:
 			goto _test_eof210
 		}
 	st_case_210:
-//line internal/parser/combat/parser.gen.go:4430
+//line internal/parser/combat/parser.gen.go:4521
 		if ( t.data)[( t.p)] == 97 {
 			goto st211
 		}
@@ -4579,10 +4670,10 @@ tr24:
 		}
 	st_case_226:
 		if ( t.data)[( t.p)] == 46 {
-			goto tr257
+			goto tr258
 		}
 		goto st0
-tr257:
+tr258:
 //line internal/parser/combat/ext/parser.rl:122
  t.tok(GAMEPLAY_FINISHED) 
 	goto st227
@@ -4591,7 +4682,7 @@ tr257:
 			goto _test_eof227
 		}
 	st_case_227:
-//line internal/parser/combat/parser.gen.go:4588
+//line internal/parser/combat/parser.gen.go:4679
 		if ( t.data)[( t.p)] == 32 {
 			goto st228
 		}
@@ -4719,13 +4810,13 @@ tr257:
 		}
 	st_case_241:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr272
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr273
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr274
+		}
 		goto st0
-tr272:
+tr273:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4739,12 +4830,12 @@ tr272:
 			goto _test_eof242
 		}
 	st_case_242:
-//line internal/parser/combat/parser.gen.go:4736
+//line internal/parser/combat/parser.gen.go:4827
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st243
 		}
 		goto st0
-tr273:
+tr274:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4758,15 +4849,15 @@ tr273:
 			goto _test_eof243
 		}
 	st_case_243:
-//line internal/parser/combat/parser.gen.go:4755
+//line internal/parser/combat/parser.gen.go:4846
 		if ( t.data)[( t.p)] == 40 {
-			goto tr275
+			goto tr276
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st243
 		}
 		goto st0
-tr275:
+tr276:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -4782,27 +4873,27 @@ tr275:
 			goto _test_eof244
 		}
 	st_case_244:
-//line internal/parser/combat/parser.gen.go:4779
+//line internal/parser/combat/parser.gen.go:4870
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr276
-		case 95:
 			goto tr277
+		case 95:
+			goto tr278
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr277
+				goto tr278
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr277
+				goto tr278
 			}
 		default:
-			goto tr277
+			goto tr278
 		}
 		goto st0
-tr276:
+tr277:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -4816,7 +4907,7 @@ tr276:
 			goto _test_eof245
 		}
 	st_case_245:
-//line internal/parser/combat/parser.gen.go:4813
+//line internal/parser/combat/parser.gen.go:4904
 		if ( t.data)[( t.p)] == 95 {
 			goto st246
 		}
@@ -4863,10 +4954,10 @@ tr276:
 		}
 	st_case_247:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr280
+			goto tr281
 		}
 		goto st0
-tr280:
+tr281:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -4880,7 +4971,7 @@ tr280:
 			goto _test_eof248
 		}
 	st_case_248:
-//line internal/parser/combat/parser.gen.go:4877
+//line internal/parser/combat/parser.gen.go:4968
 		if ( t.data)[( t.p)] == 46 {
 			goto st249
 		}
@@ -5044,22 +5135,22 @@ tr280:
 		}
 	st_case_266:
 		if ( t.data)[( t.p)] == 95 {
-			goto tr299
+			goto tr300
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr299
+				goto tr300
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr299
+				goto tr300
 			}
 		default:
-			goto tr299
+			goto tr300
 		}
 		goto st0
-tr299:
+tr300:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5073,12 +5164,12 @@ tr299:
 			goto _test_eof267
 		}
 	st_case_267:
-//line internal/parser/combat/parser.gen.go:5070
+//line internal/parser/combat/parser.gen.go:5161
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st268
 		case 39:
-			goto tr301
+			goto tr302
 		case 95:
 			goto st267
 		}
@@ -5116,7 +5207,7 @@ tr299:
 			goto st267
 		}
 		goto st0
-tr301:
+tr302:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -5130,7 +5221,7 @@ tr301:
 			goto _test_eof269
 		}
 	st_case_269:
-//line internal/parser/combat/parser.gen.go:5127
+//line internal/parser/combat/parser.gen.go:5218
 		if ( t.data)[( t.p)] == 46 {
 			goto st270
 		}
@@ -5303,13 +5394,13 @@ tr301:
 		}
 	st_case_288:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr322
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr323
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr324
+		}
 		goto st0
-tr322:
+tr323:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5323,12 +5414,12 @@ tr322:
 			goto _test_eof289
 		}
 	st_case_289:
-//line internal/parser/combat/parser.gen.go:5320
+//line internal/parser/combat/parser.gen.go:5411
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st290
 		}
 		goto st0
-tr323:
+tr324:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5342,10 +5433,10 @@ tr323:
 			goto _test_eof290
 		}
 	st_case_290:
-//line internal/parser/combat/parser.gen.go:5339
+//line internal/parser/combat/parser.gen.go:5430
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr325
+			goto tr326
 		case 46:
 			goto st294
 		}
@@ -5353,7 +5444,7 @@ tr323:
 			goto st290
 		}
 		goto st0
-tr325:
+tr326:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -5369,7 +5460,7 @@ tr325:
 			goto _test_eof291
 		}
 	st_case_291:
-//line internal/parser/combat/parser.gen.go:5366
+//line internal/parser/combat/parser.gen.go:5457
 		if ( t.data)[( t.p)] == 115 {
 			goto st292
 		}
@@ -5389,7 +5480,7 @@ tr325:
 		}
 	st_case_293:
 		if ( t.data)[( t.p)] == 99 {
-			goto st522
+			goto st562
 		}
 		goto st0
 	st294:
@@ -5398,13 +5489,13 @@ tr325:
 		}
 	st_case_294:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr325
+			goto tr326
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st294
 		}
 		goto st0
-tr277:
+tr278:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5418,10 +5509,10 @@ tr277:
 			goto _test_eof295
 		}
 	st_case_295:
-//line internal/parser/combat/parser.gen.go:5415
+//line internal/parser/combat/parser.gen.go:5506
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr280
+			goto tr281
 		case 95:
 			goto st295
 		}
@@ -5452,7 +5543,7 @@ tr25:
 			goto _test_eof296
 		}
 	st_case_296:
-//line internal/parser/combat/parser.gen.go:5449
+//line internal/parser/combat/parser.gen.go:5540
 		if ( t.data)[( t.p)] == 101 {
 			goto st297
 		}
@@ -5472,10 +5563,10 @@ tr25:
 		}
 	st_case_298:
 		if ( t.data)[( t.p)] == 108 {
-			goto tr332
+			goto tr333
 		}
 		goto st0
-tr332:
+tr333:
 //line internal/parser/combat/ext/parser.rl:118
  t.tok(HEAL) 
 	goto st299
@@ -5484,7 +5575,7 @@ tr332:
 			goto _test_eof299
 		}
 	st_case_299:
-//line internal/parser/combat/parser.gen.go:5481
+//line internal/parser/combat/parser.gen.go:5572
 		if ( t.data)[( t.p)] == 32 {
 			goto st300
 		}
@@ -5498,24 +5589,24 @@ tr332:
 		case 32:
 			goto st300
 		case 40:
-			goto tr334
-		case 95:
 			goto tr335
+		case 95:
+			goto tr336
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr335
+				goto tr336
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr335
+				goto tr336
 			}
 		default:
-			goto tr335
+			goto tr336
 		}
 		goto st0
-tr334:
+tr335:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5529,7 +5620,7 @@ tr334:
 			goto _test_eof301
 		}
 	st_case_301:
-//line internal/parser/combat/parser.gen.go:5526
+//line internal/parser/combat/parser.gen.go:5617
 		if ( t.data)[( t.p)] == 95 {
 			goto st302
 		}
@@ -5577,12 +5668,12 @@ tr334:
 	st_case_303:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr338
-		case 124:
 			goto tr339
+		case 124:
+			goto tr340
 		}
 		goto st0
-tr338:
+tr339:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -5598,27 +5689,27 @@ tr338:
 			goto _test_eof304
 		}
 	st_case_304:
-//line internal/parser/combat/parser.gen.go:5595
+//line internal/parser/combat/parser.gen.go:5686
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr340
-		case 95:
 			goto tr341
+		case 95:
+			goto tr342
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr341
+				goto tr342
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr341
+				goto tr342
 			}
 		default:
-			goto tr341
+			goto tr342
 		}
 		goto st0
-tr340:
+tr341:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5632,7 +5723,7 @@ tr340:
 			goto _test_eof305
 		}
 	st_case_305:
-//line internal/parser/combat/parser.gen.go:5629
+//line internal/parser/combat/parser.gen.go:5720
 		if ( t.data)[( t.p)] == 95 {
 			goto st306
 		}
@@ -5679,10 +5770,10 @@ tr340:
 		}
 	st_case_307:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr344
+			goto tr345
 		}
 		goto st0
-tr344:
+tr345:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -5698,12 +5789,12 @@ tr344:
 			goto _test_eof308
 		}
 	st_case_308:
-//line internal/parser/combat/parser.gen.go:5695
+//line internal/parser/combat/parser.gen.go:5786
 		if ( t.data)[( t.p)] == 124 {
-			goto tr345
+			goto tr346
 		}
 		goto st0
-tr339:
+tr340:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -5714,7 +5805,7 @@ tr339:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st309
-tr345:
+tr346:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st309
@@ -5723,15 +5814,15 @@ tr345:
 			goto _test_eof309
 		}
 	st_case_309:
-//line internal/parser/combat/parser.gen.go:5720
+//line internal/parser/combat/parser.gen.go:5811
 		if ( t.data)[( t.p)] == 45 {
-			goto tr346
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr347
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr348
+		}
 		goto st0
-tr346:
+tr347:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5745,12 +5836,12 @@ tr346:
 			goto _test_eof310
 		}
 	st_case_310:
-//line internal/parser/combat/parser.gen.go:5742
+//line internal/parser/combat/parser.gen.go:5833
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st311
 		}
 		goto st0
-tr347:
+tr348:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5764,9 +5855,9 @@ tr347:
 			goto _test_eof311
 		}
 	st_case_311:
-//line internal/parser/combat/parser.gen.go:5761
+//line internal/parser/combat/parser.gen.go:5852
 		if ( t.data)[( t.p)] == 32 {
-			goto tr349
+			goto tr350
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -5774,10 +5865,10 @@ tr347:
 				goto st311
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr349
+			goto tr350
 		}
 		goto st0
-tr349:
+tr350:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -5793,7 +5884,7 @@ tr349:
 			goto _test_eof312
 		}
 	st_case_312:
-//line internal/parser/combat/parser.gen.go:5790
+//line internal/parser/combat/parser.gen.go:5881
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st312
@@ -5810,11 +5901,11 @@ tr349:
 		}
 	st_case_313:
 		if ( t.data)[( t.p)] == 62 {
-			goto tr352
+			goto tr353
 		}
 		goto st0
-tr352:
-//line internal/parser/combat/ext/parser.rl:135
+tr353:
+//line internal/parser/combat/ext/parser.rl:136
 t.tok(ARROW)
 	goto st314
 	st314:
@@ -5822,7 +5913,7 @@ t.tok(ARROW)
 			goto _test_eof314
 		}
 	st_case_314:
-//line internal/parser/combat/parser.gen.go:5819
+//line internal/parser/combat/parser.gen.go:5910
 		if ( t.data)[( t.p)] == 32 {
 			goto st315
 		}
@@ -5839,9 +5930,9 @@ t.tok(ARROW)
 		case 32:
 			goto st315
 		case 40:
-			goto tr354
-		case 95:
 			goto tr355
+		case 95:
+			goto tr356
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -5852,16 +5943,16 @@ t.tok(ARROW)
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr355
+					goto tr356
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr355
+				goto tr356
 			}
 		default:
-			goto tr355
+			goto tr356
 		}
 		goto st0
-tr354:
+tr355:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5875,7 +5966,7 @@ tr354:
 			goto _test_eof316
 		}
 	st_case_316:
-//line internal/parser/combat/parser.gen.go:5872
+//line internal/parser/combat/parser.gen.go:5963
 		if ( t.data)[( t.p)] == 95 {
 			goto st317
 		}
@@ -5923,12 +6014,12 @@ tr354:
 	st_case_318:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr358
-		case 124:
 			goto tr359
+		case 124:
+			goto tr360
 		}
 		goto st0
-tr358:
+tr359:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -5944,27 +6035,27 @@ tr358:
 			goto _test_eof319
 		}
 	st_case_319:
-//line internal/parser/combat/parser.gen.go:5941
+//line internal/parser/combat/parser.gen.go:6032
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr360
-		case 95:
 			goto tr361
+		case 95:
+			goto tr362
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr361
+				goto tr362
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr361
+				goto tr362
 			}
 		default:
-			goto tr361
+			goto tr362
 		}
 		goto st0
-tr360:
+tr361:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -5978,7 +6069,7 @@ tr360:
 			goto _test_eof320
 		}
 	st_case_320:
-//line internal/parser/combat/parser.gen.go:5975
+//line internal/parser/combat/parser.gen.go:6066
 		if ( t.data)[( t.p)] == 95 {
 			goto st321
 		}
@@ -6025,10 +6116,10 @@ tr360:
 		}
 	st_case_322:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr364
+			goto tr365
 		}
 		goto st0
-tr364:
+tr365:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6044,12 +6135,12 @@ tr364:
 			goto _test_eof323
 		}
 	st_case_323:
-//line internal/parser/combat/parser.gen.go:6041
+//line internal/parser/combat/parser.gen.go:6132
 		if ( t.data)[( t.p)] == 124 {
-			goto tr365
+			goto tr366
 		}
 		goto st0
-tr359:
+tr360:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6060,7 +6151,7 @@ tr359:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st324
-tr365:
+tr366:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st324
@@ -6069,15 +6160,15 @@ tr365:
 			goto _test_eof324
 		}
 	st_case_324:
-//line internal/parser/combat/parser.gen.go:6066
+//line internal/parser/combat/parser.gen.go:6157
 		if ( t.data)[( t.p)] == 45 {
-			goto tr366
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr367
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr368
+		}
 		goto st0
-tr366:
+tr367:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6091,12 +6182,12 @@ tr366:
 			goto _test_eof325
 		}
 	st_case_325:
-//line internal/parser/combat/parser.gen.go:6088
+//line internal/parser/combat/parser.gen.go:6179
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st326
 		}
 		goto st0
-tr367:
+tr368:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6110,9 +6201,9 @@ tr367:
 			goto _test_eof326
 		}
 	st_case_326:
-//line internal/parser/combat/parser.gen.go:6107
+//line internal/parser/combat/parser.gen.go:6198
 		if ( t.data)[( t.p)] == 32 {
-			goto tr369
+			goto tr370
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -6120,10 +6211,10 @@ tr367:
 				goto st326
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr369
+			goto tr370
 		}
 		goto st0
-tr369:
+tr370:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -6139,23 +6230,23 @@ tr369:
 			goto _test_eof327
 		}
 	st_case_327:
-//line internal/parser/combat/parser.gen.go:6136
+//line internal/parser/combat/parser.gen.go:6227
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st327
 		case 45:
-			goto tr371
+			goto tr372
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr372
+				goto tr373
 			}
 		case ( t.data)[( t.p)] >= 9:
 			goto st327
 		}
 		goto st0
-tr371:
+tr372:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6169,12 +6260,12 @@ tr371:
 			goto _test_eof328
 		}
 	st_case_328:
-//line internal/parser/combat/parser.gen.go:6166
+//line internal/parser/combat/parser.gen.go:6257
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st329
 		}
 		goto st0
-tr372:
+tr373:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6188,10 +6279,10 @@ tr372:
 			goto _test_eof329
 		}
 	st_case_329:
-//line internal/parser/combat/parser.gen.go:6185
+//line internal/parser/combat/parser.gen.go:6276
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr374
+			goto tr375
 		case 46:
 			goto st333
 		}
@@ -6201,10 +6292,10 @@ tr372:
 				goto st329
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr374
+			goto tr375
 		}
 		goto st0
-tr374:
+tr375:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -6220,14 +6311,14 @@ tr374:
 			goto _test_eof330
 		}
 	st_case_330:
-//line internal/parser/combat/parser.gen.go:6217
+//line internal/parser/combat/parser.gen.go:6308
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st330
 		case 40:
-			goto tr377
-		case 95:
 			goto tr378
+		case 95:
+			goto tr379
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -6238,16 +6329,16 @@ tr374:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr378
+					goto tr379
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr378
+				goto tr379
 			}
 		default:
-			goto tr378
+			goto tr379
 		}
 		goto st0
-tr377:
+tr378:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6261,7 +6352,7 @@ tr377:
 			goto _test_eof331
 		}
 	st_case_331:
-//line internal/parser/combat/parser.gen.go:6258
+//line internal/parser/combat/parser.gen.go:6349
 		if ( t.data)[( t.p)] == 95 {
 			goto st332
 		}
@@ -6285,7 +6376,7 @@ tr377:
 	st_case_332:
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto st528
+			goto st568
 		case 95:
 			goto st332
 		}
@@ -6302,19 +6393,19 @@ tr377:
 			goto st332
 		}
 		goto st0
-	st528:
+	st568:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof528
+			goto _test_eof568
 		}
-	st_case_528:
+	st_case_568:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr600
+			goto tr644
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr600
+			goto tr644
 		}
 		goto st0
-tr378:
+tr379:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6322,35 +6413,35 @@ tr378:
 		}
 		t.prev = t.p
 	
-	goto st529
-	st529:
+	goto st569
+	st569:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof529
+			goto _test_eof569
 		}
-	st_case_529:
-//line internal/parser/combat/parser.gen.go:6325
+	st_case_569:
+//line internal/parser/combat/parser.gen.go:6416
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr600
+			goto tr644
 		case 95:
-			goto st529
+			goto st569
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
 			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto tr600
+				goto tr644
 			}
 		case ( t.data)[( t.p)] > 57:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto st529
+					goto st569
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto st529
+				goto st569
 			}
 		default:
-			goto st529
+			goto st569
 		}
 		goto st0
 	st333:
@@ -6359,7 +6450,7 @@ tr378:
 		}
 	st_case_333:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr374
+			goto tr375
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -6367,10 +6458,10 @@ tr378:
 				goto st333
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr374
+			goto tr375
 		}
 		goto st0
-tr361:
+tr362:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6384,10 +6475,10 @@ tr361:
 			goto _test_eof334
 		}
 	st_case_334:
-//line internal/parser/combat/parser.gen.go:6381
+//line internal/parser/combat/parser.gen.go:6472
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr364
+			goto tr365
 		case 95:
 			goto st334
 		}
@@ -6404,7 +6495,7 @@ tr361:
 			goto st334
 		}
 		goto st0
-tr355:
+tr356:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6418,14 +6509,14 @@ tr355:
 			goto _test_eof335
 		}
 	st_case_335:
-//line internal/parser/combat/parser.gen.go:6415
+//line internal/parser/combat/parser.gen.go:6506
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr358
+			goto tr359
 		case 95:
 			goto st335
 		case 124:
-			goto tr359
+			goto tr360
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -6440,7 +6531,7 @@ tr355:
 			goto st335
 		}
 		goto st0
-tr341:
+tr342:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6454,10 +6545,10 @@ tr341:
 			goto _test_eof336
 		}
 	st_case_336:
-//line internal/parser/combat/parser.gen.go:6451
+//line internal/parser/combat/parser.gen.go:6542
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr344
+			goto tr345
 		case 95:
 			goto st336
 		}
@@ -6474,7 +6565,7 @@ tr341:
 			goto st336
 		}
 		goto st0
-tr335:
+tr336:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6488,14 +6579,14 @@ tr335:
 			goto _test_eof337
 		}
 	st_case_337:
-//line internal/parser/combat/parser.gen.go:6485
+//line internal/parser/combat/parser.gen.go:6576
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr338
+			goto tr339
 		case 95:
 			goto st337
 		case 124:
-			goto tr339
+			goto tr340
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -6524,7 +6615,7 @@ tr26:
 			goto _test_eof338
 		}
 	st_case_338:
-//line internal/parser/combat/parser.gen.go:6521
+//line internal/parser/combat/parser.gen.go:6612
 		if ( t.data)[( t.p)] == 105 {
 			goto st339
 		}
@@ -6562,10 +6653,10 @@ tr26:
 		}
 	st_case_342:
 		if ( t.data)[( t.p)] == 100 {
-			goto tr389
+			goto tr390
 		}
 		goto st0
-tr389:
+tr390:
 //line internal/parser/combat/ext/parser.rl:119
  t.tok(KILL) 
 	goto st343
@@ -6574,7 +6665,7 @@ tr389:
 			goto _test_eof343
 		}
 	st_case_343:
-//line internal/parser/combat/parser.gen.go:6571
+//line internal/parser/combat/parser.gen.go:6662
 		if ( t.data)[( t.p)] == 32 {
 			goto st344
 		}
@@ -6591,9 +6682,9 @@ tr389:
 		case 32:
 			goto st344
 		case 40:
-			goto tr391
-		case 95:
 			goto tr392
+		case 95:
+			goto tr393
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -6604,16 +6695,16 @@ tr389:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr392
+					goto tr393
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr392
+				goto tr393
 			}
 		default:
-			goto tr392
+			goto tr393
 		}
 		goto st0
-tr391:
+tr392:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6627,7 +6718,7 @@ tr391:
 			goto _test_eof345
 		}
 	st_case_345:
-//line internal/parser/combat/parser.gen.go:6624
+//line internal/parser/combat/parser.gen.go:6715
 		if ( t.data)[( t.p)] == 95 {
 			goto st346
 		}
@@ -6675,14 +6766,14 @@ tr391:
 	st_case_347:
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr395
-		case 40:
 			goto tr396
-		case 124:
+		case 40:
 			goto tr397
+		case 124:
+			goto tr398
 		}
 		goto st0
-tr395:
+tr396:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6698,14 +6789,14 @@ tr395:
 			goto _test_eof348
 		}
 	st_case_348:
-//line internal/parser/combat/parser.gen.go:6695
+//line internal/parser/combat/parser.gen.go:6786
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st348
 		case 40:
-			goto tr399
-		case 95:
 			goto tr400
+		case 95:
+			goto tr401
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -6716,16 +6807,16 @@ tr395:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr400
+					goto tr401
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr400
+				goto tr401
 			}
 		default:
-			goto tr400
+			goto tr401
 		}
 		goto st0
-tr399:
+tr400:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6739,7 +6830,7 @@ tr399:
 			goto _test_eof349
 		}
 	st_case_349:
-//line internal/parser/combat/parser.gen.go:6736
+//line internal/parser/combat/parser.gen.go:6827
 		if ( t.data)[( t.p)] == 95 {
 			goto st350
 		}
@@ -6787,12 +6878,12 @@ tr399:
 	st_case_351:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr396
-		case 124:
 			goto tr397
+		case 124:
+			goto tr398
 		}
 		goto st0
-tr396:
+tr397:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6808,27 +6899,27 @@ tr396:
 			goto _test_eof352
 		}
 	st_case_352:
-//line internal/parser/combat/parser.gen.go:6805
+//line internal/parser/combat/parser.gen.go:6896
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr403
-		case 95:
 			goto tr404
+		case 95:
+			goto tr405
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr404
+				goto tr405
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr404
+				goto tr405
 			}
 		default:
-			goto tr404
+			goto tr405
 		}
 		goto st0
-tr403:
+tr404:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6842,7 +6933,7 @@ tr403:
 			goto _test_eof353
 		}
 	st_case_353:
-//line internal/parser/combat/parser.gen.go:6839
+//line internal/parser/combat/parser.gen.go:6930
 		if ( t.data)[( t.p)] == 95 {
 			goto st354
 		}
@@ -6889,10 +6980,10 @@ tr403:
 		}
 	st_case_355:
 		if ( t.data)[( t.p)] == 41 {
-			goto tr407
+			goto tr408
 		}
 		goto st0
-tr407:
+tr408:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6908,12 +6999,12 @@ tr407:
 			goto _test_eof356
 		}
 	st_case_356:
-//line internal/parser/combat/parser.gen.go:6905
+//line internal/parser/combat/parser.gen.go:6996
 		if ( t.data)[( t.p)] == 124 {
-			goto tr408
+			goto tr409
 		}
 		goto st0
-tr397:
+tr398:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -6924,7 +7015,7 @@ tr397:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st357
-tr408:
+tr409:
 //line internal/parser/combat/ext/parser.rl:109
  t.tok(int(t.data[t.p]))
 	goto st357
@@ -6933,15 +7024,15 @@ tr408:
 			goto _test_eof357
 		}
 	st_case_357:
-//line internal/parser/combat/parser.gen.go:6930
+//line internal/parser/combat/parser.gen.go:7021
 		if ( t.data)[( t.p)] == 45 {
-			goto tr409
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr410
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr411
+		}
 		goto st0
-tr409:
+tr410:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6955,12 +7046,12 @@ tr409:
 			goto _test_eof358
 		}
 	st_case_358:
-//line internal/parser/combat/parser.gen.go:6952
+//line internal/parser/combat/parser.gen.go:7043
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st359
 		}
 		goto st0
-tr410:
+tr411:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -6974,15 +7065,15 @@ tr410:
 			goto _test_eof359
 		}
 	st_case_359:
-//line internal/parser/combat/parser.gen.go:6971
+//line internal/parser/combat/parser.gen.go:7062
 		if ( t.data)[( t.p)] == 59 {
-			goto tr412
+			goto tr413
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st359
 		}
 		goto st0
-tr412:
+tr413:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -7000,7 +7091,7 @@ tr412:
 			goto _test_eof360
 		}
 	st_case_360:
-//line internal/parser/combat/parser.gen.go:6997
+//line internal/parser/combat/parser.gen.go:7088
 		if ( t.data)[( t.p)] == 32 {
 			goto st361
 		}
@@ -7084,24 +7175,24 @@ tr412:
 	st_case_368:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr421
-		case 95:
 			goto tr422
+		case 95:
+			goto tr423
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr422
+				goto tr423
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr422
+				goto tr423
 			}
 		default:
-			goto tr422
+			goto tr423
 		}
 		goto st0
-tr421:
+tr422:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7115,7 +7206,7 @@ tr421:
 			goto _test_eof369
 		}
 	st_case_369:
-//line internal/parser/combat/parser.gen.go:7112
+//line internal/parser/combat/parser.gen.go:7203
 		if ( t.data)[( t.p)] == 95 {
 			goto st370
 		}
@@ -7162,10 +7253,10 @@ tr421:
 		}
 	st_case_371:
 		if ( t.data)[( t.p)] == 124 {
-			goto tr425
+			goto tr426
 		}
 		goto st0
-tr425:
+tr426:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -7181,15 +7272,15 @@ tr425:
 			goto _test_eof372
 		}
 	st_case_372:
-//line internal/parser/combat/parser.gen.go:7178
+//line internal/parser/combat/parser.gen.go:7269
 		if ( t.data)[( t.p)] == 45 {
-			goto tr426
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr427
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr428
+		}
 		goto st0
-tr426:
+tr427:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7203,12 +7294,12 @@ tr426:
 			goto _test_eof373
 		}
 	st_case_373:
-//line internal/parser/combat/parser.gen.go:7200
+//line internal/parser/combat/parser.gen.go:7291
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st374
 		}
 		goto st0
-tr427:
+tr428:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7222,79 +7313,79 @@ tr427:
 			goto _test_eof374
 		}
 	st_case_374:
-//line internal/parser/combat/parser.gen.go:7219
+//line internal/parser/combat/parser.gen.go:7310
 		if ( t.data)[( t.p)] == 32 {
-			goto tr429
+			goto tr430
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st374
 		}
 		goto st0
-tr429:
+tr430:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
 		if parseErr != nil {
 			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
-			{( t.p)++;  t.cs = 530; goto _out }
+			{( t.p)++;  t.cs = 570; goto _out }
 		}
 		t.tokval(intTok(temp.int))
 	
-	goto st530
-	st530:
+	goto st570
+	st570:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof530
+			goto _test_eof570
 		}
-	st_case_530:
-//line internal/parser/combat/parser.gen.go:7243
+	st_case_570:
+//line internal/parser/combat/parser.gen.go:7334
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st531
+			goto st571
 		case 40:
-			goto tr603
+			goto tr647
 		case 95:
-			goto tr604
+			goto tr648
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
 			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto st522
+				goto st562
 			}
 		case ( t.data)[( t.p)] > 57:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr604
+					goto tr648
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr604
+				goto tr648
 			}
 		default:
-			goto tr604
+			goto tr648
 		}
 		goto st0
-tr606:
-//line internal/parser/combat/ext/parser.rl:129
+tr650:
+//line internal/parser/combat/ext/parser.rl:130
 t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
-	goto st531
-	st531:
+	goto st571
+	st571:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof531
+			goto _test_eof571
 		}
-	st_case_531:
-//line internal/parser/combat/parser.gen.go:7279
+	st_case_571:
+//line internal/parser/combat/parser.gen.go:7370
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st522
+			goto st562
 		case 60:
 			goto st375
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
-tr613:
-//line internal/parser/combat/ext/parser.rl:141
+tr657:
+//line internal/parser/combat/ext/parser.rl:142
 t.tok(PARTICIPATION_MODIFIERS_END)
 	goto st375
 	st375:
@@ -7302,7 +7393,7 @@ t.tok(PARTICIPATION_MODIFIERS_END)
 			goto _test_eof375
 		}
 	st_case_375:
-//line internal/parser/combat/parser.gen.go:7299
+//line internal/parser/combat/parser.gen.go:7390
 		if ( t.data)[( t.p)] == 70 {
 			goto st376
 		}
@@ -7412,10 +7503,10 @@ t.tok(PARTICIPATION_MODIFIERS_END)
 		}
 	st_case_387:
 		if ( t.data)[( t.p)] == 62 {
-			goto tr442
+			goto tr443
 		}
 		goto st0
-tr603:
+tr647:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7429,7 +7520,7 @@ tr603:
 			goto _test_eof388
 		}
 	st_case_388:
-//line internal/parser/combat/parser.gen.go:7426
+//line internal/parser/combat/parser.gen.go:7517
 		if ( t.data)[( t.p)] == 95 {
 			goto st389
 		}
@@ -7453,7 +7544,7 @@ tr603:
 	st_case_389:
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto st532
+			goto st572
 		case 95:
 			goto st389
 		}
@@ -7470,19 +7561,19 @@ tr603:
 			goto st389
 		}
 		goto st0
-	st532:
+	st572:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof532
+			goto _test_eof572
 		}
-	st_case_532:
+	st_case_572:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr606
+			goto tr650
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr600
+			goto tr644
 		}
 		goto st0
-tr604:
+tr648:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7490,38 +7581,38 @@ tr604:
 		}
 		t.prev = t.p
 	
-	goto st533
-	st533:
+	goto st573
+	st573:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof533
+			goto _test_eof573
 		}
-	st_case_533:
-//line internal/parser/combat/parser.gen.go:7493
+	st_case_573:
+//line internal/parser/combat/parser.gen.go:7584
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr606
+			goto tr650
 		case 95:
-			goto st533
+			goto st573
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
 			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto tr600
+				goto tr644
 			}
 		case ( t.data)[( t.p)] > 57:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto st533
+					goto st573
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto st533
+				goto st573
 			}
 		default:
-			goto st533
+			goto st573
 		}
 		goto st0
-tr422:
+tr423:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7535,12 +7626,12 @@ tr422:
 			goto _test_eof390
 		}
 	st_case_390:
-//line internal/parser/combat/parser.gen.go:7532
+//line internal/parser/combat/parser.gen.go:7623
 		switch ( t.data)[( t.p)] {
 		case 95:
 			goto st390
 		case 124:
-			goto tr425
+			goto tr426
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -7555,7 +7646,7 @@ tr422:
 			goto st390
 		}
 		goto st0
-tr404:
+tr405:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7569,10 +7660,10 @@ tr404:
 			goto _test_eof391
 		}
 	st_case_391:
-//line internal/parser/combat/parser.gen.go:7566
+//line internal/parser/combat/parser.gen.go:7657
 		switch ( t.data)[( t.p)] {
 		case 41:
-			goto tr407
+			goto tr408
 		case 95:
 			goto st391
 		}
@@ -7589,7 +7680,7 @@ tr404:
 			goto st391
 		}
 		goto st0
-tr400:
+tr401:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7603,14 +7694,14 @@ tr400:
 			goto _test_eof392
 		}
 	st_case_392:
-//line internal/parser/combat/parser.gen.go:7600
+//line internal/parser/combat/parser.gen.go:7691
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr396
+			goto tr397
 		case 95:
 			goto st392
 		case 124:
-			goto tr397
+			goto tr398
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -7625,7 +7716,7 @@ tr400:
 			goto st392
 		}
 		goto st0
-tr392:
+tr393:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7639,16 +7730,16 @@ tr392:
 			goto _test_eof393
 		}
 	st_case_393:
-//line internal/parser/combat/parser.gen.go:7636
+//line internal/parser/combat/parser.gen.go:7727
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr395
-		case 40:
 			goto tr396
+		case 40:
+			goto tr397
 		case 95:
 			goto st393
 		case 124:
-			goto tr397
+			goto tr398
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
@@ -7677,7 +7768,7 @@ tr27:
 			goto _test_eof394
 		}
 	st_case_394:
-//line internal/parser/combat/parser.gen.go:7674
+//line internal/parser/combat/parser.gen.go:7765
 		if ( t.data)[( t.p)] == 97 {
 			goto st395
 		}
@@ -7760,10 +7851,10 @@ tr27:
 		}
 	st_case_403:
 		if ( t.data)[( t.p)] == 116 {
-			goto tr458
+			goto tr459
 		}
 		goto st0
-tr458:
+tr459:
 //line internal/parser/combat/ext/parser.rl:120
  t.tok(PARTICIPANT) 
 	goto st404
@@ -7772,7 +7863,7 @@ tr458:
 			goto _test_eof404
 		}
 	st_case_404:
-//line internal/parser/combat/parser.gen.go:7769
+//line internal/parser/combat/parser.gen.go:7860
 		if ( t.data)[( t.p)] == 32 {
 			goto st405
 		}
@@ -7786,24 +7877,24 @@ tr458:
 		case 32:
 			goto st405
 		case 40:
-			goto tr460
-		case 95:
 			goto tr461
+		case 95:
+			goto tr462
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr461
+				goto tr462
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr461
+				goto tr462
 			}
 		default:
-			goto tr461
+			goto tr462
 		}
 		goto st0
-tr460:
+tr461:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7817,7 +7908,7 @@ tr460:
 			goto _test_eof406
 		}
 	st_case_406:
-//line internal/parser/combat/parser.gen.go:7814
+//line internal/parser/combat/parser.gen.go:7905
 		if ( t.data)[( t.p)] == 95 {
 			goto st407
 		}
@@ -7864,10 +7955,10 @@ tr460:
 		}
 	st_case_408:
 		if ( t.data)[( t.p)] == 9 {
-			goto tr464
+			goto tr465
 		}
 		goto st0
-tr464:
+tr465:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -7881,7 +7972,7 @@ tr464:
 			goto _test_eof409
 		}
 	st_case_409:
-//line internal/parser/combat/parser.gen.go:7878
+//line internal/parser/combat/parser.gen.go:7969
 		if ( t.data)[( t.p)] == 32 {
 			goto st410
 		}
@@ -7893,28 +7984,28 @@ tr464:
 	st_case_410:
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto st534
+			goto st574
 		case 32:
 			goto st459
 		case 40:
-			goto tr468
-		case 95:
 			goto tr469
+		case 95:
+			goto tr470
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr469
+				goto tr470
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr469
+				goto tr470
 			}
 		default:
-			goto tr469
+			goto tr470
 		}
 		goto st0
-tr523:
+tr524:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -7922,40 +8013,40 @@ tr523:
 		}
 		t.tokval(strTok(t.data[t.prev:t.p]))
 	
-	goto st534
-	st534:
+	goto st574
+	st574:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof534
+			goto _test_eof574
 		}
-	st_case_534:
-//line internal/parser/combat/parser.gen.go:7925
+	st_case_574:
+//line internal/parser/combat/parser.gen.go:8016
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st535
+			goto st575
 		case 60:
 			goto st411
 		case 116:
 			goto st421
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
-	st535:
+	st575:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof535
+			goto _test_eof575
 		}
-	st_case_535:
+	st_case_575:
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st522
+			goto st562
 		case 60:
 			goto st411
 		case 116:
 			goto st421
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
 	st411:
@@ -7967,14 +8058,14 @@ tr523:
 		case 70:
 			goto st376
 		case 98:
-			goto tr470
-		case 100:
 			goto tr471
-		case 104:
+		case 100:
 			goto tr472
+		case 104:
+			goto tr473
 		}
 		goto st0
-tr470:
+tr471:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -7988,7 +8079,7 @@ tr470:
 			goto _test_eof412
 		}
 	st_case_412:
-//line internal/parser/combat/parser.gen.go:7985
+//line internal/parser/combat/parser.gen.go:8076
 		if ( t.data)[( t.p)] == 117 {
 			goto st413
 		}
@@ -8017,50 +8108,50 @@ tr470:
 		}
 	st_case_415:
 		if ( t.data)[( t.p)] == 62 {
-			goto tr476
+			goto tr477
 		}
 		goto st0
-tr476:
-//line internal/parser/combat/ext/parser.rl:140
+tr477:
+//line internal/parser/combat/ext/parser.rl:141
 t.tokval(newAnyVal(PARTICIPATION_MODIFIER, strTok(t.data[t.prev:t.p])))
-	goto st536
-	st536:
+	goto st576
+	st576:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof536
+			goto _test_eof576
 		}
-	st_case_536:
-//line internal/parser/combat/parser.gen.go:8026
+	st_case_576:
+//line internal/parser/combat/parser.gen.go:8117
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto tr612
+			goto tr656
 		case 60:
-			goto tr613
+			goto tr657
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr611
+			goto tr655
 		}
 		goto st0
-tr612:
-//line internal/parser/combat/ext/parser.rl:141
+tr656:
+//line internal/parser/combat/ext/parser.rl:142
 t.tok(PARTICIPATION_MODIFIERS_END)
-	goto st537
-	st537:
+	goto st577
+	st577:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof537
+			goto _test_eof577
 		}
-	st_case_537:
-//line internal/parser/combat/parser.gen.go:8046
+	st_case_577:
+//line internal/parser/combat/parser.gen.go:8137
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st522
+			goto st562
 		case 60:
 			goto st411
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
-tr471:
+tr472:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8074,7 +8165,7 @@ tr471:
 			goto _test_eof416
 		}
 	st_case_416:
-//line internal/parser/combat/parser.gen.go:8071
+//line internal/parser/combat/parser.gen.go:8162
 		if ( t.data)[( t.p)] == 101 {
 			goto st417
 		}
@@ -8088,7 +8179,7 @@ tr471:
 			goto st412
 		}
 		goto st0
-tr472:
+tr473:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8102,7 +8193,7 @@ tr472:
 			goto _test_eof418
 		}
 	st_case_418:
-//line internal/parser/combat/parser.gen.go:8099
+//line internal/parser/combat/parser.gen.go:8190
 		if ( t.data)[( t.p)] == 101 {
 			goto st419
 		}
@@ -8230,13 +8321,13 @@ tr472:
 		}
 	st_case_432:
 		if ( t.data)[( t.p)] == 45 {
-			goto tr492
-		}
-		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto tr493
 		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr494
+		}
 		goto st0
-tr492:
+tr493:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8250,12 +8341,12 @@ tr492:
 			goto _test_eof433
 		}
 	st_case_433:
-//line internal/parser/combat/parser.gen.go:8247
+//line internal/parser/combat/parser.gen.go:8338
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st434
 		}
 		goto st0
-tr493:
+tr494:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8269,12 +8360,12 @@ tr493:
 			goto _test_eof434
 		}
 	st_case_434:
-//line internal/parser/combat/parser.gen.go:8266
+//line internal/parser/combat/parser.gen.go:8357
 		switch ( t.data)[( t.p)] {
 		case 46:
 			goto st435
 		case 59:
-			goto tr496
+			goto tr497
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st434
@@ -8286,13 +8377,13 @@ tr493:
 		}
 	st_case_435:
 		if ( t.data)[( t.p)] == 59 {
-			goto tr496
+			goto tr497
 		}
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st435
 		}
 		goto st0
-tr496:
+tr497:
 //line internal/parser/combat/ext/parser.rl:90
 
 		Float, parseErr = strconv.ParseFloat(t.data[t.prev:t.p], 32)
@@ -8308,7 +8399,7 @@ tr496:
 			goto _test_eof436
 		}
 	st_case_436:
-//line internal/parser/combat/parser.gen.go:8305
+//line internal/parser/combat/parser.gen.go:8396
 		if ( t.data)[( t.p)] == 32 {
 			goto st437
 		}
@@ -8464,24 +8555,24 @@ tr496:
 	st_case_453:
 		switch ( t.data)[( t.p)] {
 		case 40:
-			goto tr514
-		case 95:
 			goto tr515
+		case 95:
+			goto tr516
 		}
 		switch {
 		case ( t.data)[( t.p)] < 65:
 			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr515
+				goto tr516
 			}
 		case ( t.data)[( t.p)] > 90:
 			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-				goto tr515
+				goto tr516
 			}
 		default:
-			goto tr515
+			goto tr516
 		}
 		goto st0
-tr514:
+tr515:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8495,7 +8586,7 @@ tr514:
 			goto _test_eof454
 		}
 	st_case_454:
-//line internal/parser/combat/parser.gen.go:8492
+//line internal/parser/combat/parser.gen.go:8583
 		if ( t.data)[( t.p)] == 95 {
 			goto st455
 		}
@@ -8542,11 +8633,11 @@ tr514:
 		}
 	st_case_456:
 		if ( t.data)[( t.p)] == 39 {
-			goto tr518
+			goto tr519
 		}
 		goto st0
-tr518:
-//line internal/parser/combat/ext/parser.rl:129
+tr519:
+//line internal/parser/combat/ext/parser.rl:130
 t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
 	goto st457
 	st457:
@@ -8554,27 +8645,27 @@ t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
 			goto _test_eof457
 		}
 	st_case_457:
-//line internal/parser/combat/parser.gen.go:8551
+//line internal/parser/combat/parser.gen.go:8642
 		if ( t.data)[( t.p)] == 59 {
-			goto st538
+			goto st578
 		}
 		goto st0
-	st538:
+	st578:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof538
+			goto _test_eof578
 		}
-	st_case_538:
+	st_case_578:
 		switch ( t.data)[( t.p)] {
 		case 32:
-			goto st537
+			goto st577
 		case 60:
 			goto st411
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto st522
+			goto st562
 		}
 		goto st0
-tr515:
+tr516:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8588,10 +8679,10 @@ tr515:
 			goto _test_eof458
 		}
 	st_case_458:
-//line internal/parser/combat/parser.gen.go:8585
+//line internal/parser/combat/parser.gen.go:8676
 		switch ( t.data)[( t.p)] {
 		case 39:
-			goto tr518
+			goto tr519
 		case 95:
 			goto st458
 		}
@@ -8608,7 +8699,7 @@ tr515:
 			goto st458
 		}
 		goto st0
-tr524:
+tr525:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -8622,15 +8713,15 @@ tr524:
 			goto _test_eof459
 		}
 	st_case_459:
-//line internal/parser/combat/parser.gen.go:8619
+//line internal/parser/combat/parser.gen.go:8710
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto st534
+			goto st574
 		case 32:
 			goto st459
 		}
 		goto st0
-tr468:
+tr469:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8644,7 +8735,7 @@ tr468:
 			goto _test_eof460
 		}
 	st_case_460:
-//line internal/parser/combat/parser.gen.go:8641
+//line internal/parser/combat/parser.gen.go:8732
 		if ( t.data)[( t.p)] == 95 {
 			goto st461
 		}
@@ -8692,12 +8783,12 @@ tr468:
 	st_case_462:
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr523
-		case 32:
 			goto tr524
+		case 32:
+			goto tr525
 		}
 		goto st0
-tr469:
+tr470:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8711,12 +8802,12 @@ tr469:
 			goto _test_eof463
 		}
 	st_case_463:
-//line internal/parser/combat/parser.gen.go:8708
+//line internal/parser/combat/parser.gen.go:8799
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr523
-		case 32:
 			goto tr524
+		case 32:
+			goto tr525
 		case 95:
 			goto st463
 		}
@@ -8733,7 +8824,7 @@ tr469:
 			goto st463
 		}
 		goto st0
-tr461:
+tr462:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8747,10 +8838,10 @@ tr461:
 			goto _test_eof464
 		}
 	st_case_464:
-//line internal/parser/combat/parser.gen.go:8744
+//line internal/parser/combat/parser.gen.go:8835
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr464
+			goto tr465
 		case 95:
 			goto st464
 		}
@@ -8781,7 +8872,7 @@ tr28:
 			goto _test_eof465
 		}
 	st_case_465:
-//line internal/parser/combat/parser.gen.go:8778
+//line internal/parser/combat/parser.gen.go:8869
 		if ( t.data)[( t.p)] == 101 {
 			goto st466
 		}
@@ -8819,10 +8910,10 @@ tr28:
 		}
 	st_case_469:
 		if ( t.data)[( t.p)] == 100 {
-			goto tr531
+			goto tr532
 		}
 		goto st0
-tr531:
+tr532:
 //line internal/parser/combat/ext/parser.rl:123
  t.tok(REWARD) 
 	goto st470
@@ -8831,7 +8922,7 @@ tr531:
 			goto _test_eof470
 		}
 	st_case_470:
-//line internal/parser/combat/parser.gen.go:8828
+//line internal/parser/combat/parser.gen.go:8919
 		if ( t.data)[( t.p)] == 32 {
 			goto st471
 		}
@@ -8848,9 +8939,9 @@ tr531:
 		case 32:
 			goto st471
 		case 40:
-			goto tr533
-		case 95:
 			goto tr534
+		case 95:
+			goto tr535
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -8861,16 +8952,16 @@ tr531:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr534
+					goto tr535
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr534
+				goto tr535
 			}
 		default:
-			goto tr534
+			goto tr535
 		}
 		goto st0
-tr533:
+tr534:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8884,7 +8975,7 @@ tr533:
 			goto _test_eof472
 		}
 	st_case_472:
-//line internal/parser/combat/parser.gen.go:8881
+//line internal/parser/combat/parser.gen.go:8972
 		if ( t.data)[( t.p)] == 95 {
 			goto st473
 		}
@@ -8932,15 +9023,15 @@ tr533:
 	st_case_474:
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr537
+			goto tr538
 		case 32:
-			goto tr539
+			goto tr540
 		}
 		if 10 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr538
+			goto tr539
 		}
 		goto st0
-tr537:
+tr538:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -8954,23 +9045,23 @@ tr537:
 			goto _test_eof475
 		}
 	st_case_475:
-//line internal/parser/combat/parser.gen.go:8951
+//line internal/parser/combat/parser.gen.go:9042
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st475
 		case 45:
-			goto tr541
+			goto tr542
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
 			if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
-				goto tr542
+				goto tr543
 			}
 		case ( t.data)[( t.p)] >= 9:
 			goto st475
 		}
 		goto st0
-tr541:
+tr542:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -8984,12 +9075,12 @@ tr541:
 			goto _test_eof476
 		}
 	st_case_476:
-//line internal/parser/combat/parser.gen.go:8981
+//line internal/parser/combat/parser.gen.go:9072
 		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
 			goto st477
 		}
 		goto st0
-tr542:
+tr543:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9003,9 +9094,9 @@ tr542:
 			goto _test_eof477
 		}
 	st_case_477:
-//line internal/parser/combat/parser.gen.go:9000
+//line internal/parser/combat/parser.gen.go:9091
 		if ( t.data)[( t.p)] == 32 {
-			goto tr544
+			goto tr545
 		}
 		switch {
 		case ( t.data)[( t.p)] > 13:
@@ -9013,10 +9104,10 @@ tr542:
 				goto st477
 			}
 		case ( t.data)[( t.p)] >= 9:
-			goto tr544
+			goto tr545
 		}
 		goto st0
-tr544:
+tr545:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -9032,22 +9123,22 @@ tr544:
 			goto _test_eof478
 		}
 	st_case_478:
-//line internal/parser/combat/parser.gen.go:9029
+//line internal/parser/combat/parser.gen.go:9120
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st478
 		case 99:
-			goto tr546
-		case 101:
 			goto tr547
-		case 107:
+		case 101:
 			goto tr548
+		case 107:
+			goto tr549
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st478
 		}
 		goto st0
-tr546:
+tr547:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9061,7 +9152,7 @@ tr546:
 			goto _test_eof479
 		}
 	st_case_479:
-//line internal/parser/combat/parser.gen.go:9058
+//line internal/parser/combat/parser.gen.go:9149
 		if ( t.data)[( t.p)] == 114 {
 			goto st480
 		}
@@ -9117,13 +9208,13 @@ tr546:
 		}
 	st_case_485:
 		if ( t.data)[( t.p)] == 32 {
-			goto tr555
+			goto tr556
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr555
+			goto tr556
 		}
 		goto st0
-tr555:
+tr556:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -9137,18 +9228,18 @@ tr555:
 			goto _test_eof486
 		}
 	st_case_486:
-//line internal/parser/combat/parser.gen.go:9134
+//line internal/parser/combat/parser.gen.go:9225
 		switch ( t.data)[( t.p)] {
 		case 32:
 			goto st486
 		case 102:
-			goto tr557
+			goto tr558
 		}
 		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
 			goto st486
 		}
 		goto st0
-tr557:
+tr558:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9162,7 +9253,7 @@ tr557:
 			goto _test_eof487
 		}
 	st_case_487:
-//line internal/parser/combat/parser.gen.go:9159
+//line internal/parser/combat/parser.gen.go:9250
 		if ( t.data)[( t.p)] == 111 {
 			goto st488
 		}
@@ -9182,39 +9273,39 @@ tr557:
 		}
 	st_case_489:
 		if ( t.data)[( t.p)] == 32 {
-			goto st539
+			goto st579
 		}
 		goto st0
-	st539:
+	st579:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof539
+			goto _test_eof579
 		}
-	st_case_539:
+	st_case_579:
 		switch ( t.data)[( t.p)] {
 		case 10:
-			goto tr616
+			goto tr660
 		case 13:
-			goto tr616
+			goto tr660
 		}
-		goto tr615
-tr615:
-//line internal/parser/combat/ext/parser.rl:163
+		goto tr659
+tr659:
+//line internal/parser/combat/ext/parser.rl:164
 t.tokval(strTok(t.data[t.p:]))
-	goto st540
-	st540:
+	goto st580
+	st580:
 		if ( t.p)++; ( t.p) == ( t.pe) {
-			goto _test_eof540
+			goto _test_eof580
 		}
-	st_case_540:
-//line internal/parser/combat/parser.gen.go:9203
+	st_case_580:
+//line internal/parser/combat/parser.gen.go:9294
 		switch ( t.data)[( t.p)] {
 		case 10:
-			goto st522
+			goto st562
 		case 13:
-			goto st522
+			goto st562
 		}
-		goto st540
-tr547:
+		goto st580
+tr548:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9228,7 +9319,7 @@ tr547:
 			goto _test_eof490
 		}
 	st_case_490:
-//line internal/parser/combat/parser.gen.go:9225
+//line internal/parser/combat/parser.gen.go:9316
 		switch ( t.data)[( t.p)] {
 		case 102:
 			goto st491
@@ -9416,7 +9507,7 @@ tr547:
 			goto st485
 		}
 		goto st0
-tr548:
+tr549:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9430,7 +9521,7 @@ tr548:
 			goto _test_eof511
 		}
 	st_case_511:
-//line internal/parser/combat/parser.gen.go:9427
+//line internal/parser/combat/parser.gen.go:9518
 		if ( t.data)[( t.p)] == 97 {
 			goto st512
 		}
@@ -9462,7 +9553,7 @@ tr548:
 			goto st485
 		}
 		goto st0
-tr538:
+tr539:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -9476,7 +9567,7 @@ tr538:
 			goto _test_eof515
 		}
 	st_case_515:
-//line internal/parser/combat/parser.gen.go:9473
+//line internal/parser/combat/parser.gen.go:9564
 		switch ( t.data)[( t.p)] {
 		case 9:
 			goto st475
@@ -9487,7 +9578,7 @@ tr538:
 			goto st515
 		}
 		goto st0
-tr539:
+tr540:
 //line internal/parser/combat/ext/parser.rl:76
 
 		if debugTokenizer {
@@ -9501,16 +9592,16 @@ tr539:
 			goto _test_eof516
 		}
 	st_case_516:
-//line internal/parser/combat/parser.gen.go:9498
+//line internal/parser/combat/parser.gen.go:9589
 		switch ( t.data)[( t.p)] {
 		case 9:
 			goto st475
 		case 32:
 			goto st516
 		case 40:
-			goto tr586
-		case 95:
 			goto tr587
+		case 95:
+			goto tr588
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
@@ -9521,16 +9612,16 @@ tr539:
 			switch {
 			case ( t.data)[( t.p)] > 90:
 				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
-					goto tr587
+					goto tr588
 				}
 			case ( t.data)[( t.p)] >= 65:
-				goto tr587
+				goto tr588
 			}
 		default:
-			goto tr587
+			goto tr588
 		}
 		goto st0
-tr586:
+tr587:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9544,7 +9635,7 @@ tr586:
 			goto _test_eof517
 		}
 	st_case_517:
-//line internal/parser/combat/parser.gen.go:9541
+//line internal/parser/combat/parser.gen.go:9632
 		if ( t.data)[( t.p)] == 95 {
 			goto st518
 		}
@@ -9592,15 +9683,15 @@ tr586:
 	st_case_519:
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr537
-		case 32:
 			goto tr538
+		case 32:
+			goto tr539
 		}
 		if 10 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-			goto tr538
+			goto tr539
 		}
 		goto st0
-tr587:
+tr588:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9614,19 +9705,19 @@ tr587:
 			goto _test_eof520
 		}
 	st_case_520:
-//line internal/parser/combat/parser.gen.go:9611
+//line internal/parser/combat/parser.gen.go:9702
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr537
-		case 32:
 			goto tr538
+		case 32:
+			goto tr539
 		case 95:
 			goto st520
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
 			if 10 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto tr538
+				goto tr539
 			}
 		case ( t.data)[( t.p)] > 57:
 			switch {
@@ -9641,7 +9732,7 @@ tr587:
 			goto st520
 		}
 		goto st0
-tr534:
+tr535:
 //line internal/parser/combat/ext/parser.rl:98
 
 		if debugTokenizer {
@@ -9655,19 +9746,19 @@ tr534:
 			goto _test_eof521
 		}
 	st_case_521:
-//line internal/parser/combat/parser.gen.go:9652
+//line internal/parser/combat/parser.gen.go:9743
 		switch ( t.data)[( t.p)] {
 		case 9:
-			goto tr537
+			goto tr538
 		case 32:
-			goto tr539
+			goto tr540
 		case 95:
 			goto st521
 		}
 		switch {
 		case ( t.data)[( t.p)] < 47:
 			if 10 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
-				goto tr538
+				goto tr539
 			}
 		case ( t.data)[( t.p)] > 57:
 			switch {
@@ -9680,6 +9771,621 @@ tr534:
 			}
 		default:
 			goto st521
+		}
+		goto st0
+tr29:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st522
+	st522:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof522
+		}
+	st_case_522:
+//line internal/parser/combat/parser.gen.go:9784
+		if ( t.data)[( t.p)] == 112 {
+			goto st523
+		}
+		goto st0
+	st523:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof523
+		}
+	st_case_523:
+		if ( t.data)[( t.p)] == 97 {
+			goto st524
+		}
+		goto st0
+	st524:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof524
+		}
+	st_case_524:
+		if ( t.data)[( t.p)] == 119 {
+			goto st525
+		}
+		goto st0
+	st525:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof525
+		}
+	st_case_525:
+		if ( t.data)[( t.p)] == 110 {
+			goto st526
+		}
+		goto st0
+	st526:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof526
+		}
+	st_case_526:
+		if ( t.data)[( t.p)] == 32 {
+			goto st527
+		}
+		goto st0
+	st527:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof527
+		}
+	st_case_527:
+		if ( t.data)[( t.p)] == 83 {
+			goto st528
+		}
+		goto st0
+	st528:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof528
+		}
+	st_case_528:
+		if ( t.data)[( t.p)] == 112 {
+			goto st529
+		}
+		goto st0
+	st529:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof529
+		}
+	st_case_529:
+		if ( t.data)[( t.p)] == 97 {
+			goto st530
+		}
+		goto st0
+	st530:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof530
+		}
+	st_case_530:
+		if ( t.data)[( t.p)] == 99 {
+			goto st531
+		}
+		goto st0
+	st531:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof531
+		}
+	st_case_531:
+		if ( t.data)[( t.p)] == 101 {
+			goto st532
+		}
+		goto st0
+	st532:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof532
+		}
+	st_case_532:
+		if ( t.data)[( t.p)] == 83 {
+			goto st533
+		}
+		goto st0
+	st533:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof533
+		}
+	st_case_533:
+		if ( t.data)[( t.p)] == 104 {
+			goto st534
+		}
+		goto st0
+	st534:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof534
+		}
+	st_case_534:
+		if ( t.data)[( t.p)] == 105 {
+			goto st535
+		}
+		goto st0
+	st535:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof535
+		}
+	st_case_535:
+		if ( t.data)[( t.p)] == 112 {
+			goto st536
+		}
+		goto st0
+	st536:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof536
+		}
+	st_case_536:
+		if ( t.data)[( t.p)] == 32 {
+			goto st537
+		}
+		goto st0
+	st537:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof537
+		}
+	st_case_537:
+		if ( t.data)[( t.p)] == 102 {
+			goto st538
+		}
+		goto st0
+	st538:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof538
+		}
+	st_case_538:
+		if ( t.data)[( t.p)] == 111 {
+			goto st539
+		}
+		goto st0
+	st539:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof539
+		}
+	st_case_539:
+		if ( t.data)[( t.p)] == 114 {
+			goto tr610
+		}
+		goto st0
+tr610:
+//line internal/parser/combat/ext/parser.rl:124
+ t.tok(SPAWN_PREFIX) 
+	goto st540
+	st540:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof540
+		}
+	st_case_540:
+//line internal/parser/combat/parser.gen.go:9951
+		if ( t.data)[( t.p)] == 32 {
+			goto st541
+		}
+		if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+			goto st541
+		}
+		goto st0
+	st541:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof541
+		}
+	st_case_541:
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st541
+		case 95:
+			goto st542
+		}
+		switch {
+		case ( t.data)[( t.p)] < 47:
+			if 9 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 13 {
+				goto st541
+			}
+		case ( t.data)[( t.p)] > 57:
+			switch {
+			case ( t.data)[( t.p)] > 90:
+				if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+					goto st542
+				}
+			case ( t.data)[( t.p)] >= 65:
+				goto st542
+			}
+		default:
+			goto st542
+		}
+		goto st0
+	st542:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof542
+		}
+	st_case_542:
+		switch ( t.data)[( t.p)] {
+		case 32:
+			goto st543
+		case 95:
+			goto st542
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st542
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st542
+			}
+		default:
+			goto st542
+		}
+		goto st0
+	st543:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof543
+		}
+	st_case_543:
+		if ( t.data)[( t.p)] == 40 {
+			goto st544
+		}
+		goto st0
+	st544:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof544
+		}
+	st_case_544:
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr615
+		case 95:
+			goto tr616
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr616
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr616
+			}
+		default:
+			goto tr616
+		}
+		goto st0
+tr615:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st545
+	st545:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof545
+		}
+	st_case_545:
+//line internal/parser/combat/parser.gen.go:10059
+		if ( t.data)[( t.p)] == 95 {
+			goto st546
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st546
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st546
+			}
+		default:
+			goto st546
+		}
+		goto st0
+	st546:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof546
+		}
+	st_case_546:
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st547
+		case 95:
+			goto st546
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st546
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st546
+			}
+		default:
+			goto st546
+		}
+		goto st0
+	st547:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof547
+		}
+	st_case_547:
+		if ( t.data)[( t.p)] == 44 {
+			goto tr619
+		}
+		goto st0
+tr619:
+//line internal/parser/combat/ext/parser.rl:76
+
+		if debugTokenizer {
+			fmt.Printf("set string: %s %s\n", t.data[t.prev:t.p],t.state)
+		}
+		t.tokval(strTok(t.data[t.prev:t.p]))
+	
+	goto st548
+	st548:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof548
+		}
+	st_case_548:
+//line internal/parser/combat/parser.gen.go:10123
+		if ( t.data)[( t.p)] == 32 {
+			goto st549
+		}
+		goto st0
+	st549:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof549
+		}
+	st_case_549:
+		if ( t.data)[( t.p)] == 35 {
+			goto st550
+		}
+		goto st0
+	st550:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof550
+		}
+	st_case_550:
+		if ( t.data)[( t.p)] == 45 {
+			goto tr622
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto tr623
+		}
+		goto st0
+tr622:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st551
+	st551:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof551
+		}
+	st_case_551:
+//line internal/parser/combat/parser.gen.go:10163
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st552
+		}
+		goto st0
+tr623:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st552
+	st552:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof552
+		}
+	st_case_552:
+//line internal/parser/combat/parser.gen.go:10182
+		if ( t.data)[( t.p)] == 41 {
+			goto tr625
+		}
+		if 48 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+			goto st552
+		}
+		goto st0
+tr625:
+//line internal/parser/combat/ext/parser.rl:82
+
+		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
+		if parseErr != nil {
+			t.err(common.ParseTokenError{TokType: "INT", Raw: t.data[t.prev:t.p], Err: fmt.Errorf("strconv.Atoi: %w", parseErr)})
+			{( t.p)++;  t.cs = 553; goto _out }
+		}
+		t.tokval(intTok(temp.int))
+	
+	goto st553
+	st553:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof553
+		}
+	st_case_553:
+//line internal/parser/combat/parser.gen.go:10206
+		if ( t.data)[( t.p)] == 46 {
+			goto st554
+		}
+		goto st0
+	st554:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof554
+		}
+	st_case_554:
+		if ( t.data)[( t.p)] == 32 {
+			goto st555
+		}
+		goto st0
+	st555:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof555
+		}
+	st_case_555:
+		if ( t.data)[( t.p)] == 39 {
+			goto st556
+		}
+		goto st0
+	st556:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof556
+		}
+	st_case_556:
+		switch ( t.data)[( t.p)] {
+		case 40:
+			goto tr629
+		case 95:
+			goto tr630
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto tr630
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto tr630
+			}
+		default:
+			goto tr630
+		}
+		goto st0
+tr629:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st557
+	st557:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof557
+		}
+	st_case_557:
+//line internal/parser/combat/parser.gen.go:10267
+		if ( t.data)[( t.p)] == 95 {
+			goto st558
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st558
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st558
+			}
+		default:
+			goto st558
+		}
+		goto st0
+	st558:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof558
+		}
+	st_case_558:
+		switch ( t.data)[( t.p)] {
+		case 41:
+			goto st559
+		case 95:
+			goto st558
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st558
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st558
+			}
+		default:
+			goto st558
+		}
+		goto st0
+	st559:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof559
+		}
+	st_case_559:
+		if ( t.data)[( t.p)] == 39 {
+			goto tr633
+		}
+		goto st0
+tr630:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st560
+	st560:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof560
+		}
+	st_case_560:
+//line internal/parser/combat/parser.gen.go:10331
+		switch ( t.data)[( t.p)] {
+		case 39:
+			goto tr633
+		case 95:
+			goto st560
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st560
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st560
+			}
+		default:
+			goto st560
+		}
+		goto st0
+tr616:
+//line internal/parser/combat/ext/parser.rl:98
+
+		if debugTokenizer {
+			fmt.Printf("start: %s\n", t.state)
+		}
+		t.prev = t.p
+	
+	goto st561
+	st561:
+		if ( t.p)++; ( t.p) == ( t.pe) {
+			goto _test_eof561
+		}
+	st_case_561:
+//line internal/parser/combat/parser.gen.go:10365
+		switch ( t.data)[( t.p)] {
+		case 44:
+			goto tr619
+		case 95:
+			goto st561
+		}
+		switch {
+		case ( t.data)[( t.p)] < 65:
+			if 47 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 57 {
+				goto st561
+			}
+		case ( t.data)[( t.p)] > 90:
+			if 97 <= ( t.data)[( t.p)] && ( t.data)[( t.p)] <= 122 {
+				goto st561
+			}
+		default:
+			goto st561
 		}
 		goto st0
 	st_out:
@@ -9744,7 +10450,7 @@ tr534:
 	_test_eof60:  t.cs = 60; goto _test_eof
 	_test_eof61:  t.cs = 61; goto _test_eof
 	_test_eof62:  t.cs = 62; goto _test_eof
-	_test_eof522:  t.cs = 522; goto _test_eof
+	_test_eof562:  t.cs = 562; goto _test_eof
 	_test_eof63:  t.cs = 63; goto _test_eof
 	_test_eof64:  t.cs = 64; goto _test_eof
 	_test_eof65:  t.cs = 65; goto _test_eof
@@ -9860,8 +10566,8 @@ tr534:
 	_test_eof175:  t.cs = 175; goto _test_eof
 	_test_eof176:  t.cs = 176; goto _test_eof
 	_test_eof177:  t.cs = 177; goto _test_eof
-	_test_eof523:  t.cs = 523; goto _test_eof
-	_test_eof524:  t.cs = 524; goto _test_eof
+	_test_eof563:  t.cs = 563; goto _test_eof
+	_test_eof564:  t.cs = 564; goto _test_eof
 	_test_eof178:  t.cs = 178; goto _test_eof
 	_test_eof179:  t.cs = 179; goto _test_eof
 	_test_eof180:  t.cs = 180; goto _test_eof
@@ -9875,8 +10581,8 @@ tr534:
 	_test_eof188:  t.cs = 188; goto _test_eof
 	_test_eof189:  t.cs = 189; goto _test_eof
 	_test_eof190:  t.cs = 190; goto _test_eof
-	_test_eof525:  t.cs = 525; goto _test_eof
-	_test_eof526:  t.cs = 526; goto _test_eof
+	_test_eof565:  t.cs = 565; goto _test_eof
+	_test_eof566:  t.cs = 566; goto _test_eof
 	_test_eof191:  t.cs = 191; goto _test_eof
 	_test_eof192:  t.cs = 192; goto _test_eof
 	_test_eof193:  t.cs = 193; goto _test_eof
@@ -9885,7 +10591,7 @@ tr534:
 	_test_eof196:  t.cs = 196; goto _test_eof
 	_test_eof197:  t.cs = 197; goto _test_eof
 	_test_eof198:  t.cs = 198; goto _test_eof
-	_test_eof527:  t.cs = 527; goto _test_eof
+	_test_eof567:  t.cs = 567; goto _test_eof
 	_test_eof199:  t.cs = 199; goto _test_eof
 	_test_eof200:  t.cs = 200; goto _test_eof
 	_test_eof201:  t.cs = 201; goto _test_eof
@@ -10020,8 +10726,8 @@ tr534:
 	_test_eof330:  t.cs = 330; goto _test_eof
 	_test_eof331:  t.cs = 331; goto _test_eof
 	_test_eof332:  t.cs = 332; goto _test_eof
-	_test_eof528:  t.cs = 528; goto _test_eof
-	_test_eof529:  t.cs = 529; goto _test_eof
+	_test_eof568:  t.cs = 568; goto _test_eof
+	_test_eof569:  t.cs = 569; goto _test_eof
 	_test_eof333:  t.cs = 333; goto _test_eof
 	_test_eof334:  t.cs = 334; goto _test_eof
 	_test_eof335:  t.cs = 335; goto _test_eof
@@ -10064,8 +10770,8 @@ tr534:
 	_test_eof372:  t.cs = 372; goto _test_eof
 	_test_eof373:  t.cs = 373; goto _test_eof
 	_test_eof374:  t.cs = 374; goto _test_eof
-	_test_eof530:  t.cs = 530; goto _test_eof
-	_test_eof531:  t.cs = 531; goto _test_eof
+	_test_eof570:  t.cs = 570; goto _test_eof
+	_test_eof571:  t.cs = 571; goto _test_eof
 	_test_eof375:  t.cs = 375; goto _test_eof
 	_test_eof376:  t.cs = 376; goto _test_eof
 	_test_eof377:  t.cs = 377; goto _test_eof
@@ -10081,8 +10787,8 @@ tr534:
 	_test_eof387:  t.cs = 387; goto _test_eof
 	_test_eof388:  t.cs = 388; goto _test_eof
 	_test_eof389:  t.cs = 389; goto _test_eof
-	_test_eof532:  t.cs = 532; goto _test_eof
-	_test_eof533:  t.cs = 533; goto _test_eof
+	_test_eof572:  t.cs = 572; goto _test_eof
+	_test_eof573:  t.cs = 573; goto _test_eof
 	_test_eof390:  t.cs = 390; goto _test_eof
 	_test_eof391:  t.cs = 391; goto _test_eof
 	_test_eof392:  t.cs = 392; goto _test_eof
@@ -10104,15 +10810,15 @@ tr534:
 	_test_eof408:  t.cs = 408; goto _test_eof
 	_test_eof409:  t.cs = 409; goto _test_eof
 	_test_eof410:  t.cs = 410; goto _test_eof
-	_test_eof534:  t.cs = 534; goto _test_eof
-	_test_eof535:  t.cs = 535; goto _test_eof
+	_test_eof574:  t.cs = 574; goto _test_eof
+	_test_eof575:  t.cs = 575; goto _test_eof
 	_test_eof411:  t.cs = 411; goto _test_eof
 	_test_eof412:  t.cs = 412; goto _test_eof
 	_test_eof413:  t.cs = 413; goto _test_eof
 	_test_eof414:  t.cs = 414; goto _test_eof
 	_test_eof415:  t.cs = 415; goto _test_eof
-	_test_eof536:  t.cs = 536; goto _test_eof
-	_test_eof537:  t.cs = 537; goto _test_eof
+	_test_eof576:  t.cs = 576; goto _test_eof
+	_test_eof577:  t.cs = 577; goto _test_eof
 	_test_eof416:  t.cs = 416; goto _test_eof
 	_test_eof417:  t.cs = 417; goto _test_eof
 	_test_eof418:  t.cs = 418; goto _test_eof
@@ -10155,7 +10861,7 @@ tr534:
 	_test_eof455:  t.cs = 455; goto _test_eof
 	_test_eof456:  t.cs = 456; goto _test_eof
 	_test_eof457:  t.cs = 457; goto _test_eof
-	_test_eof538:  t.cs = 538; goto _test_eof
+	_test_eof578:  t.cs = 578; goto _test_eof
 	_test_eof458:  t.cs = 458; goto _test_eof
 	_test_eof459:  t.cs = 459; goto _test_eof
 	_test_eof460:  t.cs = 460; goto _test_eof
@@ -10188,8 +10894,8 @@ tr534:
 	_test_eof487:  t.cs = 487; goto _test_eof
 	_test_eof488:  t.cs = 488; goto _test_eof
 	_test_eof489:  t.cs = 489; goto _test_eof
-	_test_eof539:  t.cs = 539; goto _test_eof
-	_test_eof540:  t.cs = 540; goto _test_eof
+	_test_eof579:  t.cs = 579; goto _test_eof
+	_test_eof580:  t.cs = 580; goto _test_eof
 	_test_eof490:  t.cs = 490; goto _test_eof
 	_test_eof491:  t.cs = 491; goto _test_eof
 	_test_eof492:  t.cs = 492; goto _test_eof
@@ -10222,14 +10928,54 @@ tr534:
 	_test_eof519:  t.cs = 519; goto _test_eof
 	_test_eof520:  t.cs = 520; goto _test_eof
 	_test_eof521:  t.cs = 521; goto _test_eof
+	_test_eof522:  t.cs = 522; goto _test_eof
+	_test_eof523:  t.cs = 523; goto _test_eof
+	_test_eof524:  t.cs = 524; goto _test_eof
+	_test_eof525:  t.cs = 525; goto _test_eof
+	_test_eof526:  t.cs = 526; goto _test_eof
+	_test_eof527:  t.cs = 527; goto _test_eof
+	_test_eof528:  t.cs = 528; goto _test_eof
+	_test_eof529:  t.cs = 529; goto _test_eof
+	_test_eof530:  t.cs = 530; goto _test_eof
+	_test_eof531:  t.cs = 531; goto _test_eof
+	_test_eof532:  t.cs = 532; goto _test_eof
+	_test_eof533:  t.cs = 533; goto _test_eof
+	_test_eof534:  t.cs = 534; goto _test_eof
+	_test_eof535:  t.cs = 535; goto _test_eof
+	_test_eof536:  t.cs = 536; goto _test_eof
+	_test_eof537:  t.cs = 537; goto _test_eof
+	_test_eof538:  t.cs = 538; goto _test_eof
+	_test_eof539:  t.cs = 539; goto _test_eof
+	_test_eof540:  t.cs = 540; goto _test_eof
+	_test_eof541:  t.cs = 541; goto _test_eof
+	_test_eof542:  t.cs = 542; goto _test_eof
+	_test_eof543:  t.cs = 543; goto _test_eof
+	_test_eof544:  t.cs = 544; goto _test_eof
+	_test_eof545:  t.cs = 545; goto _test_eof
+	_test_eof546:  t.cs = 546; goto _test_eof
+	_test_eof547:  t.cs = 547; goto _test_eof
+	_test_eof548:  t.cs = 548; goto _test_eof
+	_test_eof549:  t.cs = 549; goto _test_eof
+	_test_eof550:  t.cs = 550; goto _test_eof
+	_test_eof551:  t.cs = 551; goto _test_eof
+	_test_eof552:  t.cs = 552; goto _test_eof
+	_test_eof553:  t.cs = 553; goto _test_eof
+	_test_eof554:  t.cs = 554; goto _test_eof
+	_test_eof555:  t.cs = 555; goto _test_eof
+	_test_eof556:  t.cs = 556; goto _test_eof
+	_test_eof557:  t.cs = 557; goto _test_eof
+	_test_eof558:  t.cs = 558; goto _test_eof
+	_test_eof559:  t.cs = 559; goto _test_eof
+	_test_eof560:  t.cs = 560; goto _test_eof
+	_test_eof561:  t.cs = 561; goto _test_eof
 
 	_test_eof: {}
 	if ( t.p) == ( t.pe) {
 		switch  t.cs {
-		case 522, 524, 525, 526, 530, 531, 534, 535, 537, 538, 540:
+		case 562, 564, 565, 566, 570, 571, 574, 575, 577, 578, 580:
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-		case 527:
+		case 567:
 //line internal/parser/combat/ext/parser.rl:82
 
 		temp.int, parseErr = strconv.Atoi(t.data[t.prev:t.p])
@@ -10241,34 +10987,34 @@ tr534:
 	
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-		case 528, 529, 532, 533:
-//line internal/parser/combat/ext/parser.rl:129
+		case 568, 569, 572, 573:
+//line internal/parser/combat/ext/parser.rl:130
 t.tokval(newAnyVal(SOURCE, strTok(t.data[t.prev:t.p])))
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-		case 523:
-//line internal/parser/combat/ext/parser.rl:130
+		case 563:
+//line internal/parser/combat/ext/parser.rl:131
 t.tokval(newAnyVal(DAMAGE_MODIFIER, strTok(t.data[t.prev:t.p])))
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-		case 536:
-//line internal/parser/combat/ext/parser.rl:141
+		case 576:
+//line internal/parser/combat/ext/parser.rl:142
 t.tok(PARTICIPATION_MODIFIERS_END)
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-		case 539:
-//line internal/parser/combat/ext/parser.rl:163
+		case 579:
+//line internal/parser/combat/ext/parser.rl:164
 t.tokval(strTok(t.data[t.p:]))
 //line internal/parser/combat/ext/parser.rl:111
  t.tok(EOL) 
-//line internal/parser/combat/parser.gen.go:10258
+//line internal/parser/combat/parser.gen.go:11004
 		}
 	}
 
 	_out: {}
 	}
 
-//line internal/parser/combat/ext/parser.rl:194
+//line internal/parser/combat/ext/parser.rl:198
 
 	if debugTokenizer {
 		fmt.Printf("exited: %s\n", t.state)

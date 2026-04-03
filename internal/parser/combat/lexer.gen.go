@@ -71,10 +71,11 @@ const PARTICIPANT = 57359
 const PARTICIPATION_MODIFIER = 57360
 const PARTICIPATION_MODIFIERS_END = 57361
 const CONNECT_TO_GAME_SESSION_PREFIX = 57362
-const START = 57363
-const GAMEPLAY_FINISHED = 57364
-const REWARD = 57365
-const EOL = 57366
+const SPAWN_PREFIX = 57363
+const START = 57364
+const GAMEPLAY_FINISHED = 57365
+const REWARD = 57366
+const EOL = 57367
 
 var YaccToknames = [...]string{
 	"$end",
@@ -97,6 +98,7 @@ var YaccToknames = [...]string{
 	"PARTICIPATION_MODIFIER",
 	"PARTICIPATION_MODIFIERS_END",
 	"CONNECT_TO_GAME_SESSION_PREFIX",
+	"SPAWN_PREFIX",
 	"START",
 	"GAMEPLAY_FINISHED",
 	"REWARD",
@@ -122,98 +124,102 @@ var YaccExca = [...]int8{
 
 const YaccPrivate = 57344
 
-const YaccLast = 90
+const YaccLast = 95
 
 var YaccAct = [...]int8{
-	70, 59, 22, 34, 35, 13, 57, 38, 14, 15,
-	16, 37, 71, 20, 17, 18, 19, 24, 27, 34,
-	35, 68, 21, 71, 84, 76, 82, 85, 80, 71,
-	72, 73, 60, 69, 62, 67, 45, 65, 58, 48,
-	49, 50, 56, 52, 36, 33, 3, 2, 75, 66,
-	54, 53, 23, 47, 44, 42, 41, 40, 31, 29,
-	28, 26, 74, 86, 77, 64, 55, 46, 32, 30,
-	1, 4, 43, 11, 10, 9, 63, 12, 78, 61,
-	81, 51, 8, 39, 7, 6, 83, 79, 5, 25,
+	75, 64, 24, 37, 38, 14, 62, 41, 15, 16,
+	17, 40, 76, 21, 22, 18, 19, 20, 26, 29,
+	37, 38, 73, 23, 76, 89, 81, 87, 90, 85,
+	76, 77, 78, 65, 74, 67, 72, 70, 63, 49,
+	61, 56, 52, 53, 54, 39, 36, 3, 2, 80,
+	71, 60, 58, 57, 25, 51, 47, 45, 44, 43,
+	35, 33, 31, 30, 28, 91, 82, 79, 69, 59,
+	50, 48, 34, 32, 1, 4, 46, 11, 10, 9,
+	13, 68, 12, 83, 66, 86, 55, 8, 42, 7,
+	6, 88, 84, 5, 27,
 }
 
 var YaccPact = [...]int16{
-	41, -1000, 39, -7, -2, -1000, -1000, -1000, -1000, -1000,
-	-1000, -1000, -1000, 47, 47, 56, 55, 54, 65, 53,
-	64, -1000, 37, -6, 36, -17, -22, -1000, 52, 51,
-	50, 49, -1000, 47, 63, 48, 47, 47, 47, 34,
-	-1000, 46, 45, 62, -1000, 33, -1000, -21, 29, 22,
-	-1000, -1000, 24, 61, 28, 44, 26, -4, 23, 18,
-	-1000, 12, -1000, -1000, -1000, -1000, 43, 16, 60, -1000,
-	-1000, -1000, -1000, -1000, -1000, -1000, 22, -1000, 15, 1,
-	-1000, 10, 14, -1000, 59, -1000, -1000,
+	42, -1000, 40, -7, -2, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, 49, 49, 59, 58, 57, 69,
+	56, 68, 55, -1000, 38, -6, 37, -18, -23, -1000,
+	54, 53, 52, 51, -1000, 67, 49, 66, 50, 49,
+	49, 49, 32, -1000, 48, 47, 65, -1000, 46, 31,
+	-1000, -22, 29, 23, -1000, -1000, 25, 64, 28, 45,
+	-1000, 27, -4, 24, 19, -1000, 13, -1000, -1000, -1000,
+	-1000, 44, 17, 62, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, 23, -1000, 16, 1, -1000, 11, 15, -1000, 61,
+	-1000, -1000,
 }
 
 var YaccPgo = [...]int8{
-	0, 2, 89, 1, 88, 87, 0, 86, 85, 84,
-	83, 82, 81, 79, 77, 76, 75, 74, 73, 72,
-	71, 70,
+	0, 2, 94, 1, 93, 92, 0, 91, 90, 89,
+	88, 87, 86, 84, 82, 81, 80, 79, 78, 77,
+	76, 75, 74,
 }
 
 var YaccR1 = [...]int8{
-	0, 21, 20, 20, 20, 20, 20, 20, 20, 20,
-	1, 1, 6, 6, 7, 7, 3, 3, 4, 5,
-	5, 8, 9, 2, 2, 13, 13, 13, 10, 10,
-	11, 12, 12, 15, 15, 16, 14, 17, 19, 19,
-	18,
+	0, 22, 21, 21, 21, 21, 21, 21, 21, 21,
+	21, 1, 1, 6, 6, 7, 7, 3, 3, 4,
+	5, 5, 8, 9, 2, 2, 13, 13, 13, 10,
+	10, 11, 12, 12, 15, 15, 17, 14, 16, 18,
+	20, 20, 19,
 }
 
 var YaccR2 = [...]int8{
 	0, 4, 1, 1, 1, 1, 1, 1, 1, 1,
-	3, 6, 1, 0, 2, 0, 1, 0, 11, 1,
-	3, 6, 6, 3, 1, 2, 2, 0, 1, 0,
-	6, 2, 0, 1, 0, 5, 2, 5, 1, 0,
-	6,
+	1, 3, 6, 1, 0, 2, 0, 1, 0, 11,
+	1, 3, 6, 6, 3, 1, 2, 2, 0, 1,
+	0, 6, 2, 0, 1, 0, 5, 2, 4, 5,
+	1, 0, 6,
 }
 
 var YaccChk = [...]int16{
-	-1000, -21, 6, 7, -20, -4, -8, -9, -11, -16,
-	-17, -18, -14, 12, 15, 16, 17, 21, 22, 23,
-	20, 24, -1, 5, -1, -2, 5, -1, 5, 5,
-	4, 5, 4, 8, 25, 26, 8, 28, 29, -10,
-	5, 5, 5, -19, 5, -1, 4, 5, -1, -1,
-	-1, -12, 9, 5, 5, 4, 9, 27, 9, -3,
-	10, -13, 10, -15, 4, 9, 5, 9, 25, 10,
-	-6, 11, 18, 19, -6, 5, 9, 4, -3, -5,
-	13, -6, 25, -7, 14, 13, 4,
+	-1000, -22, 6, 7, -21, -4, -8, -9, -11, -17,
+	-18, -19, -14, -16, 12, 15, 16, 17, 22, 23,
+	24, 20, 21, 25, -1, 5, -1, -2, 5, -1,
+	5, 5, 4, 5, 4, 5, 8, 26, 27, 8,
+	29, 30, -10, 5, 5, 5, -20, 5, 4, -1,
+	4, 5, -1, -1, -1, -12, 9, 5, 5, 4,
+	5, 9, 28, 9, -3, 10, -13, 10, -15, 4,
+	9, 5, 9, 26, 10, -6, 11, 18, 19, -6,
+	5, 9, 4, -3, -5, 13, -6, 26, -7, 14,
+	13, 4,
 }
 
 var YaccDef = [...]int8{
 	0, -2, 0, 0, 0, 2, 3, 4, 5, 6,
-	7, 8, 9, 0, 0, 0, 0, 0, 0, 0,
-	0, 1, 0, 0, 0, 0, 0, 24, 29, 0,
-	0, 39, 36, 0, 0, 0, 0, 0, 0, 32,
-	28, 0, 0, 0, 38, 0, 10, 0, 0, 17,
-	23, 27, 0, 34, 0, 0, 0, 0, 0, 13,
-	16, 13, 31, 35, 33, 37, 0, 0, 0, 21,
-	22, 12, 25, 26, 30, 40, 17, 11, 0, 13,
-	19, 15, 0, 18, 0, 20, 14,
+	7, 8, 9, 10, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 1, 0, 0, 0, 0, 0, 25,
+	30, 0, 0, 41, 37, 0, 0, 0, 0, 0,
+	0, 0, 33, 29, 0, 0, 0, 40, 0, 0,
+	11, 0, 0, 18, 24, 28, 0, 35, 0, 0,
+	38, 0, 0, 0, 14, 17, 14, 32, 36, 34,
+	39, 0, 0, 0, 22, 23, 13, 26, 27, 31,
+	42, 18, 12, 0, 14, 20, 16, 0, 19, 0,
+	21, 15,
 }
 
 var YaccTok1 = [...]int8{
-	1, 3, 3, 3, 3, 3, 3, 3, 3, 29,
+	1, 3, 3, 3, 3, 3, 3, 3, 3, 30,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	26, 27, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 28,
+	27, 28, 3, 3, 3, 3, 3, 3, 3, 3,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 29,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 25,
+	3, 3, 3, 3, 26,
 }
 
 var YaccTok2 = [...]int8{
 	2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 	12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-	22, 23, 24,
+	22, 23, 24, 25,
 }
 
 var YaccTok3 = [...]int8{
@@ -603,6 +609,11 @@ Yaccdefault:
 			YaccVAL.any = YaccDollar[1].any
 		}
 	case 10:
+		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
+		{
+			YaccVAL.any = YaccDollar[1].any
+		}
+	case 11:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
 			YaccVAL.any = &Object{
@@ -610,7 +621,7 @@ Yaccdefault:
 				ObjectID: YaccDollar[3].int,
 			}
 		}
-	case 11:
+	case 12:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
 			YaccVAL.any = &Object{
@@ -621,37 +632,37 @@ Yaccdefault:
 				ObjectID: YaccDollar[6].int,
 			}
 		}
-	case 12:
+	case 13:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.bool = true
 		}
-	case 13:
+	case 14:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.bool = false
 		}
-	case 14:
+	case 15:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
 			YaccVAL.int = YaccDollar[2].int
 		}
-	case 15:
+	case 16:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.int = 0
 		}
-	case 16:
+	case 17:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.string = YaccDollar[1].string
 		}
-	case 17:
+	case 18:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.string = ""
 		}
-	case 18:
+	case 19:
 		YaccDollar = YaccS[Yaccpt-11 : Yaccpt+1]
 		{
 			YaccVAL.any = &Damage{
@@ -666,17 +677,17 @@ Yaccdefault:
 				Rocket:          YaccDollar[11].int,
 			}
 		}
-	case 19:
+	case 20:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.any = []DamageModifier{DamageModifier(YaccDollar[1].string)}
 		}
-	case 20:
+	case 21:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
 			YaccVAL.any = append(YaccVAL.any.([]DamageModifier), DamageModifier(YaccDollar[3].string))
 		}
-	case 21:
+	case 22:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
 			YaccVAL.any = &Heal{
@@ -686,7 +697,7 @@ Yaccdefault:
 				Source:    YaccDollar[6].string,
 			}
 		}
-	case 22:
+	case 23:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
 			YaccVAL.any = &Kill{
@@ -696,7 +707,7 @@ Yaccdefault:
 				FriendlyFire: YaccDollar[6].bool,
 			}
 		}
-	case 23:
+	case 24:
 		YaccDollar = YaccS[Yaccpt-3 : Yaccpt+1]
 		{
 			YaccVAL.any = &Object{
@@ -707,37 +718,37 @@ Yaccdefault:
 				ObjectID: YaccDollar[3].any.(*Object).ObjectID,
 			}
 		}
-	case 24:
+	case 25:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.any = YaccDollar[1].any
 		}
-	case 25:
+	case 26:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
 			YaccVAL.ParticipationModifiers = append(YaccDollar[1].ParticipationModifiers, ParticipationModifier(YaccDollar[2].string))
 		}
-	case 26:
+	case 27:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
 			YaccVAL.ParticipationModifiers = YaccDollar[1].ParticipationModifiers
 		}
-	case 27:
+	case 28:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.ParticipationModifiers = nil
 		}
-	case 28:
+	case 29:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.string = YaccDollar[1].string
 		}
-	case 29:
+	case 30:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.string = ""
 		}
-	case 30:
+	case 31:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
 			YaccVAL.any = &Participant{
@@ -749,27 +760,27 @@ Yaccdefault:
 				FriendlyFire:   YaccDollar[6].bool,
 			}
 		}
-	case 31:
+	case 32:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
 			YaccVAL.any = []any{YaccDollar[1].float32, YaccDollar[2].string}
 		}
-	case 32:
+	case 33:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.any = []any{float32(0), ""}
 		}
-	case 33:
+	case 34:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.int = YaccDollar[1].int
 		}
-	case 34:
+	case 35:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.int = 0
 		}
-	case 35:
+	case 36:
 		YaccDollar = YaccS[Yaccpt-5 : Yaccpt+1]
 		{
 			YaccVAL.any = &Start{
@@ -779,14 +790,23 @@ Yaccdefault:
 				LocalClientTeamID: YaccDollar[5].int,
 			}
 		}
-	case 36:
+	case 37:
 		YaccDollar = YaccS[Yaccpt-2 : Yaccpt+1]
 		{
 			YaccVAL.any = &ConnectToGameSession{
 				SessionID: YaccDollar[2].int,
 			}
 		}
-	case 37:
+	case 38:
+		YaccDollar = YaccS[Yaccpt-4 : Yaccpt+1]
+		{
+			YaccVAL.any = &Spawn{
+				Name: YaccDollar[2].string,
+				ID:   YaccDollar[3].int,
+				Ship: YaccDollar[4].string,
+			}
+		}
+	case 39:
 		YaccDollar = YaccS[Yaccpt-5 : Yaccpt+1]
 		{
 			YaccVAL.any = &Finished{
@@ -796,17 +816,17 @@ Yaccdefault:
 				GameTime:     YaccDollar[5].float32,
 			}
 		}
-	case 38:
+	case 40:
 		YaccDollar = YaccS[Yaccpt-1 : Yaccpt+1]
 		{
 			YaccVAL.string = YaccDollar[1].string
 		}
-	case 39:
+	case 41:
 		YaccDollar = YaccS[Yaccpt-0 : Yaccpt+1]
 		{
 			YaccVAL.string = ""
 		}
-	case 40:
+	case 42:
 		YaccDollar = YaccS[Yaccpt-6 : Yaccpt+1]
 		{
 			YaccVAL.any = &Reward{

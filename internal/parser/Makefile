@@ -9,15 +9,15 @@ ragel-%:
 gramma-%:
 	go run ./yacc -o ./$$</gramma.go -l -v ./$<</y.output ./$<</gramma.y
 
-# .PHONY: gen-game
-# gen-game:
-# 	ragel -Z -G2 -o ./game/tokenizer.go ./game/tokenizer.go.rl
-# 	go run ./yacc -o ./game/gramma.go -l -v ./game/y.output ./game/gramma.y
+.PHONY: gen-game
+gen-game:
+	ragel -Z -G2 -o ./game/tokenizer.go ./game/tokenizer.go.rl
+	go run ./yacc -o ./game/gramma.go -l -v ./game/y.output ./game/gramma.y
 
-# .PHONY: gen-combat
-# gen-combat:
-# 	ragel -Z -G2 -o ./combat/tokenizer.go ./combat/tokenizer.go.rl
-# 	go run ./yacc -o ./combat/gramma.go -l -v ./game/y.output ./combat/gramma.y
+.PHONY: gen-combat
+gen-combat:
+	ragel -Z -G2 -o ./combat/tokenizer.go ./combat/tokenizer.go.rl
+	go run ./yacc -o ./combat/gramma.go -l -v ./game/y.output ./combat/gramma.y
 
 # .PHONY: show
 # show: show-game show-combat

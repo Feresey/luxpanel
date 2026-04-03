@@ -4,8 +4,9 @@ import '../scss/styles.scss'
 // Импортируйте весь JS Bootstrap
 import * as bootstrap from 'bootstrap'
 
-import { CreateCharts, ApplyParsedCharts } from './charts.js'
+import { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar } from './charts.js'
 import { setupDamageTablePanel } from './damage_table.js'
+import { setupTimeline } from './timeline.js'
 
 import './wasm_exec.js'
 
@@ -13,6 +14,9 @@ if (WebAssembly) {
     const go = new Go();
     WebAssembly.instantiateStreaming(fetch("gojs.wasm"), go.importObject).then((result) => {
         go.run(result.instance);
+        if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+            timelineCtl.refresh();
+        }
         refreshAll();
     });
 } else {
@@ -37,12 +41,67 @@ function refreshCharts() {
 
 const damagePanel = setupDamageTablePanel(getSelectedMatchIndex);
 
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/** Секунды от начала матча → mm:ss.xx как на таймлайне */
+function formatMatchSec(sec) {
+    if (typeof sec !== 'number' || Number.isNaN(sec)) {
+        return '—';
+    }
+    const m = Math.floor(sec / 60);
+    const s = sec - m * 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = s < 10 ? `0${s.toFixed(2)}` : s.toFixed(2);
+    return `${mm}:${ss}`;
+}
+
+function updateWatcherBanner() {
+    const el = document.getElementById('watcher_banner');
+    if (!el) {
+        return;
+    }
+    let meta = [];
+    if (typeof getLevelsMetaJSON === 'function') {
+        try {
+            const raw = getLevelsMetaJSON();
+            meta = JSON.parse(raw);
+            if (!Array.isArray(meta)) {
+                meta = [];
+            }
+        } catch (_) {
+            meta = [];
+        }
+    }
+    const m = meta[getSelectedMatchIndex()];
+    if (!m || !m.watcher_active) {
+        el.hidden = true;
+        el.innerHTML = '';
+        return;
+    }
+    el.hidden = false;
+    const c = formatMatchSec(m.watcher_connect_sec);
+    const d = formatMatchSec(m.watcher_disconnect_sec);
+    const names = Array.isArray(m.watcher_names) && m.watcher_names.length
+        ? ` (${m.watcher_names.map(escapeHtml).join(', ')})`
+        : '';
+    el.innerHTML = `<strong>Большой брат наблюдает за вами!</strong>${names}<br>Подключение наблюдателя: ${c} · Отключение: ${d}`;
+}
+
 function refreshAll() {
     refreshCharts();
+    updateWatcherBanner();
     if (damagePanel && typeof damagePanel.refresh === 'function') {
         damagePanel.refresh();
     }
 }
+
+const timelineCtl = setupTimeline(getSelectedMatchIndex, refreshAll);
 
 function setupMetricButtons() {
     const wrap = document.querySelector('.metric-buttons');
@@ -89,6 +148,9 @@ function renderMatchOptions() {
         opt.textContent = "Match 1";
         matchSelect.appendChild(opt);
         matchSelect.disabled = true;
+        if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+            timelineCtl.refresh();
+        }
         refreshAll();
         return;
     }
@@ -121,17 +183,24 @@ function renderMatchOptions() {
     }
     matchSelect.disabled = false;
     matchSelect.value = "0";
+    if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+        timelineCtl.refresh();
+    }
     refreshAll();
 }
 
 if (matchSelect) {
     matchSelect.addEventListener('change', () => {
+        if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+            timelineCtl.refresh();
+        }
         refreshAll();
     });
 }
 
 if (document.getElementById('pieChart1') && document.getElementById('pieChart2')) {
     CreateCharts();
+    setupGraphViewToolbar(refreshCharts);
 }
 
 pickLogs.addEventListener('change', function () {

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/Feresey/luxpanel/internal/damagefilters"
 	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
@@ -19,19 +21,18 @@ type damageFilterMeta struct {
 }
 
 type wasmDamageFilterRequest struct {
-	Initiator  string          `json:"initiator"`
-	Recipient  string          `json:"recipient"`
-	Weapon     string          `json:"weapon"`
-	Modifiers  map[string]bool `json:"modifiers,omitempty"`
-	DamageType string          `json:"damage_type"`
+	Initiator   string          `json:"initiator"`
+	Recipient   string          `json:"recipient"`
+	Weapon      string          `json:"weapon"`
+	Modifiers   map[string]bool `json:"modifiers,omitempty"`
+	Aggregate   *bool           `json:"aggregate,omitempty"`
+	TimeFromSec *float64        `json:"time_from_sec,omitempty"`
+	TimeToSec   *float64        `json:"time_to_sec,omitempty"`
 }
 
 type damageTableSummary struct {
-	Hits      int     `json:"hits"`
-	Damage    float64 `json:"damage"`
-	Hull      float64 `json:"hull"`
-	Shield    float64 `json:"shield"`
-	AvgDamage float64 `json:"avg_damage"`
+	Hits   int     `json:"hits"`
+	Damage float64 `json:"damage"`
 }
 
 type damageTableRow struct {
@@ -42,22 +43,36 @@ type damageTableRow struct {
 }
 
 type damageTableResult struct {
-	Row   damageTableRow `json:"row"`
-	Error string         `json:"error,omitempty"`
+	Row    damageTableRow   `json:"row"`
+	Events []damageEventRow `json:"events,omitempty"`
+	Error  string           `json:"error,omitempty"`
 }
 
-func (r *Runtime) marshalDamageFilterMetaJSON(level *splitter.Level, initiator string) (string, error) {
-	meta := r.collectDamageFilterMeta(level, initiator)
+type damageEventRow struct {
+	TimeSec   float64         `json:"time_sec"`
+	Initiator string          `json:"initiator"`
+	Recipient string          `json:"recipient"`
+	Weapon    string          `json:"weapon"`
+	Modifiers map[string]bool `json:"modifiers"`
+	Amount    float64         `json:"amount"`
+}
+
+func (r *Runtime) marshalDamageFilterMetaJSON(ctx context.Context, level *splitter.Level, initiator string, timeRangeJSON string) (string, error) {
+	lo, hi := clampTimeRange(level, timeRangeJSON)
+	meta := collectDamageFilterMeta(level, initiator, lo, hi)
 	b, err := json.Marshal(meta)
 	if err != nil {
+		r.lg.For(ctx).Errorw("marshalDamageFilterMetaJSON", "err", err, "initiator", initiator)
 		return "", err
 	}
-	return string(b), nil
+	s := string(b)
+	r.lg.For(ctx).Debugw("marshalDamageFilterMetaJSON", "initiator", initiator, "time_lo", lo, "time_hi", hi,
+		"players", len(meta.Players), "recipients", len(meta.Recipients), "weapons", len(meta.Weapons), "out_len", len(s))
+	return s, nil
 }
 
-func (r *Runtime) collectDamageFilterMeta(level *splitter.Level, initiator string) damageFilterMeta {
-	playersNames := r.getPlayersNames(level)
-
+func collectDamageFilterMeta(level *splitter.Level, initiator string, lo, hi float64) damageFilterMeta {
+	humans := humanPlayerNames(level)
 	out := damageFilterMeta{
 		Players:    []string{},
 		Recipients: []string{},
@@ -71,23 +86,22 @@ func (r *Runtime) collectDamageFilterMeta(level *splitter.Level, initiator strin
 	weapons := make(map[string]struct{})
 	mods := make(map[string]struct{})
 	recipients := make(map[string]struct{})
+	t0 := level.StartLevelTime
+
+	for name := range humans {
+		players[name] = struct{}{}
+	}
 
 	for _, dmg := range level.CombatLog.Damage {
 		if dmg == nil {
 			continue
 		}
-		if dmg.Initiator.Name != "" {
-			if _, ok := playersNames[dmg.Initiator.Name]; !ok {
-				// Bot (NPC) detected from game log: PlayerID == 0.
-				continue
-			}
-			players[dmg.Initiator.Name] = struct{}{}
+		t := dmg.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
 		}
-		if dmg.Recipient.Name != "" {
-			if _, ok := playersNames[dmg.Recipient.Name]; !ok {
-				continue
-			}
-			players[dmg.Recipient.Name] = struct{}{}
+		if !timeInRangeFromStart(t, t0, lo, hi) {
+			continue
 		}
 		if strings.TrimSpace(initiator) != "" && dmg.Initiator.Name == initiator {
 			if s := strings.TrimSpace(dmg.Source); s != "" {
@@ -97,6 +111,9 @@ func (r *Runtime) collectDamageFilterMeta(level *splitter.Level, initiator strin
 				mods[string(m)] = struct{}{}
 			}
 			if dmg.Recipient.Name != "" {
+				if _, ok := humans[dmg.Recipient.Name]; !ok {
+					continue
+				}
 				recipients[dmg.Recipient.Name] = struct{}{}
 			}
 		}
@@ -106,27 +123,36 @@ func (r *Runtime) collectDamageFilterMeta(level *splitter.Level, initiator strin
 	out.Recipients = keysSorted(recipients)
 	out.Weapons = keysSorted(weapons)
 	out.Modifiers = keysSorted(mods)
-
-	r.lg.For(context.Background()).Infow("filters meta", "data", out)
 	return out
 }
 
-func (r *Runtime) getPlayersNames(level *splitter.Level) map[string]struct{} {
-	out := make(map[string]struct{})
+func humanAndBotPlayerNames(level *splitter.Level) (map[string]struct{}, map[string]struct{}) {
+	humans := make(map[string]struct{})
+	bots := make(map[string]struct{})
 	if level == nil || level.GameLog == nil {
-		return out
+		return humans, bots
 	}
 	for _, p := range level.GameLog.AddPlayer {
 		if p == nil {
 			continue
 		}
-		// User request: bots have ID == 0 in game log.
-		if p.PlayerID != 0 && strings.TrimSpace(p.Name) != "" {
-			out[p.Name] = struct{}{}
+		name := strings.TrimSpace(p.Name)
+		if name == "" {
+			continue
+		}
+		// User request: real players have PlayerID != 0 in game log.
+		if p.PlayerID != 0 {
+			humans[name] = struct{}{}
+		} else {
+			bots[name] = struct{}{}
 		}
 	}
-	r.lg.For(context.Background()).Infow("players", "players", out)
-	return out
+	return humans, bots
+}
+
+func humanPlayerNames(level *splitter.Level) map[string]struct{} {
+	humans, _ := humanAndBotPlayerNames(level)
+	return humans
 }
 
 func keysSorted(m map[string]struct{}) []string {
@@ -138,7 +164,7 @@ func keysSorted(m map[string]struct{}) []string {
 	return s
 }
 
-func (r *Runtime) marshalDamageTableJSON(level *splitter.Level, filterJSON string) (string, error) {
+func (r *Runtime) marshalDamageTableJSON(ctx context.Context, level *splitter.Level, filterJSON string) (string, error) {
 	if level == nil || level.CombatLog == nil {
 		b, err := json.Marshal(damageTableResult{
 			Row: damageTableRow{
@@ -149,15 +175,23 @@ func (r *Runtime) marshalDamageTableJSON(level *splitter.Level, filterJSON strin
 			},
 		})
 		if err != nil {
+			r.lg.For(ctx).Errorw("marshalDamageTableJSON", "err", err, "reason", "empty_level")
 			return "", err
 		}
-		return string(b), nil
+		s := string(b)
+		r.lg.For(ctx).Debugw("marshalDamageTableJSON", "empty_level", true, "out_len", len(s))
+		return s, nil
 	}
 
 	var req wasmDamageFilterRequest
 	if err := json.Unmarshal([]byte(filterJSON), &req); err != nil {
 		res := damageTableResult{Error: "invalid filter json"}
-		b, _ := json.Marshal(res)
+		b, mErr := json.Marshal(res)
+		if mErr != nil {
+			r.lg.For(ctx).Errorw("marshalDamageTableJSON", "err", mErr, "reason", "invalid_filter_marshal")
+			return "", mErr
+		}
+		r.lg.For(ctx).Debugw("marshalDamageTableJSON", "client_error", "invalid filter json", "out_len", len(b))
 		return string(b), nil
 	}
 	if strings.TrimSpace(req.Initiator) == "" {
@@ -166,81 +200,132 @@ func (r *Runtime) marshalDamageTableJSON(level *splitter.Level, filterJSON strin
 			Error: "initiator required",
 		})
 		if err != nil {
+			r.lg.For(ctx).Errorw("marshalDamageTableJSON", "err", err)
 			return "", err
 		}
+		r.lg.For(ctx).Debugw("marshalDamageTableJSON", "client_error", "initiator required", "out_len", len(b))
 		return string(b), nil
 	}
 
-	players := r.getPlayersNames(level)
-	if _, ok := players[req.Initiator]; !ok {
+	humans := humanPlayerNames(level)
+	if _, ok := humans[req.Initiator]; !ok {
 		b, err := json.Marshal(damageTableResult{
 			Row:   damageTableRow{Source: "", Targets: []string{}, Modifiers: map[string]bool{}, Summary: damageTableSummary{}},
 			Error: "initiator must be a player",
 		})
 		if err != nil {
+			r.lg.For(ctx).Errorw("marshalDamageTableJSON", "err", err)
 			return "", err
 		}
+		r.lg.For(ctx).Debugw("marshalDamageTableJSON", "client_error", "initiator must be a player", "out_len", len(b))
 		return string(b), nil
 	}
 
-	row := r.filterDamageRow(level, &req, players)
-	res := damageTableResult{Row: row}
+	lo, hi := applyTimeBoundsToReq(level, req.TimeFromSec, req.TimeToSec)
+	row := filterDamageRow(level, &req, humans, lo, hi)
+	events := collectDamageEvents(level, &req, humans, lo, hi)
+	res := damageTableResult{
+		Row:    row,
+		Events: events,
+	}
 	b, err := json.Marshal(res)
 	if err != nil {
+		r.lg.For(ctx).Errorw("marshalDamageTableJSON", "err", err, "initiator", req.Initiator)
 		return "", err
 	}
-	return string(b), nil
+	s := string(b)
+	r.lg.For(ctx).Debugw("marshalDamageTableJSON", "initiator", req.Initiator, "hits", row.Summary.Hits, "events", len(events), "out_len", len(s))
+	return s, nil
 }
 
-func (r *Runtime) filterDamageRow(level *splitter.Level, req *wasmDamageFilterRequest, players map[string]struct{}) damageTableRow {
+func collectDamageEvents(level *splitter.Level, req *wasmDamageFilterRequest, humans map[string]struct{}, lo, hi float64) []damageEventRow {
+	if level == nil || level.CombatLog == nil {
+		return []damageEventRow{}
+	}
+	t0 := level.StartLevelTime
+	filter := toDamageFilter(req)
+
+	out := make([]damageEventRow, 0)
+	for _, dmg := range level.CombatLog.Damage {
+		if dmg == nil || dmg.IsEmpty() {
+			continue
+		}
+		detailed, ok := filter.Filter(dmg)
+		if !ok {
+			continue
+		}
+		if _, ok := humans[dmg.Recipient.Name]; !ok {
+			continue
+		}
+
+		t := dmg.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
+		}
+		if !timeInRangeFromStart(t, t0, lo, hi) {
+			continue
+		}
+		sec := float64(t.Sub(t0)) / float64(time.Second)
+
+		amount := float64(detailed.Damage)
+
+		mods := make(map[string]bool, len(dmg.DamageModifiers))
+		for _, m := range dmg.DamageModifiers {
+			mods[string(m)] = true
+		}
+		out = append(out, damageEventRow{
+			TimeSec:   sec,
+			Initiator: dmg.Initiator.Name,
+			Recipient: dmg.Recipient.Name,
+			Weapon:    dmg.Source,
+			Modifiers: mods,
+			Amount:    amount,
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].TimeSec != out[j].TimeSec {
+			return out[i].TimeSec < out[j].TimeSec
+		}
+		return out[i].Recipient < out[j].Recipient
+	})
+	return out
+}
+
+func filterDamageRow(level *splitter.Level, req *wasmDamageFilterRequest, humans map[string]struct{}, lo, hi float64) damageTableRow {
 	var hits int
 	var damageSum float64
-	var hullSum float64
-	var shieldSum float64
 
 	targetSet := make(map[string]struct{})
 	needTargets := strings.TrimSpace(req.Recipient) == ""
 	requestedRecipient := strings.TrimSpace(req.Recipient)
+	filter := toDamageFilter(req)
+	t0 := level.StartLevelTime
 
 	for _, dmg := range level.CombatLog.Damage {
 		if dmg == nil || dmg.IsEmpty() {
 			continue
 		}
-		if dmg.Initiator.Name != req.Initiator {
+		t := dmg.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
+		}
+		if !timeInRangeFromStart(t, t0, lo, hi) {
 			continue
 		}
-		if requestedRecipient != "" && dmg.Recipient.Name != requestedRecipient {
-			continue
-		}
-		if w := strings.TrimSpace(req.Weapon); w != "" && dmg.Source != w {
-			continue
-		}
-		if !r.matchDamageModifiers(dmg.DamageModifiers, req.Modifiers) {
+		detailed, ok := filter.Filter(dmg)
+		if !ok {
 			continue
 		}
 
-		hull := float64(dmg.DamageHull)
-		shield := float64(dmg.DamageShield)
-		full := float64(dmg.DamageFull)
-
-		selected := full
-		switch strings.ToLower(strings.TrimSpace(req.DamageType)) {
-		case "hull":
-			selected = hull
-		case "shield":
-			selected = shield
-		default:
-			selected = full
-		}
+		selected := float64(detailed.Damage)
 
 		hits++
 		damageSum += selected
-		hullSum += hull
-		shieldSum += shield
 
 		if needTargets {
 			if dmg.Recipient.Name != "" {
-				if _, ok := players[dmg.Recipient.Name]; !ok {
+				if _, ok := humans[dmg.Recipient.Name]; !ok {
 					continue
 				}
 				targetSet[dmg.Recipient.Name] = struct{}{}
@@ -248,15 +333,10 @@ func (r *Runtime) filterDamageRow(level *splitter.Level, req *wasmDamageFilterRe
 		}
 	}
 
-	avg := 0.0
-	if hits > 0 {
-		avg = damageSum / float64(hits)
-	}
-
 	targets := []string{}
 	if requestedRecipient != "" {
 		// UI should prevent bots, but keep the check for safety.
-		if _, ok := players[requestedRecipient]; ok {
+		if _, ok := humans[requestedRecipient]; ok {
 			targets = []string{requestedRecipient}
 		}
 	} else {
@@ -273,76 +353,27 @@ func (r *Runtime) filterDamageRow(level *splitter.Level, req *wasmDamageFilterRe
 		Targets:   targets,
 		Modifiers: mods,
 		Summary: damageTableSummary{
-			Hits:      hits,
-			Damage:    damageSum,
-			Hull:      hullSum,
-			Shield:    shieldSum,
-			AvgDamage: avg,
+			Hits:   hits,
+			Damage: damageSum,
 		},
 	}
 }
 
-func (r *Runtime) filterDamageSummary(level *splitter.Level, req *wasmDamageFilterRequest) damageTableSummary {
-	t0 := level.StartLevelTime
-	_ = t0 // summary doesn't depend on time, but we keep t0 for consistency
-
-	var hits int
-	var damageSum float64
-	var hullSum float64
-	var shieldSum float64
-
-	for _, dmg := range level.CombatLog.Damage {
-		if dmg == nil || dmg.IsEmpty() {
-			continue
-		}
-		if dmg.Initiator.Name != req.Initiator {
-			continue
-		}
-		if r := strings.TrimSpace(req.Recipient); r != "" && dmg.Recipient.Name != r {
-			continue
-		}
-		if w := strings.TrimSpace(req.Weapon); w != "" && dmg.Source != w {
-			continue
-		}
-		if !r.matchDamageModifiers(dmg.DamageModifiers, req.Modifiers) {
-			continue
-		}
-
-		hull := float64(dmg.DamageHull)
-		shield := float64(dmg.DamageShield)
-		full := float64(dmg.DamageFull)
-
-		selected := full
-		switch strings.ToLower(strings.TrimSpace(req.DamageType)) {
-		case "hull":
-			selected = hull
-		case "shield":
-			selected = shield
-		default:
-			selected = full
-		}
-
-		hits++
-		damageSum += selected
-		hullSum += hull
-		shieldSum += shield
+func toDamageFilter(req *wasmDamageFilterRequest) damagefilters.PlayerDamageFilterConfig {
+	mods := damagefilters.DamageModifiersMap{}
+	for k, v := range req.Modifiers {
+		mods[combat.DamageModifier(k)] = v
 	}
-
-	avg := 0.0
-	if hits > 0 {
-		avg = damageSum / float64(hits)
-	}
-
-	return damageTableSummary{
-		Hits:      hits,
-		Damage:    damageSum,
-		Hull:      hullSum,
-		Shield:    shieldSum,
-		AvgDamage: avg,
+	return damagefilters.PlayerDamageFilterConfig{
+		InitiatorName:   strings.TrimSpace(req.Initiator),
+		RecipientName:   strings.TrimSpace(req.Recipient),
+		DamageType:      damagefilters.DamageTypeTotal,
+		DamageModifiers: mods,
+		Weapon:          strings.TrimSpace(req.Weapon),
 	}
 }
 
-func (r *Runtime) matchDamageModifiers(have []combat.DamageModifier, want map[string]bool) bool {
+func matchDamageModifiers(have []combat.DamageModifier, want map[string]bool) bool {
 	if len(want) == 0 {
 		return true
 	}

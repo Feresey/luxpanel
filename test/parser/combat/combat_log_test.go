@@ -411,6 +411,36 @@ func TestCombatGameFinished(t *testing.T) {
 	})
 }
 
+func TestCombatSpawn(t *testing.T) {
+	tests := []testData[combat.LogLine]{
+		{
+			name:  "ok",
+			input: `21:42:48.769  CMBT   | Spawn SpaceShip for player7 (RockerBonker, #125546). 'Ship_Race5_H_OVERSEER_Rank15_13'`,
+			want: &combat.Spawn{
+				Time: combat.Time{Time: "19:47:09.448"},
+				ID:   125556,
+				Name: "RocketBonker",
+				Ship: "Ship_Race5_H_OVERSEER_Rank15_13",
+			},
+		},
+		{
+			name:      "cutted",
+			input:     `21:42:48.769  CMBT   | Spawn SpaceShip for player7 (RockerBonker, #125546). 'Ship_R`,
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			input:     "",
+			wantError: false,
+		},
+	}
+
+	parse := newParser()
+	runTests(t, tests, finishedRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return parse(raw)
+	})
+}
+
 func TestCombatReward(t *testing.T) {
 	tests := []testData[combat.LogLine]{
 		{

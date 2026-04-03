@@ -121,6 +121,7 @@ type Tokenizer struct {
 	Start = ('======= Start') >start @{ t.tok(START) };
 	Finish = ('Gameplay finished.') >start @{ t.tok(GAMEPLAY_FINISHED) };
 	Reward = ('Reward') >start @{ t.tok(REWARD) };
+	Spawn = ('Spawn SpaceShip for') >start @{ t.tok(SPAWN_PREFIX) };
 
 	string = [a-zA-Z0-9_/]+;
 	value = '(' string ')';
@@ -161,6 +162,8 @@ type Tokenizer struct {
 	rewardLine = Reward space+ String (' '+ String)? space* '\t' space* Int space+
 	('effective points' | 'experience' | 'karma' | 'credits') >start %setString space+
 	'for ' >start %{t.tokval(strTok(t.data[t.p:]))} (any - ('\r'|'\n'))*;
+	spawnLine = Spawn
+		space+ string ' (' String ', ' "#" Int "). '" String "'";
 
 	main := Time ' '+ Combat ' '+
 		(
@@ -171,7 +174,8 @@ type Tokenizer struct {
 			startLine |
 			finishedLine |
 			connectedLine |
-			rewardLine
+			rewardLine |
+			spawnLine
 		) space* %eol;
 }%%
 

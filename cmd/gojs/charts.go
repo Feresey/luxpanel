@@ -1,14 +1,40 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
+	"time"
 
 	"golang.org/x/exp/maps"
 
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
+
+// chartTeams: левый график = команда 1, правый = команда 2 (как в UI). Иначе — две первые ненулевые по сортировке id.
+func chartTeams(level *splitter.Level) (pla, plb []splitter.Player, ok bool) {
+	if level == nil || len(level.Teams) == 0 {
+		return nil, nil, false
+	}
+	if t1, ok1 := level.Teams[1]; ok1 && len(t1) > 0 {
+		if t2, ok2 := level.Teams[2]; ok2 && len(t2) > 0 {
+			return t1, t2, true
+		}
+	}
+	teamIDs := maps.Keys(level.Teams)
+	slices.Sort(teamIDs)
+	teamIDs = filterNonZero(teamIDs)
+	if len(teamIDs) < 2 {
+		return nil, nil, false
+	}
+	pla = level.Teams[teamIDs[0]]
+	plb = level.Teams[teamIDs[1]]
+	if len(pla) == 0 || len(plb) == 0 {
+		return nil, nil, false
+	}
+	return pla, plb, true
+}
 
 // chartCurve matches the Vue/eta-chart structure (name, data, step).
 type chartCurve struct {
@@ -23,18 +49,9 @@ func twoTeamRosters(level *splitter.Level) (
 	nameToIdx map[string]int,
 	ok bool,
 ) {
-	if level == nil || len(level.Teams) == 0 {
-		return nil, nil, nil, nil, false
-	}
-	teamIDs := maps.Keys(level.Teams)
-	slices.Sort(teamIDs)
-	teamIDs = filterNonZero(teamIDs)
-	if len(teamIDs) < 2 {
-		return nil, nil, nil, nil, false
-	}
-	pla = level.Teams[teamIDs[0]]
-	plb = level.Teams[teamIDs[1]]
-	if len(pla) == 0 || len(plb) == 0 {
+	var okTeams bool
+	pla, plb, okTeams = chartTeams(level)
+	if !okTeams {
 		return nil, nil, nil, nil, false
 	}
 	nameToTeam = make(map[string]int)
@@ -50,7 +67,7 @@ func twoTeamRosters(level *splitter.Level) (
 	return pla, plb, nameToTeam, nameToIdx, true
 }
 
-func buildDamageCharts(level *splitter.Level) [][]chartCurve {
+func buildDamageCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 	if level == nil || level.CombatLog == nil {
 		return emptyCharts(level)
 	}
@@ -85,7 +102,10 @@ func buildDamageCharts(level *splitter.Level) [][]chartCurve {
 		if t.Before(t0) {
 			t = t0
 		}
-		step := t.Sub(t0).Seconds()
+		if !timeInRangeFromStart(t, t0, lo, hi) {
+			continue
+		}
+		step := float64(t.Sub(t0)) / float64(time.Second)
 
 		if st == 0 {
 			sum0 += amount / float64(len(pla))
@@ -136,7 +156,7 @@ func finalizeOneTeam(curves []chartCurve, players []splitter.Player, totals []fl
 	}
 }
 
-func buildHealCharts(level *splitter.Level) [][]chartCurve {
+func buildHealCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 	if level == nil || level.CombatLog == nil {
 		return emptyChartsMetric(level, "heal")
 	}
@@ -149,8 +169,17 @@ func buildHealCharts(level *splitter.Level) [][]chartCurve {
 	pTot0 := make([]float64, len(pla))
 	pTot1 := make([]float64, len(plb))
 
+	t0 := level.StartLevelTime
+
 	for _, h := range level.CombatLog.Heal {
 		if h == nil || h.IsEmpty() {
+			continue
+		}
+		t := h.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
+		}
+		if !timeInRangeFromStart(t, t0, lo, hi) {
 			continue
 		}
 		srcName := h.Initiator.Name
@@ -174,7 +203,7 @@ func buildHealCharts(level *splitter.Level) [][]chartCurve {
 	return [][]chartCurve{curves0, curves1}
 }
 
-func buildKillCharts(level *splitter.Level) [][]chartCurve {
+func buildKillCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 	if level == nil || level.CombatLog == nil {
 		return emptyChartsMetric(level, "kill")
 	}
@@ -187,8 +216,17 @@ func buildKillCharts(level *splitter.Level) [][]chartCurve {
 	pTot0 := make([]float64, len(pla))
 	pTot1 := make([]float64, len(plb))
 
+	t0 := level.StartLevelTime
+
 	for _, k := range level.CombatLog.Kill {
 		if k == nil || k.IsEmpty() {
+			continue
+		}
+		t := k.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
+		}
+		if !timeInRangeFromStart(t, t0, lo, hi) {
 			continue
 		}
 		kName := k.Killer.Name
@@ -225,14 +263,10 @@ func emptyChartsMetric(level *splitter.Level, metric string) [][]chartCurve {
 	case "kill":
 		prefix = "Kill"
 	}
-	teamIDs := maps.Keys(level.Teams)
-	slices.Sort(teamIDs)
-	teamIDs = filterNonZero(teamIDs)
-	if len(teamIDs) < 2 {
+	pla, plb, ok := chartTeams(level)
+	if !ok {
 		return [][]chartCurve{{}, {}}
 	}
-	pla := level.Teams[teamIDs[0]]
-	plb := level.Teams[teamIDs[1]]
 	return [][]chartCurve{newTeamCurves(prefix, pla), newTeamCurves(prefix, plb)}
 }
 
@@ -255,23 +289,23 @@ func filterNonZero(ids []int) []int {
 	return out
 }
 
-func marshalDamageCharts(level *splitter.Level) (string, error) {
-	return marshalChartsJSON(level, "damage")
-}
-
-func marshalChartsJSON(level *splitter.Level, mode string) (string, error) {
+func (r *Runtime) marshalChartsJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON string) (string, error) {
+	lo, hi := clampTimeRange(level, timeRangeJSON)
 	var ch [][]chartCurve
 	switch mode {
 	case "heal":
-		ch = buildHealCharts(level)
+		ch = buildHealCharts(level, lo, hi)
 	case "kill":
-		ch = buildKillCharts(level)
+		ch = buildKillCharts(level, lo, hi)
 	default:
-		ch = buildDamageCharts(level)
+		ch = buildDamageCharts(level, lo, hi)
 	}
 	b, err := json.Marshal(ch)
 	if err != nil {
+		r.lg.For(ctx).Errorw("marshalChartsJSON", "err", err, "mode", mode)
 		return "", fmt.Errorf("marshal charts: %w", err)
 	}
-	return string(b), nil
+	s := string(b)
+	r.lg.For(ctx).Debugw("marshalChartsJSON", "mode", mode, "time_lo", lo, "time_hi", hi, "out_len", len(s))
+	return s, nil
 }

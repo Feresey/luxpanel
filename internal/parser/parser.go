@@ -29,11 +29,6 @@ type Parser struct {
 	lg logger.Factory
 }
 
-var (
-	shortReConnectToGameSession = regexp.MustCompile(`^Connect to game session`)
-	shortReDamage               = regexp.MustCompile(`^Damage`)
-)
-
 func matchPrefix(line string, offset int, wantPrefix string) bool {
 	return len(line) >= offset+len(wantPrefix) && line[offset:offset+len(wantPrefix)] == wantPrefix
 }
@@ -65,6 +60,7 @@ func NewCombatLogParser() func(string) (combat.LogLine, error) {
 		case matchPrefix(line, 26, "Participant"):
 		case matchPrefix(line, 23, "Reward"):
 		case matchPrefix(line, 23, "======= Start"):
+		case matchPrefix(line, 23, "Spawn"):
 		default:
 			return nil, nil
 		}

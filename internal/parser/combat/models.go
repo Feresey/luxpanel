@@ -210,6 +210,21 @@ func (l *Participant) IsEmpty() bool {
 type ParticipationModifier string
 type ParticipationModifiers []ParticipationModifier
 
+type Spawn struct {
+	Time
+
+	Name string
+	ID   int
+	Ship string
+}
+
+func (l *Spawn) GetTime(logTime time.Time) time.Time {
+	if l == nil {
+		return time.Time{}
+	}
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
 type PlayerObject struct {
 	ObjectName  string
 	ObjectOwner string

@@ -110,6 +110,12 @@ func (y *YaccParserImpl) New() *YaccParserImpl {
 %type <any> connect_to_game_session
 %type <int> local_client_team
 
+// Spawn
+
+%left SPAWN_PREFIX
+
+%type <any> spawn
+
 // Start
 %left START
 
@@ -163,6 +169,9 @@ action:
 		$$ = $1
 	} |
 	connect_to_game_session {
+		$$ = $1
+	} |
+	spawn {
 		$$ = $1
 	}
 
@@ -316,6 +325,17 @@ start: START STRING STRING STRING local_client_team {
 connect_to_game_session: CONNECT_TO_GAME_SESSION_PREFIX INT {
 	$$ = &ConnectToGameSession{
 		SessionID: $2,
+	}
+}
+
+// Spawn ship
+
+// 19:46:04.732  CMBT   | Spawn SpaceShip for player5 (KANDIS, #3996749). 'Ship_Race3_H_T5_Uniq'
+spawn: SPAWN_PREFIX STRING INT STRING {
+	$$ = &Spawn{
+		Name: $2,
+		ID: $3,
+		Ship: $4,
 	}
 }
 
