@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	// mg contains helpful utility functions, like Deps
@@ -93,6 +94,23 @@ func GOJS() error {
 func Start() error {
 	mg.Deps(GOJS)
 	return sh.RunV("yarn", "start")
+}
+
+// Site: webpack (src/js → docs/) + .nojekyll + docs/gojs.wasm для GitHub Pages.
+func Site() error {
+	if _, err := os.Stat("src"); err != nil {
+		return fmt.Errorf("ожидается каталог src/: %w", err)
+	}
+	if err := os.RemoveAll("docs"); err != nil {
+		return err
+	}
+	if err := sh.RunWith(map[string]string{"SITE_OUT": "docs"}, "yarn", "webpack", "--mode", "production"); err != nil {
+		return fmt.Errorf("webpack → docs: %w", err)
+	}
+	if err := os.WriteFile(filepath.Join("docs", ".nojekyll"), nil, 0o644); err != nil {
+		return err
+	}
+	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "docs/gojs.wasm", "./cmd/gojs")
 }
 
 type ragelConfig struct {

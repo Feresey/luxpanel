@@ -22,6 +22,8 @@
   },
   "scripts": {
     "start": "webpack serve --mode development",
+    "build": "webpack --mode production",
+    "site": "mage Site",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
