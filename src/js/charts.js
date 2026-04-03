@@ -22,7 +22,7 @@ const pieColors = [
     'rgba(96, 165, 250, 0.92)',
 ];
 
-let graphViewMode = 'pie';
+let graphViewMode = 'table';
 let graphToolbarRefresh = null;
 
 function chartDevicePixelRatio() {
@@ -465,6 +465,7 @@ function setupGraphViewToolbar(onViewChange) {
         return;
     }
     graphToolbarRefresh = typeof onViewChange === 'function' ? onViewChange : null;
+    setGraphsRootView(graphViewMode);
     root.querySelectorAll('.graph-view-btn').forEach((btn) => {
         btn.addEventListener('click', () => {
             const v = btn.dataset.graphView;
