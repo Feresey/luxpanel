@@ -113,6 +113,22 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		return s
 	})
 
+	r.register("getBattleInsightJSON", func(this js.Value, args []js.Value) any {
+		level, ok := r.levelFromArgs(args, 1)
+		if !ok {
+			return "null"
+		}
+		timeRangeJSON := ""
+		if len(args) >= 2 && args[1].Type() == js.TypeString {
+			timeRangeJSON = args[1].String()
+		}
+		s, err := r.marshalBattleInsightJSON(ctx, level, timeRangeJSON)
+		if err != nil {
+			return "null"
+		}
+		return s
+	})
+
 	r.register("getCombatLogLinesJSON", func(this js.Value, args []js.Value) any {
 		level, ok := r.levelFromArgs(args, 1)
 		if !ok {

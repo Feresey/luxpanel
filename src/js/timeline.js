@@ -1,15 +1,12 @@
 /**
- * Match timeline: view zoom, brush range, markers, WASM time range export.
+ * Match timeline: zoom (view window), markers, WASM time range = окно зума.
  */
 
-const MIN_GAP_SEC = 0.05;
 const MIN_VIEW_SPAN_SEC = 0.4;
 
 let matchDurationSec = 0;
 let viewStart = 0;
 let viewEnd = 0;
-let rangeFrom = 0;
-let rangeTo = 0;
 let timelineReady = false;
 
 let rootEl = null;
@@ -17,10 +14,6 @@ let trackEl = null;
 let brushSurfaceEl = null;
 let brushPreviewEl = null;
 let markersLayerEl = null;
-let selectionEl = null;
-let selectionDragEl = null;
-let handleLeftEl = null;
-let handleRightEl = null;
 let hintEl = null;
 let legendEl = null;
 let markerLabelsLayerEl = null;
@@ -34,6 +27,10 @@ let lastMarkers = [];
 let rangeChangeCb = null;
 /** Обновление таблицы combat-логов под выбранный интервал (ставится в setupTimeline). */
 let combatLogRefresh = null;
+
+/** Общий курсор времени (сек от начала матча) для синхронизации с графиками «ситуация в бою». */
+let syncCursorSec = null;
+const syncCursorListeners = new Set();
 
 function formatSec(sec) {
     if (typeof sec !== 'number' || Number.isNaN(sec)) {
@@ -349,9 +346,60 @@ export function getTimeRangeJSON() {
         return '{}';
     }
     return JSON.stringify({
-        time_from_sec: rangeFrom,
-        time_to_sec: rangeTo,
+        time_from_sec: viewStart,
+        time_to_sec: viewEnd,
     });
+}
+
+export function getTimeRangeBounds() {
+    if (!timelineReady || matchDurationSec <= 0) {
+        return { from: 0, to: 0 };
+    }
+    return { from: viewStart, to: viewEnd };
+}
+
+export function setTimelineCursorSec(sec) {
+    if (sec !== null && (typeof sec !== 'number' || Number.isNaN(sec))) {
+        return;
+    }
+    syncCursorSec = sec;
+    layoutSyncCursorLine();
+    syncCursorListeners.forEach((fn) => {
+        try {
+            fn(sec);
+        } catch (_) {
+            /* ignore */
+        }
+    });
+}
+
+export function getTimelineCursorSec() {
+    return syncCursorSec;
+}
+
+export function subscribeTimelineCursor(fn) {
+    if (typeof fn !== 'function') {
+        return () => {};
+    }
+    syncCursorListeners.add(fn);
+    return () => syncCursorListeners.delete(fn);
+}
+
+let cursorLineEl = null;
+
+function layoutSyncCursorLine() {
+    if (!cursorLineEl || !trackEl) {
+        return;
+    }
+    if (syncCursorSec === null || !timelineReady || matchDurationSec <= 0 || viewEnd <= viewStart) {
+        cursorLineEl.style.display = 'none';
+        return;
+    }
+    const sec = clamp(syncCursorSec, viewStart, viewEnd);
+    const span = viewSpanSec();
+    const pct = ((sec - viewStart) / span) * 100;
+    cursorLineEl.style.display = 'block';
+    cursorLineEl.style.left = `${pct}%`;
 }
 
 function setHint() {
@@ -362,42 +410,7 @@ function setHint() {
         hintEl.textContent = '';
         return;
     }
-    const sameView = Math.abs(viewStart - 0) < 1e-6 && Math.abs(viewEnd - matchDurationSec) < 1e-6;
-    const viewPart = sameView
-        ? ''
-        : ` · окно ${formatSec(viewStart)}–${formatSec(viewEnd)}`;
-    hintEl.textContent = `Фильтр: ${formatSec(rangeFrom)} — ${formatSec(rangeTo)}${viewPart} · матч ${formatSec(matchDurationSec)}`;
-}
-
-function layoutSelection() {
-    if (!selectionEl || !selectionDragEl || !handleLeftEl || !handleRightEl || !trackEl) {
-        return;
-    }
-    if (!matchDurationSec || matchDurationSec <= 0 || viewEnd <= viewStart) {
-        selectionEl.style.display = 'none';
-        selectionDragEl.style.display = 'none';
-        handleLeftEl.style.display = 'none';
-        handleRightEl.style.display = 'none';
-        return;
-    }
-    const span = viewSpanSec();
-    const p0 = ((rangeFrom - viewStart) / span) * 100;
-    const p1 = ((rangeTo - viewStart) / span) * 100;
-    const leftPct = clamp(p0, 0, 100);
-    const rightPct = clamp(p1, 0, 100);
-    const widthPct = Math.max(rightPct - leftPct, 0);
-    selectionEl.style.display = 'block';
-    selectionDragEl.style.display = widthPct > 0 ? 'block' : 'none';
-    selectionEl.style.left = `${leftPct}%`;
-    selectionEl.style.width = `${widthPct}%`;
-    selectionDragEl.style.left = `${leftPct}%`;
-    selectionDragEl.style.width = `${widthPct}%`;
-    // На всю ширину дорожки слой перетаскивания перехватывает клики и мешает рисовать новое окно кистью.
-    selectionDragEl.style.pointerEvents = widthPct >= 99.5 ? 'none' : 'auto';
-    handleLeftEl.style.display = 'block';
-    handleRightEl.style.display = 'block';
-    handleLeftEl.style.left = `${leftPct}%`;
-    handleRightEl.style.left = `${rightPct}%`;
+    hintEl.textContent = `Окно: ${formatSec(viewStart)} — ${formatSec(viewEnd)} · матч ${formatSec(matchDurationSec)}`;
 }
 
 function layoutBrushPreview(fromSec, toSec) {
@@ -524,30 +537,7 @@ function renderMarkers() {
     renderTimeAxis();
 }
 
-function applyRange(from, to) {
-    if (!matchDurationSec || matchDurationSec <= 0) {
-        rangeFrom = 0;
-        rangeTo = 0;
-        return;
-    }
-    let a = clamp(from, 0, matchDurationSec);
-    let b = clamp(to, 0, matchDurationSec);
-    if (b - a < MIN_GAP_SEC) {
-        if (a + MIN_GAP_SEC <= matchDurationSec) {
-            b = a + MIN_GAP_SEC;
-        } else {
-            a = Math.max(0, matchDurationSec - MIN_GAP_SEC);
-            b = matchDurationSec;
-        }
-    }
-    if (a > b) {
-        [a, b] = [b, a];
-    }
-    rangeFrom = a;
-    rangeTo = b;
-}
-
-function applyViewAndRangeFromBrush(a, b) {
+function applyZoomFromBrush(a, b) {
     let lo = clamp(Math.min(a, b), 0, matchDurationSec);
     let hi = clamp(Math.max(a, b), 0, matchDurationSec);
     if (hi - lo < MIN_VIEW_SPAN_SEC) {
@@ -561,8 +551,24 @@ function applyViewAndRangeFromBrush(a, b) {
     }
     viewStart = lo;
     viewEnd = hi;
-    rangeFrom = lo;
-    rangeTo = hi;
+}
+
+/** Зум по двум отметкам времени (сек). Для кисти на дорожке и на графиках ситуации в бою. */
+export function commitZoomFromBrush(a, b) {
+    if (!timelineReady || matchDurationSec <= 0) {
+        return;
+    }
+    applyZoomFromBrush(a, b);
+    hideBrushPreview();
+    renderMarkers();
+    layoutSyncCursorLine();
+    setHint();
+    if (typeof rangeChangeCb === 'function') {
+        rangeChangeCb();
+    }
+    if (typeof combatLogRefresh === 'function') {
+        combatLogRefresh();
+    }
 }
 
 function resetTimelineView() {
@@ -571,11 +577,9 @@ function resetTimelineView() {
     }
     viewStart = 0;
     viewEnd = matchDurationSec;
-    rangeFrom = 0;
-    rangeTo = matchDurationSec;
     hideBrushPreview();
     renderMarkers();
-    layoutSelection();
+    layoutSyncCursorLine();
     setHint();
     if (typeof rangeChangeCb === 'function') {
         rangeChangeCb();
@@ -586,27 +590,13 @@ function resetTimelineView() {
 }
 
 function onPointerMove(ev) {
-    if (!dragMode || !trackEl) {
+    if (!dragMode || !trackEl || dragMode !== 'brush') {
         return;
     }
     const rect = trackEl.getBoundingClientRect();
     const sec = absSecFromClientX(ev, rect);
-    if (dragMode === 'left') {
-        applyRange(sec, rangeTo);
-    } else if (dragMode === 'right') {
-        applyRange(rangeFrom, sec);
-    } else if (dragMode === 'move') {
-        const w = rangeTo - rangeFrom;
-        let nf = sec - (w / 2);
-        let nt = nf + w;
-        nf = clamp(nf, 0, matchDurationSec - w);
-        nt = nf + w;
-        applyRange(nf, nt);
-    } else if (dragMode === 'brush') {
-        layoutBrushPreview(brushAnchorSec, sec);
-    }
-    layoutSelection();
-    setHint();
+    layoutBrushPreview(brushAnchorSec, sec);
+    setTimelineCursorSec(sec);
 }
 
 function endDrag(ev) {
@@ -624,16 +614,16 @@ function endDrag(ev) {
             const rect = trackEl.getBoundingClientRect();
             endSec = absSecFromClientX(ev, rect);
         }
-        applyViewAndRangeFromBrush(brushAnchorSec, endSec);
+        applyZoomFromBrush(brushAnchorSec, endSec);
         hideBrushPreview();
         renderMarkers();
+        layoutSyncCursorLine();
+        setHint();
     }
     dragMode = null;
     document.removeEventListener('pointermove', onPointerMove);
     document.removeEventListener('pointerup', endDrag);
     document.removeEventListener('pointercancel', endDrag);
-    layoutSelection();
-    setHint();
     if (was && typeof rangeChangeCb === 'function') {
         rangeChangeCb();
     }
@@ -666,6 +656,9 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     const trackWrap = document.createElement('div');
     trackWrap.className = 'timeline-track-wrap';
 
+    const plotSurfaceEl = document.createElement('div');
+    plotSurfaceEl.className = 'timeline-plot-surface';
+
     trackEl = document.createElement('div');
     trackEl.className = 'timeline-track';
     trackEl.setAttribute('role', 'slider');
@@ -679,34 +672,12 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     brushPreviewEl.className = 'timeline-brush-preview';
     brushPreviewEl.style.display = 'none';
 
-    selectionEl = document.createElement('div');
-    selectionEl.className = 'timeline-selection';
-    selectionEl.setAttribute('aria-hidden', 'true');
-
-    selectionDragEl = document.createElement('div');
-    selectionDragEl.className = 'timeline-selection-drag';
-    selectionDragEl.setAttribute('aria-hidden', 'true');
-
     markersLayerEl = document.createElement('div');
     markersLayerEl.className = 'timeline-markers-layer';
 
-    handleLeftEl = document.createElement('button');
-    handleLeftEl.type = 'button';
-    handleLeftEl.className = 'timeline-handle timeline-handle-left';
-    handleLeftEl.setAttribute('aria-label', 'Начало интервала');
-
-    handleRightEl = document.createElement('button');
-    handleRightEl.type = 'button';
-    handleRightEl.className = 'timeline-handle timeline-handle-right';
-    handleRightEl.setAttribute('aria-label', 'Конец интервала');
-
     trackEl.appendChild(brushSurfaceEl);
     trackEl.appendChild(brushPreviewEl);
-    trackEl.appendChild(selectionEl);
-    trackEl.appendChild(selectionDragEl);
     trackEl.appendChild(markersLayerEl);
-    trackEl.appendChild(handleLeftEl);
-    trackEl.appendChild(handleRightEl);
 
     markerLabelsLayerEl = document.createElement('div');
     markerLabelsLayerEl.className = 'timeline-marker-labels';
@@ -715,16 +686,34 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     timeAxisEl.className = 'timeline-time-axis';
     timeAxisEl.setAttribute('aria-hidden', 'true');
 
-    trackWrap.appendChild(trackEl);
-    trackWrap.appendChild(timeAxisEl);
-    trackWrap.appendChild(markerLabelsLayerEl);
+    plotSurfaceEl.appendChild(trackEl);
+    plotSurfaceEl.appendChild(timeAxisEl);
+    plotSurfaceEl.appendChild(markerLabelsLayerEl);
+
+    cursorLineEl = document.createElement('div');
+    cursorLineEl.className = 'timeline-sync-cursor';
+    cursorLineEl.setAttribute('aria-hidden', 'true');
+    plotSurfaceEl.appendChild(cursorLineEl);
+
+    trackWrap.appendChild(plotSurfaceEl);
+
+    trackWrap.addEventListener('pointermove', (e) => {
+        if (!trackEl || !timelineReady) {
+            return;
+        }
+        const rect = trackEl.getBoundingClientRect();
+        setTimelineCursorSec(absSecFromClientX(e, rect));
+    });
+    trackWrap.addEventListener('pointerleave', () => {
+        setTimelineCursorSec(null);
+    });
 
     const actionsRow = document.createElement('div');
     actionsRow.className = 'timeline-actions';
     resetBtnEl = document.createElement('button');
     resetBtnEl.type = 'button';
     resetBtnEl.className = 'timeline-reset-btn';
-    resetBtnEl.textContent = 'Сбросить масштаб и фильтр';
+    resetBtnEl.textContent = 'Сбросить масштаб';
     resetBtnEl.addEventListener('click', () => resetTimelineView());
     actionsRow.appendChild(resetBtnEl);
 
@@ -818,42 +807,9 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
         document.addEventListener('pointercancel', endDrag);
     });
 
-    handleLeftEl.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideTooltip();
-        dragMode = 'left';
-        handleLeftEl.setPointerCapture(e.pointerId);
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', endDrag);
-        document.addEventListener('pointercancel', endDrag);
-    });
-
-    handleRightEl.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideTooltip();
-        dragMode = 'right';
-        handleRightEl.setPointerCapture(e.pointerId);
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', endDrag);
-        document.addEventListener('pointercancel', endDrag);
-    });
-
-    selectionDragEl.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hideTooltip();
-        dragMode = 'move';
-        selectionDragEl.setPointerCapture(e.pointerId);
-        document.addEventListener('pointermove', onPointerMove);
-        document.addEventListener('pointerup', endDrag);
-        document.addEventListener('pointercancel', endDrag);
-    });
-
     window.addEventListener('resize', () => {
-        layoutSelection();
         renderTimeAxis();
+        layoutSyncCursorLine();
     });
 
     function loadMatch() {
@@ -863,6 +819,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
             timelineReady = false;
             matchDurationSec = 0;
             lastMarkers = [];
+            setTimelineCursorSec(null);
             renderMarkers();
             setHint();
             return;
@@ -873,6 +830,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
             timelineReady = false;
             matchDurationSec = 0;
             lastMarkers = [];
+            setTimelineCursorSec(null);
             renderMarkers();
             setHint();
             return;
@@ -882,6 +840,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
             data = JSON.parse(raw);
         } catch (_) {
             timelineReady = false;
+            setTimelineCursorSec(null);
             return;
         }
         matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
@@ -889,11 +848,9 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
         timelineReady = matchDurationSec > 0;
         viewStart = 0;
         viewEnd = matchDurationSec;
-        rangeFrom = 0;
-        rangeTo = matchDurationSec;
         hideBrushPreview();
         renderMarkers();
-        layoutSelection();
+        layoutSyncCursorLine();
         setHint();
         renderCombatLogLines(idx);
     }

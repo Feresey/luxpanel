@@ -285,13 +285,115 @@
     }
 }
 
+.timeline-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    min-width: 0;
+}
+
+.battle-insight-in-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    min-width: 0;
+}
+
+.battle-insight-row {
+    width: 100%;
+    min-width: 0;
+}
+
+.battle-insight-chart-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-left: var(--timeline-plot-gutter-left);
+    padding-right: var(--timeline-plot-gutter-right);
+    box-sizing: border-box;
+}
+
+.battle-insight-chart-title {
+    color: #e4e4e7;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.battle-insight-help {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #52525b;
+    background: #27272f;
+    color: #a1a1aa;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: help;
+}
+
+.battle-insight-help:hover {
+    border-color: #71717a;
+    color: #e4e4e7;
+    background: #3f3f46;
+}
+
+.battle-insight-help:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
+}
+
+.tooltip.battle-insight-tooltip .tooltip-inner {
+    max-width: min(360px, 92vw);
+    text-align: left;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    padding: 10px 12px;
+}
+
+.battle-insight-canvas-wrap {
+    position: relative;
+    height: 220px;
+    margin-left: var(--timeline-plot-gutter-left);
+    margin-right: var(--timeline-plot-gutter-right);
+    width: auto;
+    box-sizing: border-box;
+}
+
+.battle-insight-canvas-wrap canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: crosshair;
+}
+
+.battle-chart-brush-preview {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    background: rgba(52, 211, 153, 0.2);
+    border: 1px dashed rgba(52, 211, 153, 0.75);
+    box-sizing: border-box;
+    display: none;
+}
+
 .match-timeline-section {
+    /* Совпадает с фикс. шириной оси Y в battle_insight_charts.js (afterFit) — метки времени ровно друг под другом. */
+    --timeline-plot-gutter-left: 80px;
+    --timeline-plot-gutter-right: 12px;
+
     margin-top: 28px;
     padding: 16px;
     background: #101010;
     border: 1px solid #2a2a2a;
     border-radius: 8px;
     width: 100%;
+    max-width: 100%;
     box-sizing: border-box;
 }
 
@@ -360,7 +462,29 @@
 }
 
 .timeline-track-wrap {
+    position: relative;
     width: 100%;
+}
+
+.timeline-plot-surface {
+    position: relative;
+    margin-left: var(--timeline-plot-gutter-left);
+    margin-right: var(--timeline-plot-gutter-right);
+    width: auto;
+    box-sizing: border-box;
+}
+
+.timeline-sync-cursor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    margin-left: -0.5px;
+    background: rgba(248, 250, 252, 0.88);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+    pointer-events: none;
+    z-index: 12;
+    display: none;
 }
 
 .timeline-time-axis {
@@ -476,57 +600,6 @@
 
 .timeline-marker-other {
     background: #94a3b8;
-}
-
-.timeline-selection {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 3;
-    background: rgba(56, 189, 248, 0.18);
-    border-left: 2px solid rgba(56, 189, 248, 0.85);
-    border-right: 2px solid rgba(56, 189, 248, 0.85);
-    box-sizing: border-box;
-    pointer-events: none;
-}
-
-.timeline-selection-drag {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 4;
-    background: transparent;
-    box-sizing: border-box;
-    pointer-events: auto;
-    cursor: grab;
-}
-
-.timeline-selection-drag:active {
-    cursor: grabbing;
-}
-
-.timeline-handle {
-    position: absolute;
-    top: -1px;
-    bottom: -1px;
-    width: 14px;
-    margin-left: -7px;
-    z-index: 6;
-    padding: 0;
-    border: 1px solid #38bdf8;
-    border-radius: 4px;
-    background: rgba(15, 23, 42, 0.92);
-    cursor: ew-resize;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-.timeline-handle:hover {
-    background: rgba(30, 41, 59, 0.95);
-}
-
-.timeline-handle:focus-visible {
-    outline: 2px solid #7dd3fc;
-    outline-offset: 1px;
 }
 
 .timeline-marker-labels {

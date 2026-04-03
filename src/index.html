@@ -64,10 +64,32 @@
             </div>
         </div>
 
-        <section class="match-timeline-section" aria-label="Время матча">
+        <section class="match-timeline-section" aria-label="Время матча и ситуация в бою">
             <h3 class="timeline-title">Таймлайн матча</h3>
-            <p class="timeline-lead">Метки: спавн кораблей (строки Spawn в combat.log), убийство врага, смерть союзника (кто кого — в подсказке). Зажмите на дорожке начало и конец интервала и отпустите — выбранный отрезок увеличится (масштаб по времени). Ползунки можно тянуть отдельно. «Сбросить» — весь матч. Графики и таблица используют фильтр по времени.</p>
-            <div id="timeline_root" class="timeline-root"></div>
+            <p class="timeline-lead">Дорожка: спавны, убийства, смерти в логе. Зажмите и проведите по дорожке или по графикам ниже, чтобы увеличить выбранный отрезок; «Сбросить масштаб» — весь матч. Вертикальная линия синхронизирована между дорожкой и графиками. Окно времени задаёт детализацию таблицы и графиков.</p>
+            <div class="timeline-stack">
+                <div id="timeline_root" class="timeline-root"></div>
+                <div class="battle-insight-in-timeline" aria-label="Графики ситуации в бою">
+                    <div class="battle-insight-row">
+                        <div class="battle-insight-chart-head">
+                            <h4 class="battle-insight-chart-title">Линия жизни</h4>
+                            <button type="button" class="battle-insight-help" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="battle-insight-tooltip" data-bs-title="Сколько игроков каждой команды в живых в каждый момент (по спавнам и смертям в логе). Ось X — текущее окно времени (масштаб на таймлайне или кисть на графике)." aria-label="Справка: линия жизни">?</button>
+                        </div>
+                        <div class="battle-insight-canvas-wrap">
+                            <canvas id="battle_life_chart" aria-label="График линии жизни"></canvas>
+                        </div>
+                    </div>
+                    <div class="battle-insight-row">
+                        <div class="battle-insight-chart-head">
+                            <h4 class="battle-insight-chart-title">Интенсивность боя</h4>
+                            <button type="button" class="battle-insight-help" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="battle-insight-tooltip" data-bs-title="Средний нанесённый по чужой команде урон за последние 10 секунд (две линии: союзники и противники). Синхронизировано с окном времени на таймлайне." aria-label="Справка: интенсивность боя">?</button>
+                        </div>
+                        <div class="battle-insight-canvas-wrap">
+                            <canvas id="battle_intensity_chart" aria-label="График интенсивности боя"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <p id="timeline_hint" class="timeline-hint" role="status"></p>
         </section>
 

@@ -7,6 +7,7 @@ import * as bootstrap from 'bootstrap'
 import { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar } from './charts.js'
 import { setupDamageTablePanel } from './damage_table.js'
 import { setupTimeline } from './timeline.js'
+import { setupBattleInsightCharts } from './battle_insight_charts.js'
 
 import './wasm_exec.js'
 
@@ -99,9 +100,13 @@ function refreshAll() {
     if (damagePanel && typeof damagePanel.refresh === 'function') {
         damagePanel.refresh();
     }
+    if (battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
+        battleInsightCtl.refresh();
+    }
 }
 
 const timelineCtl = setupTimeline(getSelectedMatchIndex, refreshAll);
+const battleInsightCtl = setupBattleInsightCharts(getSelectedMatchIndex);
 
 function setupMetricButtons() {
     const wrap = document.querySelector('.metric-buttons');
@@ -119,6 +124,19 @@ function setupMetricButtons() {
     });
 }
 setupMetricButtons();
+
+function setupBattleInsightTooltips() {
+    document.querySelectorAll('.battle-insight-help[data-bs-toggle="tooltip"]').forEach((el) => {
+        if (bootstrap.Tooltip.getInstance(el)) {
+            return;
+        }
+        new bootstrap.Tooltip(el, {
+            container: 'body',
+            trigger: 'hover focus',
+        });
+    });
+}
+setupBattleInsightTooltips();
 
 function renderMatchOptions() {
     if (!matchSelect) {
