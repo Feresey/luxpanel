@@ -50,7 +50,11 @@ module.exports = (env, argv) => {
         ]
     },
     plugins: [
-        new HtmlWebpackPlugin({ template: './src/index.html' })
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            // Копирует в docs/ или dist/ и вставляет <link rel="icon"> с publicPath ./ (GitHub Pages).
+            favicon: './src/favicon.svg',
+        }),
     ]
     }
 }

@@ -298,7 +298,9 @@ const commonLineOptions = {
             border: axisStyle.border,
             afterFit(scale) {
                 if (typeof scale.isHorizontal === 'function' && !scale.isHorizontal()) {
-                    scale.width = readTimelinePlotGutterLeftPx();
+                    const minW = readTimelinePlotGutterLeftPx();
+                    // Нельзя ужимать ширину ниже расчёта Chart.js — иначе chartArea ломается и график не рисуется.
+                    scale.width = Math.max(scale.width, minW);
                 }
             },
         },

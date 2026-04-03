@@ -362,6 +362,8 @@
     margin-left: var(--timeline-plot-gutter-left);
     margin-right: var(--timeline-plot-gutter-right);
     width: auto;
+    min-width: 0;
+    max-width: 100%;
     box-sizing: border-box;
 }
 
@@ -471,6 +473,8 @@
     margin-left: var(--timeline-plot-gutter-left);
     margin-right: var(--timeline-plot-gutter-right);
     width: auto;
+    min-width: 0;
+    max-width: 100%;
     box-sizing: border-box;
 }
 
