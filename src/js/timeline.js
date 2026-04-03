@@ -24,6 +24,7 @@ let handleRightEl = null;
 let hintEl = null;
 let legendEl = null;
 let markerLabelsLayerEl = null;
+let timeAxisEl = null;
 let resetBtnEl = null;
 let tooltipEl = null;
 
@@ -62,6 +63,92 @@ function truncate(str, maxLen) {
 
 function viewSpanSec() {
     return Math.max(viewEnd - viewStart, 1e-6);
+}
+
+/** Шаг между засечками шкалы (сек), «красивый» для текущего масштаба. */
+function niceTimeAxisStep(spanSec, approxTicks) {
+    if (spanSec <= 0 || approxTicks < 1) {
+        return 0.1;
+    }
+    const raw = spanSec / approxTicks;
+    if (!Number.isFinite(raw) || raw <= 0) {
+        return 0.05;
+    }
+    const exp = Math.floor(Math.log10(raw));
+    const base = Math.pow(10, exp);
+    const f = raw / base;
+    let nice;
+    if (f <= 1) {
+        nice = 1;
+    } else if (f <= 2) {
+        nice = 2;
+    } else if (f <= 5) {
+        nice = 5;
+    } else {
+        nice = 10;
+    }
+    return Math.max(nice * base, 1e-6);
+}
+
+function renderTimeAxis() {
+    if (!timeAxisEl || !trackEl) {
+        return;
+    }
+    if (!matchDurationSec || matchDurationSec <= 0 || viewEnd <= viewStart) {
+        timeAxisEl.innerHTML = '';
+        timeAxisEl.style.display = 'none';
+        return;
+    }
+    timeAxisEl.style.display = 'block';
+    const widthPx = trackEl.getBoundingClientRect().width;
+    const approxTicks = clamp(Math.floor(widthPx / 72), 4, 12);
+    const span = viewSpanSec();
+    const step = niceTimeAxisStep(span, approxTicks);
+    let t0 = Math.ceil(viewStart / step) * step;
+    if (t0 < viewStart - 1e-9) {
+        t0 += step;
+    }
+    timeAxisEl.innerHTML = '';
+    let n = 0;
+    for (let t = t0; t <= viewEnd + 1e-9 && n < 48; t += step, n++) {
+        const pct = ((t - viewStart) / span) * 100;
+        if (pct < -0.5 || pct > 100.5) {
+            continue;
+        }
+        const tick = document.createElement('div');
+        tick.className = 'timeline-time-tick';
+        tick.style.left = `${clamp(pct, 0, 100)}%`;
+        const line = document.createElement('span');
+        line.className = 'timeline-time-tick-line';
+        line.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('span');
+        label.className = 'timeline-time-tick-label';
+        label.textContent = formatSec(t);
+        tick.appendChild(line);
+        tick.appendChild(label);
+        timeAxisEl.appendChild(tick);
+    }
+    if (timeAxisEl.childElementCount === 0 && span > 1e-9) {
+        const ends = [
+            { t: viewStart, pct: 0 },
+            { t: viewEnd, pct: 100 },
+        ];
+        for (let i = 0; i < ends.length; i++) {
+            const { t, pct } = ends[i];
+            const tick = document.createElement('div');
+            tick.className = 'timeline-time-tick';
+            tick.style.left = `${pct}%`;
+            const line = document.createElement('span');
+            line.className = 'timeline-time-tick-line';
+            line.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.className = 'timeline-time-tick-label';
+            label.textContent = formatSec(t);
+            tick.appendChild(line);
+            tick.appendChild(label);
+            timeAxisEl.appendChild(tick);
+        }
+    }
 }
 
 /** Вторая строка тултипа: оружие / ассисты (данные из combat). */
@@ -375,6 +462,7 @@ function renderMarkers() {
     if (!markersLayerEl || !matchDurationSec || matchDurationSec <= 0 || viewEnd <= viewStart) {
         if (markersLayerEl) markersLayerEl.innerHTML = '';
         if (markerLabelsLayerEl) markerLabelsLayerEl.innerHTML = '';
+        renderTimeAxis();
         return;
     }
     markersLayerEl.innerHTML = '';
@@ -433,6 +521,7 @@ function renderMarkers() {
         bindMarkerHover(row, tt);
         markerLabelsLayerEl.appendChild(row);
     }
+    renderTimeAxis();
 }
 
 function applyRange(from, to) {
@@ -622,7 +711,12 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     markerLabelsLayerEl = document.createElement('div');
     markerLabelsLayerEl.className = 'timeline-marker-labels';
 
+    timeAxisEl = document.createElement('div');
+    timeAxisEl.className = 'timeline-time-axis';
+    timeAxisEl.setAttribute('aria-hidden', 'true');
+
     trackWrap.appendChild(trackEl);
+    trackWrap.appendChild(timeAxisEl);
     trackWrap.appendChild(markerLabelsLayerEl);
 
     const actionsRow = document.createElement('div');
@@ -759,6 +853,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
 
     window.addEventListener('resize', () => {
         layoutSelection();
+        renderTimeAxis();
     });
 
     function loadMatch() {
