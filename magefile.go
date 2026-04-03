@@ -104,7 +104,8 @@ func Site() error {
 	if err := os.RemoveAll("docs"); err != nil {
 		return err
 	}
-	if err := sh.RunWith(map[string]string{"SITE_OUT": "docs"}, "yarn", "webpack", "--mode", "production"); err != nil {
+	// Как `SITE_OUT=docs npm run build` — npm есть везде с Node; CI после `yarn install` тоже ок.
+	if err := sh.RunWith(map[string]string{"SITE_OUT": "docs"}, "npm", "run", "build"); err != nil {
 		return fmt.Errorf("webpack → docs: %w", err)
 	}
 	if err := os.WriteFile(filepath.Join("docs", ".nojekyll"), nil, 0o644); err != nil {

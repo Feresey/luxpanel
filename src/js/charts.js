@@ -175,6 +175,72 @@ function matrixCellAt(mat, c, r) {
     return row[r];
 }
 
+/** Фон ячейки: насыщенность по доле от максимума в строке (фокус источника по целям). */
+function matrixCellHeatStyle(v, maxInRow, mode) {
+    if (typeof v !== 'number' || Number.isNaN(v) || v <= 0 || maxInRow <= 0) {
+        return '';
+    }
+    const t = Math.min(1, v / maxInRow);
+    const a = 0.07 + t * 0.42;
+    if (mode === 'heal') {
+        return `background-color:rgba(52,211,153,${a})`;
+    }
+    if (mode === 'kill') {
+        return `background-color:rgba(251,191,36,${a})`;
+    }
+    return `background-color:rgba(56,189,248,${a})`;
+}
+
+function matrixCellTooltip(sourceName, targetName, v, rowTotal, grandTotal, mode) {
+    const parts = [];
+    const label = mode === 'heal' ? 'лечение' : mode === 'kill' ? 'киллы' : 'урон';
+    parts.push(`${sourceName} → ${targetName}: ${formatMatrixCell(v, mode)} (${label})`);
+    if (typeof rowTotal === 'number' && rowTotal > 1e-9 && typeof v === 'number' && Number.isFinite(v)) {
+        parts.push(`${((v / rowTotal) * 100).toFixed(1)}% от строки (вклад этого источника по целям)`);
+    }
+    if (typeof grandTotal === 'number' && grandTotal > 1e-9 && typeof v === 'number' && Number.isFinite(v)) {
+        parts.push(`${((v / grandTotal) * 100).toFixed(1)}% от суммы таблицы команды`);
+    }
+    return parts.join('\n');
+}
+
+function argmaxIndex(arr) {
+    if (!arr.length) {
+        return -1;
+    }
+    let best = 0;
+    for (let i = 1; i < arr.length; i++) {
+        if (arr[i] > arr[best]) {
+            best = i;
+        }
+    }
+    return best;
+}
+
+function renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, grandTotal) {
+    if (typeof grandTotal !== 'number' || grandTotal <= 1e-9 || !bodyRows.length || !headerCols.length) {
+        return '';
+    }
+    const ri = argmaxIndex(rowTotals);
+    const ci = argmaxIndex(colTotals);
+    if (ri < 0 || ci < 0) {
+        return '';
+    }
+    const src = bodyRows[ri];
+    const tgt = headerCols[ci];
+    const rowPct = (rowTotals[ri] / grandTotal) * 100;
+    const colPct = (colTotals[ci] / grandTotal) * 100;
+    let line = '';
+    if (mode === 'heal') {
+        line = `Главный вклад по объёму лечения: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы таблицы). Больше всего получено: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по получателям).`;
+    } else if (mode === 'kill') {
+        line = `Больше всего киллов: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы таблицы). Чаще всего убивали: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по целям).`;
+    } else {
+        line = `Главный вклад по урону: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы команды). Больше всего урона получил: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по целям).`;
+    }
+    return `<p class="graph-matrix-insight" role="status">${line}</p>`;
+}
+
 function renderMatrixTable(panel, mode) {
     const colPlayers = Array.isArray(panel.col_players) ? panel.col_players : [];
     const rowPlayers = Array.isArray(panel.row_players) ? panel.row_players : [];
@@ -206,31 +272,49 @@ function renderMatrixTable(panel, mode) {
     });
     const grandTotal = rowTotals.reduce((a, b) => a + b, 0);
 
+    const maxPerRow = bodyRows.map((_, r) => {
+        let m = 0;
+        for (let c = 0; c < headerCols.length; c++) {
+            const v = matrixCellAt(mat, c, r);
+            if (typeof v === 'number' && !Number.isNaN(v) && v > m) {
+                m = v;
+            }
+        }
+        return m;
+    });
+
     let html = '<table class="pair-matrix-table"><thead><tr>';
     html += `<th class="corner">${escapeHtml(corner)}</th>`;
     for (let c = 0; c < headerCols.length; c++) {
         html += `<th title="${escapeHtml(headerCols[c])}">${escapeHtml(headerCols[c])}</th>`;
     }
-    html += '<th class="matrix-total-head" title="Total">Total</th>';
+    html += '<th class="matrix-total-head" title="Сумма по строке (источник)">Total</th>';
     html += '</tr></thead><tbody>';
     for (let r = 0; r < bodyRows.length; r++) {
         html += '<tr>';
         html += `<th class="row-head" title="${escapeHtml(bodyRows[r])}">${escapeHtml(bodyRows[r])}</th>`;
+        const maxR = maxPerRow[r];
         for (let c = 0; c < headerCols.length; c++) {
             const v = matrixCellAt(mat, c, r);
-            html += `<td>${escapeHtml(formatMatrixCell(v, mode))}</td>`;
+            const heat = matrixCellHeatStyle(v, maxR, mode);
+            const peak = typeof v === 'number' && maxR > 0 && Math.abs(v - maxR) < 1e-6;
+            const tip = matrixCellTooltip(bodyRows[r], headerCols[c], v, rowTotals[r], grandTotal, mode);
+            const cls = `matrix-cell-inner${peak ? ' matrix-cell-peak' : ''}`;
+            const styleAttr = heat ? ` style="${heat}"` : '';
+            html += `<td class="${cls}" title="${escapeHtml(tip)}"${styleAttr}>${escapeHtml(formatMatrixCell(v, mode))}</td>`;
         }
-        html += `<td class="matrix-total">${escapeHtml(formatMatrixCell(rowTotals[r], mode))}</td>`;
+        html += `<td class="matrix-total" title="Сумма по строке">${escapeHtml(formatMatrixCell(rowTotals[r], mode))}</td>`;
         html += '</tr>';
     }
     html += '<tr class="matrix-total-row">';
     html += '<th class="row-head matrix-total-label" scope="row">Total</th>';
     for (let c = 0; c < headerCols.length; c++) {
-        html += `<td class="matrix-total">${escapeHtml(formatMatrixCell(colTotals[c], mode))}</td>`;
+        html += `<td class="matrix-total" title="Сумма по столбцу (цель)">${escapeHtml(formatMatrixCell(colTotals[c], mode))}</td>`;
     }
-    html += `<td class="matrix-total matrix-grand">${escapeHtml(formatMatrixCell(grandTotal, mode))}</td>`;
+    html += `<td class="matrix-total matrix-grand" title="Общая сумма таблицы">${escapeHtml(formatMatrixCell(grandTotal, mode))}</td>`;
     html += '</tr>';
     html += '</tbody></table>';
+    html += renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, grandTotal);
     return html;
 }
 
@@ -246,16 +330,26 @@ function setGraphsRootView(mode) {
 function updateMatrixHints(metric) {
     const h0 = document.getElementById('graph_matrix_hint_0');
     const h1 = document.getElementById('graph_matrix_hint_1');
-    const heal = metric === 'heal';
-    const text = heal
-        ? 'Внутри команды: строки — к получателю, столбцы — кто лечит.'
-        : 'Строки — игроки этой команды (источник), столбцы — вражеская команда (цель).';
+    let html = '';
+    if (metric === 'heal') {
+        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
+            + 'Строки — получатель лечения, столбцы — кто лечит (внутри команды).<br/>'
+            + 'Цвет ячейки: насыщенность по доле от максимума в этой строке (на кого/чей пул лечения приходится больше всего). Наведите на ячейку — доли от строки и от суммы таблицы.';
+    } else if (metric === 'kill') {
+        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
+            + 'Строки — игроки этой команды (источник килла), столбцы — вражеская команда (цель).<br/>'
+            + 'Цвет ячейки: насыщенность по доле от максимума в строке (главные «пары» киллов). Наведите на ячейку — доли от строки и от суммы таблицы.';
+    } else {
+        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
+            + 'Строки — игроки этой команды (источник урона), столбцы — вражеская команда (цель).<br/>'
+            + 'Цвет ячейки: насыщенность по доле от максимума в строке (на кого этот источник тратил урон сильнее всего). Наведите на ячейку — доли от строки и от суммы таблицы.';
+    }
     if (h0) {
-        h0.textContent = text;
+        h0.innerHTML = html;
         h0.hidden = false;
     }
     if (h1) {
-        h1.textContent = text;
+        h1.innerHTML = html;
         h1.hidden = false;
     }
 }
