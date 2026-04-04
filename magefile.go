@@ -84,11 +84,8 @@ func ShowGramma() error {
 }
 
 func GOJS() error {
-	if err := sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "mysite/code/gojs.wasm", "./cmd/gojs"); err != nil {
-		return err
-	}
 	_ = sh.Run("mkdir", "-p", "src/dist")
-	return sh.Run("cp", "mysite/code/gojs.wasm", "src/dist/gojs.wasm")
+	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "src/dist/gojs.wasm", "./cmd/gojs")
 }
 
 func Start() error {
@@ -104,8 +101,7 @@ func Site() error {
 	if err := os.RemoveAll("docs"); err != nil {
 		return err
 	}
-	// Как `SITE_OUT=docs npm run build` — npm есть везде с Node; CI после `yarn install` тоже ок.
-	if err := sh.RunWith(map[string]string{"SITE_OUT": "docs"}, "npm", "run", "build"); err != nil {
+	if err := sh.Run("npm", "run", "build"); err != nil {
 		return fmt.Errorf("webpack → docs: %w", err)
 	}
 	if err := os.WriteFile(filepath.Join("docs", ".nojekyll"), nil, 0o644); err != nil {

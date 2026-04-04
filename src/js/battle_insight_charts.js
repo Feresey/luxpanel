@@ -12,6 +12,7 @@ import {
     subscribeTimelineCursor,
 } from './timeline.js';
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
+import { gaEvent } from './analytics.js';
 
 Chart.register(...registerables);
 
@@ -367,17 +368,22 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 if (myGen !== battleInsightLoadGen) {
                     return;
                 }
+                const tbw0 = performance.now();
                 const raw = fetchBattleInsightJSON(idx);
+                const battleWasmMs = performance.now() - tbw0;
                 destroyCharts();
                 if (!raw || raw === 'null') {
                     return;
                 }
                 let data;
+                const tbj0 = performance.now();
                 try {
                     data = JSON.parse(raw);
                 } catch (_) {
                     return;
                 }
+                const battleJsonMs = performance.now() - tbj0;
+                const tSeries0 = performance.now();
                 const life = Array.isArray(data.life) ? data.life : [];
                 const intensity = Array.isArray(data.intensity) ? data.intensity : [];
                 const allyLabel = data.ally_team_label || 'Союзники';
@@ -387,7 +393,13 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const lifeAlly = life.map((p) => p.allies);
                 const lifeEnemy = life.map((p) => p.enemies);
                 const lifeX = xDomainSec(lifeT);
+                const intT = intensity.map((p) => p.t);
+                const intAlly = intensity.map((p) => p.ally);
+                const intEnemy = intensity.map((p) => p.enemy);
+                const intX = xDomainSec(intT);
+                const battleSeriesPrepMs = performance.now() - tSeries0;
 
+                const tChart0 = performance.now();
                 if (lifeT.length > 0) {
                     lifeChart = new Chart(lifeCanvas.getContext('2d'), {
                         type: 'line',
@@ -447,11 +459,6 @@ export function setupBattleInsightCharts(getMatchIndex) {
                     chartPointerUnsubs.push(attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap));
                 }
 
-                const intT = intensity.map((p) => p.t);
-                const intAlly = intensity.map((p) => p.ally);
-                const intEnemy = intensity.map((p) => p.enemy);
-                const intX = xDomainSec(intT);
-
                 if (intT.length > 0) {
                     intensityChart = new Chart(intCanvas.getContext('2d'), {
                         type: 'line',
@@ -507,6 +514,18 @@ export function setupBattleInsightCharts(getMatchIndex) {
                     });
                     chartPointerUnsubs.push(attachChartBrushAndCursor(intensityChart, intCanvas, intWrap));
                 }
+
+                const battleChartRenderMs = performance.now() - tChart0;
+                const prepTotal = battleWasmMs + battleJsonMs + battleSeriesPrepMs;
+                gaEvent('lux_battle_charts_timing', {
+                    battle_wasm_ms: Math.round(battleWasmMs),
+                    battle_json_ms: Math.round(battleJsonMs),
+                    battle_series_prep_ms: Math.round(battleSeriesPrepMs),
+                    battle_data_prep_ms: Math.round(prepTotal),
+                    battle_chart_render_ms: Math.round(battleChartRenderMs),
+                    life_points: lifeT.length,
+                    intensity_points: intT.length,
+                });
 
                 const sec = getTimelineCursorSec();
                 if (sec !== null && (lifeChart || intensityChart)) {

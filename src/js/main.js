@@ -9,20 +9,32 @@ import { setupDamageTablePanel } from './damage_table.js'
 import { setupTimeline } from './timeline.js'
 import { setupBattleInsightCharts } from './battle_insight_charts.js'
 import { deferAfterPaint } from './chart_preloader.js'
+import { byteSizeBucket, gaEvent } from './analytics.js'
 
 import './wasm_exec.js'
 
 if (WebAssembly) {
+    const wasmT0 = performance.now();
     const go = new Go();
-    WebAssembly.instantiateStreaming(fetch("gojs.wasm"), go.importObject).then((result) => {
-        go.run(result.instance);
-        if (timelineCtl && typeof timelineCtl.refresh === 'function') {
-            timelineCtl.refresh();
-        }
-        refreshAll();
-    });
+    WebAssembly.instantiateStreaming(fetch("gojs.wasm"), go.importObject)
+        .then((result) => {
+            go.run(result.instance);
+            gaEvent('lux_wasm_ready', {
+                wasm_load_ms: Math.round(performance.now() - wasmT0),
+            });
+            if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+                timelineCtl.refresh();
+            }
+            refreshAll();
+        })
+        .catch((err) => {
+            gaEvent('lux_wasm_error', {
+                message: String(err && err.message ? err.message : err).slice(0, 120),
+            });
+        });
 } else {
-    console.log("WebAssembly is not supported in your browser")
+    console.log("WebAssembly is not supported in your browser");
+    gaEvent('lux_wasm_unsupported', {});
 }
 
 const pickLogs = document.getElementById('pick_logs');
@@ -124,6 +136,7 @@ function setupMetricButtons() {
             return;
         }
         currentMetric = btn.dataset.metric;
+        gaEvent('lux_metric_change', { metric: currentMetric });
         wrap.querySelectorAll('.metric-btn').forEach((b) => b.classList.toggle('active', b === btn));
         refreshCharts();
     });
@@ -214,6 +227,9 @@ function renderMatchOptions() {
 
 if (matchSelect) {
     matchSelect.addEventListener('change', () => {
+        gaEvent('lux_match_change', {
+            match_index: Number(matchSelect.value) || 0,
+        });
         if (timelineCtl && typeof timelineCtl.refresh === 'function') {
             timelineCtl.refresh();
         }
@@ -226,13 +242,47 @@ if (document.getElementById('pieChart1') && document.getElementById('pieChart2')
     setupGraphViewToolbar(refreshCharts);
 }
 
-pickLogs.addEventListener('change', function () {
-    var data = {
-        rawGame: "",
-        rawCombat: "",
+function runParseAndRenderLogs(data) {
+    const tAll = performance.now();
+    if (typeof parseFiles !== 'function') {
+        gaEvent('lux_parse_error', { reason: 'no_parseFiles' });
+        return;
     }
-    const files = this.files
-    console.log("called", files);
+    const tParse = performance.now();
+    try {
+        parseFiles(data.rawGame, data.rawCombat);
+    } catch (err) {
+        gaEvent('lux_parse_error', {
+            message: String(err && err.message ? err.message : err).slice(0, 120),
+        });
+        return;
+    }
+    const logParseMs = Math.round(performance.now() - tParse);
+    const tMatch = performance.now();
+    renderMatchOptions();
+    const matchListMs = Math.round(performance.now() - tMatch);
+    const n = matchSelect && matchSelect.options ? matchSelect.options.length : 0;
+    gaEvent('lux_logs_parsed', {
+        log_parse_ms: logParseMs,
+        match_list_ms: matchListMs,
+        parse_total_ms: Math.round(performance.now() - tAll),
+        game_size_bucket: byteSizeBucket(data.rawGame && data.rawGame.length),
+        combat_size_bucket: byteSizeBucket(data.rawCombat && data.rawCombat.length),
+        match_count: n,
+    });
+}
+
+pickLogs.addEventListener('change', function () {
+    const data = {
+        rawGame: '',
+        rawCombat: '',
+    };
+    const files = this.files;
+    console.log('called', files);
+
+    if (files && files.length) {
+        gaEvent('lux_log_folder_selected', { entry_count: files.length });
+    }
 
     for (let f = 0; f < files.length; f++) {
         const file = files[f];
@@ -243,25 +293,29 @@ pickLogs.addEventListener('change', function () {
                 data.rawCombat = e.target.result;
                 console.log('combat.log loaded', data.rawCombat.length);
                 if (data.rawGame.length) {
-                    parseFiles(data.rawGame, data.rawCombat);
-                    renderMatchOptions();
+                    runParseAndRenderLogs(data);
                 }
             }.bind(this);
-            reader.onerror = function (stuff) { console.log('combat error', stuff); };
+            reader.onerror = function () {
+                console.log('combat error');
+                gaEvent('lux_file_read_error', { which: 'combat' });
+            };
             reader.readAsBinaryString(file);
         } else if (file.name === 'game.log') {
             console.log('game.log loaded');
             const reader = new FileReader();
             reader.onload = function (e) {
                 data.rawGame = e.target.result;
-                console.log('combat.log loaded', data.rawGame.length);
+                console.log('game.log loaded', data.rawGame.length);
                 if (data.rawCombat.length) {
-                    parseFiles(data.rawGame, data.rawCombat);
-                    renderMatchOptions();
+                    runParseAndRenderLogs(data);
                 }
             }.bind(this);
-            reader.onerror = function (stuff) { console.log('game error', stuff); };
+            reader.onerror = function () {
+                console.log('game error');
+                gaEvent('lux_file_read_error', { which: 'game' });
+            };
             reader.readAsBinaryString(file);
         }
     }
-})
+});

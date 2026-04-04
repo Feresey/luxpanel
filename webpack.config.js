@@ -1,10 +1,33 @@
+const fs = require('fs')
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-// SITE_OUT=docs → GitHub Pages (mage Site). Иначе dist/ для dev и yarn build.
+/** Копирует src/dist/favicon.ico → output/favicon.ico (всегда docs/). */
+class CopyFaviconIcoPlugin {
+    apply(compiler) {
+        compiler.hooks.afterEmit.tapAsync('CopyFaviconIcoPlugin', (compilation, callback) => {
+            const from = path.resolve(__dirname, 'src/dist/favicon.ico')
+            const to = path.join(compilation.options.output.path, 'favicon.ico')
+            try {
+                if (!fs.existsSync(from)) {
+                    console.warn(`[webpack] CopyFaviconIcoPlugin: missing ${from} (skipping copy)`)
+                    return callback()
+                }
+                // При webpack serve каталог output (docs/) может ещё не существовать на диске.
+                fs.mkdirSync(compilation.options.output.path, { recursive: true })
+                fs.copyFileSync(from, to)
+            } catch (err) {
+                return callback(err)
+            }
+            callback()
+        })
+    }
+}
+
+// Сборка фронта всегда в docs/ (GitHub Pages / единая папка артефактов).
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production'
-    const outDir = process.env.SITE_OUT === 'docs' ? 'docs' : 'dist'
+    const outDir = 'docs'
     return {
     entry: './src/js/main.js',
     output: {
@@ -52,9 +75,9 @@ module.exports = (env, argv) => {
     plugins: [
         new HtmlWebpackPlugin({
             template: './src/index.html',
-            // Копирует favicon в output и вставляет <link rel="icon"> (publicPath ./ для GitHub Pages).
-            favicon: './src/favicon.svg',
+            // Иконка: ./favicon.ico из шаблона + копирование CopyFaviconIcoPlugin из src/dist/favicon.ico
         }),
+        new CopyFaviconIcoPlugin(),
     ]
     }
 }

@@ -2,6 +2,7 @@ import { Chart, registerables } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { getTimeRangeJSON } from "./timeline.js";
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from "./chart_preloader.js";
+import { gaEvent } from "./analytics.js";
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -365,30 +366,40 @@ function hideMatrixHints() {
     });
 }
 
+/** @returns {{ matrices_wasm_ms: number, matrices_json_ms: number, matrix_dom_ms: number }} */
 function applyMatrixTables(levelIndex, mode) {
+    const timing = { matrices_wasm_ms: 0, matrices_json_ms: 0, matrix_dom_ms: 0 };
+    const tw0 = performance.now();
     const raw = fetchMatricesJSON(levelIndex, mode);
+    timing.matrices_wasm_ms = Math.round(performance.now() - tw0);
     const c0 = document.getElementById('chart_matrix_0');
     const c1 = document.getElementById('chart_matrix_1');
     if (!c0 || !c1) {
-        return;
+        return timing;
     }
     if (!raw || raw === 'null') {
+        const td0 = performance.now();
         c0.innerHTML = '<p class="graph-matrix-empty">Нет данных</p>';
         c1.innerHTML = '<p class="graph-matrix-empty">Нет данных</p>';
-        return;
+        timing.matrix_dom_ms = Math.round(performance.now() - td0);
+        return timing;
     }
     let data;
+    const tj0 = performance.now();
     try {
         data = JSON.parse(raw);
     } catch (_) {
+        timing.matrices_json_ms = Math.round(performance.now() - tj0);
         c0.innerHTML = '';
         c1.innerHTML = '';
-        return;
+        return timing;
     }
+    timing.matrices_json_ms = Math.round(performance.now() - tj0);
     const panels = Array.isArray(data.panels) ? data.panels : [];
     const metric = data.metric || mode;
     const p0 = panels[0] || {};
     const p1 = panels[1] || {};
+    const td0 = performance.now();
     c0.innerHTML = renderMatrixTable(p0, metric);
     c1.innerHTML = renderMatrixTable(p1, metric);
     const t0 = document.getElementById('graph_total_0');
@@ -400,6 +411,8 @@ function applyMatrixTables(levelIndex, mode) {
         t1.textContent = formatTotal(p1.total, metric);
     }
     updateMatrixHints(metric);
+    timing.matrix_dom_ms = Math.round(performance.now() - td0);
+    return timing;
 }
 
 function formatTotal(total, mode) {
@@ -423,18 +436,41 @@ function setPieTotalsFixed(values1, values2, mode) {
     }
 }
 
+function emitChartsTiming(mode, viewMode, chartsWasmMs, chartsJsonMs, pieRenderMs, matrixTiming) {
+    const m = matrixTiming || { matrices_wasm_ms: 0, matrices_json_ms: 0, matrix_dom_ms: 0 };
+    const dataPrep =
+        chartsWasmMs + chartsJsonMs + m.matrices_wasm_ms + m.matrices_json_ms;
+    const renderMs = pieRenderMs + m.matrix_dom_ms;
+    gaEvent('lux_charts_timing', {
+        metric: mode,
+        view: viewMode,
+        get_charts_wasm_ms: Math.round(chartsWasmMs),
+        charts_json_ms: Math.round(chartsJsonMs),
+        get_matrices_wasm_ms: m.matrices_wasm_ms,
+        matrices_json_ms: m.matrices_json_ms,
+        charts_data_prep_ms: Math.round(dataPrep),
+        pie_render_ms: Math.round(pieRenderMs),
+        matrix_dom_ms: m.matrix_dom_ms,
+        charts_render_ms: Math.round(renderMs),
+    });
+}
+
 function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
+    const tc0 = performance.now();
     const raw = fetchChartsJSON(levelIndex, mode);
+    const chartsWasmMs = performance.now() - tc0;
     if (!raw || raw === 'null') {
         return;
     }
 
+    const tj0 = performance.now();
     let parsed;
     try {
         parsed = JSON.parse(raw);
     } catch (_) {
         return;
     }
+    const chartsJsonMs = performance.now() - tj0;
     if (!Array.isArray(parsed) || parsed.length < 2) {
         return;
     }
@@ -450,8 +486,10 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
     const values2 = t2PlayerCurves.map((c) => getLastValue(c));
 
     const label = mode === 'heal' ? 'Heal' : mode === 'kill' ? 'Kills' : 'Damage';
+    const tp0 = performance.now();
     updateChartDataset(pieChart1, labels1, values1, label);
     updateChartDataset(pieChart2, labels2, values2, label);
+    const pieRenderMs = performance.now() - tp0;
 
     const c0 = document.getElementById('chart_matrix_0');
     const c1 = document.getElementById('chart_matrix_1');
@@ -465,7 +503,10 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
                 if (myGen !== matrixLoadGen) {
                     return;
                 }
-                applyMatrixTables(levelIndex, mode);
+                const mt = applyMatrixTables(levelIndex, mode);
+                if (myGen === matrixLoadGen) {
+                    emitChartsTiming(mode, 'table', chartsWasmMs, chartsJsonMs, pieRenderMs, mt);
+                }
             } finally {
                 if (myGen === matrixLoadGen) {
                     hideChartPreloader(c0);
@@ -479,6 +520,7 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
         hideChartPreloader(c1);
         setPieTotalsFixed(values1, values2, mode);
         hideMatrixHints();
+        emitChartsTiming(mode, 'pie', chartsWasmMs, chartsJsonMs, pieRenderMs, null);
     }
 }
 
@@ -496,6 +538,7 @@ function setupGraphViewToolbar(onViewChange) {
                 return;
             }
             graphViewMode = v;
+            gaEvent('lux_graph_view', { view: v });
             root.querySelectorAll('.graph-view-btn').forEach((b) => {
                 b.classList.toggle('active', b === btn);
             });

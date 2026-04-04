@@ -5,8 +5,8 @@ all:
 
 .PHONY: gojs
 gojs:
-	GOOS=js GOARCH=wasm go build -o mysite/code/gojs.wasm ./cmd/gojs
-	mkdir -p src/dist && cp mysite/code/gojs.wasm src/dist/gojs.wasm
+	mkdir -p src/dist
+	GOOS=js GOARCH=wasm go build -o src/dist/gojs.wasm ./cmd/gojs
 
 # Фронт в docs/ для GitHub Pages (нужны yarn, mage)
 .PHONY: site

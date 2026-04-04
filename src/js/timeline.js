@@ -3,6 +3,7 @@
  */
 
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
+import { gaEvent } from './analytics.js';
 
 const MIN_VIEW_SPAN_SEC = 0.4;
 
@@ -584,6 +585,7 @@ function resetTimelineView() {
     renderMarkers();
     layoutSyncCursorLine();
     setHint();
+    gaEvent('lux_timeline_zoom_reset', {});
     if (typeof rangeChangeCb === 'function') {
         rangeChangeCb();
     }
@@ -835,7 +837,9 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                     return;
                 }
                 const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
+                const tw0 = performance.now();
                 const raw = fn(idx);
+                const timelineWasmMs = performance.now() - tw0;
                 if (!raw || raw === 'null') {
                     timelineReady = false;
                     matchDurationSec = 0;
@@ -846,6 +850,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                     return;
                 }
                 let data;
+                const tj0 = performance.now();
                 try {
                     data = JSON.parse(raw);
                 } catch (_) {
@@ -853,16 +858,26 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                     setTimelineCursorSec(null);
                     return;
                 }
+                const timelineJsonMs = performance.now() - tj0;
                 matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
                 lastMarkers = Array.isArray(data.markers) ? data.markers : [];
                 timelineReady = matchDurationSec > 0;
                 viewStart = 0;
                 viewEnd = matchDurationSec;
                 hideBrushPreview();
+                const td0 = performance.now();
                 renderMarkers();
                 layoutSyncCursorLine();
                 setHint();
                 renderCombatLogLines(idx);
+                const timelineRenderMs = performance.now() - td0;
+                gaEvent('lux_timeline_timing', {
+                    timeline_wasm_ms: Math.round(timelineWasmMs),
+                    timeline_json_ms: Math.round(timelineJsonMs),
+                    timeline_data_prep_ms: Math.round(timelineWasmMs + timelineJsonMs),
+                    timeline_render_ms: Math.round(timelineRenderMs),
+                    marker_count: lastMarkers.length,
+                });
             } finally {
                 if (myGen === timelineLoadGen) {
                     hideChartPreloader(plotSurfaceEl);
