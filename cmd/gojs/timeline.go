@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/exp/maps"
 	"slices"
 
 	"github.com/Feresey/luxpanel/internal/parser/combat"
@@ -174,18 +173,10 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 	return s, nil
 }
 
-// leftRightTeamIDs matches charts: first two sorted non-zero team ids → left / right pie charts.
+// leftRightTeamIDs совпадает с chartTeamSides: слева id 1 (если есть ростер), справа id 2, иначе общий fallback.
 func leftRightTeamIDs(level *splitter.Level) (leftID, rightID int, ok bool) {
-	if level == nil || len(level.Teams) < 2 {
-		return 0, 0, false
-	}
-	ids := maps.Keys(level.Teams)
-	slices.Sort(ids)
-	ids = filterNonZero(ids)
-	if len(ids) < 2 {
-		return 0, 0, false
-	}
-	return ids[0], ids[1], true
+	l, r, _, _, ok := chartTeamSides(level)
+	return l, r, ok
 }
 
 // spawnKindForTeam: тима 1 → spawn (как левый график), тима 2 → enemy_spawn; иначе две первые ненулевые команды по id.

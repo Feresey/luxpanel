@@ -1,25 +1,5 @@
-const fs = require('fs')
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-
-/** Копирует src/dist/favicon.ico → output/favicon.ico без лишних npm-зависимостей (yarn.lock / CI). */
-class CopyFaviconIcoPlugin {
-    apply(compiler) {
-        compiler.hooks.afterEmit.tapAsync('CopyFaviconIcoPlugin', (compilation, callback) => {
-            const from = path.resolve(__dirname, 'src/dist/favicon.ico')
-            const outDir = compilation.options.output.path
-            const to = path.join(outDir, 'favicon.ico')
-            try {
-                if (fs.existsSync(from)) {
-                    fs.copyFileSync(from, to)
-                }
-            } catch (err) {
-                return callback(err)
-            }
-            callback()
-        })
-    }
-}
 
 // SITE_OUT=docs → GitHub Pages (mage Site). Иначе dist/ для dev и yarn build.
 module.exports = (env, argv) => {
@@ -72,10 +52,9 @@ module.exports = (env, argv) => {
     plugins: [
         new HtmlWebpackPlugin({
             template: './src/index.html',
-            // Копирует в docs/ или dist/ и вставляет <link rel="icon"> с publicPath ./ (GitHub Pages).
+            // Копирует favicon в output и вставляет <link rel="icon"> (publicPath ./ для GitHub Pages).
             favicon: './src/favicon.svg',
         }),
-        new CopyFaviconIcoPlugin(),
     ]
     }
 }

@@ -179,6 +179,36 @@
     padding: 12px 8px;
 }
 
+.chart-preloader {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(16, 16, 16, 0.78);
+    backdrop-filter: blur(3px);
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+.chart-preloader-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(148, 163, 184, 0.22);
+    border-top-color: rgba(56, 189, 248, 0.9);
+    border-radius: 50%;
+    animation: chart-preloader-spin 0.72s linear infinite;
+}
+
+@keyframes chart-preloader-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .chart-pane-pie {
     display: flex;
     flex-direction: column;
@@ -187,6 +217,7 @@
 }
 
 .chart-pane-table {
+    position: relative;
     width: 100%;
     overflow-x: auto;
     max-height: min(70vh, 520px);
@@ -982,6 +1013,8 @@
 }
 
 .df-table-scroll {
+    position: relative;
+    min-height: 120px;
     overflow-x: auto;
     border: 1px solid #2a2a2a;
     border-radius: 6px;

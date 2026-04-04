@@ -12,28 +12,79 @@ import (
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
-// chartTeams: левый график = команда 1, правый = команда 2 (как в UI). Иначе — две первые ненулевые по сортировке id.
-func chartTeams(level *splitter.Level) (pla, plb []splitter.Player, ok bool) {
-	if level == nil || len(level.Teams) == 0 {
-		return nil, nil, false
+// sortedNonEmptyTeamIDs: ненулевые команды с непустым ростером, по возрастанию id.
+func sortedNonEmptyTeamIDs(level *splitter.Level) []int {
+	if level == nil {
+		return nil
 	}
-	if t1, ok1 := level.Teams[1]; ok1 && len(t1) > 0 {
-		if t2, ok2 := level.Teams[2]; ok2 && len(t2) > 0 {
-			return t1, t2, true
+	ids := maps.Keys(level.Teams)
+	slices.Sort(ids)
+	var out []int
+	for _, id := range ids {
+		if id == 0 {
+			continue
+		}
+		if pl := level.Teams[id]; len(pl) > 0 {
+			out = append(out, id)
 		}
 	}
-	teamIDs := maps.Keys(level.Teams)
-	slices.Sort(teamIDs)
-	teamIDs = filterNonZero(teamIDs)
-	if len(teamIDs) < 2 {
-		return nil, nil, false
+	return out
+}
+
+// chartTeamSides: левый график / Team 1 в UI = team id 1 (если есть ростер), правый = id 2.
+// Если одной из «слотовых» команд нет, вторая сторона — первая подходящая из оставшихся
+// непустых команд (тот же порядок, что и у графиков урона).
+func chartTeamSides(level *splitter.Level) (leftID, rightID int, pla, plb []splitter.Player, ok bool) {
+	if level == nil || len(level.Teams) == 0 {
+		return 0, 0, nil, nil, false
 	}
-	pla = level.Teams[teamIDs[0]]
-	plb = level.Teams[teamIDs[1]]
+	t1, ok1 := level.Teams[1]
+	t2, ok2 := level.Teams[2]
+	has1 := ok1 && len(t1) > 0
+	has2 := ok2 && len(t2) > 0
+	if has1 && has2 {
+		return 1, 2, t1, t2, true
+	}
+	nonEmpty := sortedNonEmptyTeamIDs(level)
+	if len(nonEmpty) < 2 {
+		return 0, 0, nil, nil, false
+	}
+	if has1 && !has2 {
+		for _, id := range nonEmpty {
+			if id == 1 {
+				continue
+			}
+			plb = level.Teams[id]
+			if len(plb) > 0 {
+				return 1, id, t1, plb, true
+			}
+		}
+		return 0, 0, nil, nil, false
+	}
+	if has2 && !has1 {
+		for _, id := range nonEmpty {
+			if id == 2 {
+				continue
+			}
+			pla = level.Teams[id]
+			if len(pla) > 0 {
+				return id, 2, pla, t2, true
+			}
+		}
+		return 0, 0, nil, nil, false
+	}
+	a, b := nonEmpty[0], nonEmpty[1]
+	pla = level.Teams[a]
+	plb = level.Teams[b]
 	if len(pla) == 0 || len(plb) == 0 {
-		return nil, nil, false
+		return 0, 0, nil, nil, false
 	}
-	return pla, plb, true
+	return a, b, pla, plb, true
+}
+
+func chartTeams(level *splitter.Level) (pla, plb []splitter.Player, ok bool) {
+	_, _, a, b, ok := chartTeamSides(level)
+	return a, b, ok
 }
 
 // chartCurve matches the Vue/eta-chart structure (name, data, step).
@@ -275,16 +326,6 @@ func newTeamCurves(prefix string, players []splitter.Player) []chartCurve {
 	out[0] = chartCurve{Name: "Average " + prefix, Data: []float64{}, Step: []float64{}}
 	for i, p := range players {
 		out[1+i] = chartCurve{Name: p.Name, Data: []float64{}, Step: []float64{}}
-	}
-	return out
-}
-
-func filterNonZero(ids []int) []int {
-	var out []int
-	for _, id := range ids {
-		if id != 0 {
-			out = append(out, id)
-		}
 	}
 	return out
 }

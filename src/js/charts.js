@@ -1,6 +1,7 @@
 import { Chart, registerables } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { getTimeRangeJSON } from "./timeline.js";
+import { deferAfterPaint, hideChartPreloader, showChartPreloader } from "./chart_preloader.js";
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -24,6 +25,7 @@ const pieColors = [
 
 let graphViewMode = 'table';
 let graphToolbarRefresh = null;
+let matrixLoadGen = 0;
 
 function chartDevicePixelRatio() {
     if (typeof window === "undefined" || !window.devicePixelRatio) {
@@ -451,9 +453,30 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
     updateChartDataset(pieChart1, labels1, values1, label);
     updateChartDataset(pieChart2, labels2, values2, label);
 
+    const c0 = document.getElementById('chart_matrix_0');
+    const c1 = document.getElementById('chart_matrix_1');
+
     if (graphViewMode === 'table') {
-        applyMatrixTables(levelIndex, mode);
+        const myGen = ++matrixLoadGen;
+        showChartPreloader(c0, { label: 'Таблица Team 1…' });
+        showChartPreloader(c1, { label: 'Таблица Team 2…' });
+        deferAfterPaint(() => {
+            try {
+                if (myGen !== matrixLoadGen) {
+                    return;
+                }
+                applyMatrixTables(levelIndex, mode);
+            } finally {
+                if (myGen === matrixLoadGen) {
+                    hideChartPreloader(c0);
+                    hideChartPreloader(c1);
+                }
+            }
+        });
     } else {
+        matrixLoadGen += 1;
+        hideChartPreloader(c0);
+        hideChartPreloader(c1);
         setPieTotalsFixed(values1, values2, mode);
         hideMatrixHints();
     }

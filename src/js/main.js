@@ -8,6 +8,7 @@ import { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar } from './charts
 import { setupDamageTablePanel } from './damage_table.js'
 import { setupTimeline } from './timeline.js'
 import { setupBattleInsightCharts } from './battle_insight_charts.js'
+import { deferAfterPaint } from './chart_preloader.js'
 
 import './wasm_exec.js'
 
@@ -97,12 +98,16 @@ function updateWatcherBanner() {
 function refreshAll() {
     refreshCharts();
     updateWatcherBanner();
-    if (damagePanel && typeof damagePanel.refresh === 'function') {
-        damagePanel.refresh();
-    }
-    if (battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
-        battleInsightCtl.refresh();
-    }
+    deferAfterPaint(() => {
+        if (damagePanel && typeof damagePanel.refresh === 'function') {
+            damagePanel.refresh();
+        }
+        deferAfterPaint(() => {
+            if (battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
+                battleInsightCtl.refresh();
+            }
+        });
+    });
 }
 
 const timelineCtl = setupTimeline(getSelectedMatchIndex, refreshAll);

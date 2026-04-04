@@ -6,6 +6,7 @@
  */
 
 import { getTimeRangeJSON } from './timeline.js';
+import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 
 const emptyOptionValue = '';
 
@@ -351,6 +352,32 @@ function collectCustomModifiers() {
 }
 
 let panelEls = null;
+let damageTableLoadGen = 0;
+
+function runDamageTableLoad(work) {
+    if (!panelEls || !panelEls.tbody) {
+        return;
+    }
+    const scroll = panelEls.tbody.closest('.df-table-scroll');
+    if (!scroll) {
+        work();
+        return;
+    }
+    const myGen = ++damageTableLoadGen;
+    showChartPreloader(scroll, { label: 'Таблица урона…' });
+    deferAfterPaint(() => {
+        try {
+            if (myGen !== damageTableLoadGen) {
+                return;
+            }
+            work();
+        } finally {
+            if (myGen === damageTableLoadGen) {
+                hideChartPreloader(scroll);
+            }
+        }
+    });
+}
 
 function getLevelIndex(getMatchIndex) {
     return typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
@@ -388,7 +415,7 @@ function refreshModifiersMeta(levelIndex) {
     populateCustomModifiers(modifiers);
 }
 
-function refreshTable() {
+function refreshTableSync() {
     if (!panelEls) {
         return;
     }
@@ -437,7 +464,11 @@ function refreshTable() {
     }
 }
 
-function refreshMeta(levelIndex) {
+function refreshTable() {
+    runDamageTableLoad(() => refreshTableSync());
+}
+
+function refreshMetaSync(levelIndex) {
     if (!panelEls) {
         return;
     }
@@ -494,7 +525,20 @@ function refreshMeta(levelIndex) {
     fillSelect(panelEls.recipient, recipients, 'Любая цель');
     fillSelect(panelEls.weapon, weapons, 'Любое оружие');
     refreshModifiersMeta(levelIndex);
-    refreshTable();
+    refreshTableSync();
+}
+
+function refreshMeta(levelIndex) {
+    if (!panelEls) {
+        return;
+    }
+    const metaFn = getMetaFn();
+    const hint = panelEls.hint;
+    if (typeof metaFn !== 'function') {
+        if (hint) hint.textContent = 'WASM не загружен';
+        return;
+    }
+    runDamageTableLoad(() => refreshMetaSync(levelIndex));
 }
 
 export function setupDamageTablePanel(getMatchIndex) {

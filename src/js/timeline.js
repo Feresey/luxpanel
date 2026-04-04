@@ -2,12 +2,15 @@
  * Match timeline: zoom (view window), markers, WASM time range = окно зума.
  */
 
+import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
+
 const MIN_VIEW_SPAN_SEC = 0.4;
 
 let matchDurationSec = 0;
 let viewStart = 0;
 let viewEnd = 0;
 let timelineReady = false;
+let timelineLoadGen = 0;
 
 let rootEl = null;
 let trackEl = null;
@@ -814,45 +817,58 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
 
     function loadMatch() {
         hideTooltip();
-        const fn = globalThis.getTimelineJSON;
-        if (typeof fn !== 'function') {
-            timelineReady = false;
-            matchDurationSec = 0;
-            lastMarkers = [];
-            setTimelineCursorSec(null);
-            renderMarkers();
-            setHint();
-            return;
-        }
-        const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
-        const raw = fn(idx);
-        if (!raw || raw === 'null') {
-            timelineReady = false;
-            matchDurationSec = 0;
-            lastMarkers = [];
-            setTimelineCursorSec(null);
-            renderMarkers();
-            setHint();
-            return;
-        }
-        let data;
-        try {
-            data = JSON.parse(raw);
-        } catch (_) {
-            timelineReady = false;
-            setTimelineCursorSec(null);
-            return;
-        }
-        matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
-        lastMarkers = Array.isArray(data.markers) ? data.markers : [];
-        timelineReady = matchDurationSec > 0;
-        viewStart = 0;
-        viewEnd = matchDurationSec;
-        hideBrushPreview();
-        renderMarkers();
-        layoutSyncCursorLine();
-        setHint();
-        renderCombatLogLines(idx);
+        const myGen = ++timelineLoadGen;
+        showChartPreloader(plotSurfaceEl, { label: 'Таймлайн…' });
+        deferAfterPaint(() => {
+            try {
+                if (myGen !== timelineLoadGen) {
+                    return;
+                }
+                const fn = globalThis.getTimelineJSON;
+                if (typeof fn !== 'function') {
+                    timelineReady = false;
+                    matchDurationSec = 0;
+                    lastMarkers = [];
+                    setTimelineCursorSec(null);
+                    renderMarkers();
+                    setHint();
+                    return;
+                }
+                const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
+                const raw = fn(idx);
+                if (!raw || raw === 'null') {
+                    timelineReady = false;
+                    matchDurationSec = 0;
+                    lastMarkers = [];
+                    setTimelineCursorSec(null);
+                    renderMarkers();
+                    setHint();
+                    return;
+                }
+                let data;
+                try {
+                    data = JSON.parse(raw);
+                } catch (_) {
+                    timelineReady = false;
+                    setTimelineCursorSec(null);
+                    return;
+                }
+                matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
+                lastMarkers = Array.isArray(data.markers) ? data.markers : [];
+                timelineReady = matchDurationSec > 0;
+                viewStart = 0;
+                viewEnd = matchDurationSec;
+                hideBrushPreview();
+                renderMarkers();
+                layoutSyncCursorLine();
+                setHint();
+                renderCombatLogLines(idx);
+            } finally {
+                if (myGen === timelineLoadGen) {
+                    hideChartPreloader(plotSurfaceEl);
+                }
+            }
+        });
     }
 
     return { refresh: loadMatch, reset: resetTimelineView };

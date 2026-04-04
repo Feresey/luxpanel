@@ -11,6 +11,7 @@ import {
     setTimelineCursorSec,
     subscribeTimelineCursor,
 } from './timeline.js';
+import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 
 Chart.register(...registerables);
 
@@ -48,6 +49,7 @@ Chart.register(battleSyncOverlayPlugin);
 
 let lifeChart = null;
 let intensityChart = null;
+let battleInsightLoadGen = 0;
 let chartPointerUnsubs = [];
 let cursorUnsub = null;
 
@@ -357,151 +359,166 @@ export function setupBattleInsightCharts(getMatchIndex) {
 
     function refresh() {
         const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
-        const raw = fetchBattleInsightJSON(idx);
-        destroyCharts();
-        if (!raw || raw === 'null') {
-            return;
-        }
-        let data;
-        try {
-            data = JSON.parse(raw);
-        } catch (_) {
-            return;
-        }
-        const life = Array.isArray(data.life) ? data.life : [];
-        const intensity = Array.isArray(data.intensity) ? data.intensity : [];
-        const allyLabel = data.ally_team_label || 'Союзники';
-        const enemyLabel = data.enemy_team_label || 'Противники';
+        const myGen = ++battleInsightLoadGen;
+        showChartPreloader(lifeWrap, { label: 'Линия жизни…' });
+        showChartPreloader(intWrap, { label: 'Интенсивность боя…' });
+        deferAfterPaint(() => {
+            try {
+                if (myGen !== battleInsightLoadGen) {
+                    return;
+                }
+                const raw = fetchBattleInsightJSON(idx);
+                destroyCharts();
+                if (!raw || raw === 'null') {
+                    return;
+                }
+                let data;
+                try {
+                    data = JSON.parse(raw);
+                } catch (_) {
+                    return;
+                }
+                const life = Array.isArray(data.life) ? data.life : [];
+                const intensity = Array.isArray(data.intensity) ? data.intensity : [];
+                const allyLabel = data.ally_team_label || 'Союзники';
+                const enemyLabel = data.enemy_team_label || 'Противники';
 
-        const lifeT = life.map((p) => p.t);
-        const lifeAlly = life.map((p) => p.allies);
-        const lifeEnemy = life.map((p) => p.enemies);
-        const lifeX = xDomainSec(lifeT);
+                const lifeT = life.map((p) => p.t);
+                const lifeAlly = life.map((p) => p.allies);
+                const lifeEnemy = life.map((p) => p.enemies);
+                const lifeX = xDomainSec(lifeT);
 
-        if (lifeT.length > 0) {
-            lifeChart = new Chart(lifeCanvas.getContext('2d'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            label: `${allyLabel} (живых)`,
-                            data: lifeAlly.map((y, i) => ({ x: lifeT[i], y })),
-                            borderColor: 'rgba(52, 211, 153, 0.95)',
-                            backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                            stepped: 'after',
-                            fill: false,
-                            tension: 0,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
+                if (lifeT.length > 0) {
+                    lifeChart = new Chart(lifeCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            datasets: [
+                                {
+                                    label: `${allyLabel} (живых)`,
+                                    data: lifeAlly.map((y, i) => ({ x: lifeT[i], y })),
+                                    borderColor: 'rgba(52, 211, 153, 0.95)',
+                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
+                                    stepped: 'after',
+                                    fill: false,
+                                    tension: 0,
+                                    borderWidth: 2,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 4,
+                                },
+                                {
+                                    label: `${enemyLabel} (живых)`,
+                                    data: lifeEnemy.map((y, i) => ({ x: lifeT[i], y })),
+                                    borderColor: 'rgba(248, 113, 113, 0.95)',
+                                    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                                    stepped: 'after',
+                                    fill: false,
+                                    tension: 0,
+                                    borderWidth: 2,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 4,
+                                },
+                            ],
                         },
-                        {
-                            label: `${enemyLabel} (живых)`,
-                            data: lifeEnemy.map((y, i) => ({ x: lifeT[i], y })),
-                            borderColor: 'rgba(248, 113, 113, 0.95)',
-                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                            stepped: 'after',
-                            fill: false,
-                            tension: 0,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                        },
-                    ],
-                },
-                options: {
-                    ...commonLineOptions,
-                    parsing: false,
-                    scales: {
-                        ...commonLineOptions.scales,
-                        x: {
-                            ...commonLineOptions.scales.x,
-                            type: 'linear',
-                            min: lifeX.min,
-                            max: lifeX.max,
-                        },
-                        y: {
-                            ...commonLineOptions.scales.y,
-                            title: {
-                                display: true,
-                                text: 'Игроков в живых',
-                                color: '#9ca3af',
-                                font: { size: 11 },
+                        options: {
+                            ...commonLineOptions,
+                            parsing: false,
+                            scales: {
+                                ...commonLineOptions.scales,
+                                x: {
+                                    ...commonLineOptions.scales.x,
+                                    type: 'linear',
+                                    min: lifeX.min,
+                                    max: lifeX.max,
+                                },
+                                y: {
+                                    ...commonLineOptions.scales.y,
+                                    title: {
+                                        display: true,
+                                        text: 'Игроков в живых',
+                                        color: '#9ca3af',
+                                        font: { size: 11 },
+                                    },
+                                    beginAtZero: true,
+                                    ticks: { ...axisStyle.ticks, stepSize: 1 },
+                                },
                             },
-                            beginAtZero: true,
-                            ticks: { ...axisStyle.ticks, stepSize: 1 },
                         },
-                    },
-                },
-            });
-            chartPointerUnsubs.push(attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap));
-        }
+                    });
+                    chartPointerUnsubs.push(attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap));
+                }
 
-        const intT = intensity.map((p) => p.t);
-        const intAlly = intensity.map((p) => p.ally);
-        const intEnemy = intensity.map((p) => p.enemy);
-        const intX = xDomainSec(intT);
+                const intT = intensity.map((p) => p.t);
+                const intAlly = intensity.map((p) => p.ally);
+                const intEnemy = intensity.map((p) => p.enemy);
+                const intX = xDomainSec(intT);
 
-        if (intT.length > 0) {
-            intensityChart = new Chart(intCanvas.getContext('2d'), {
-                type: 'line',
-                data: {
-                    datasets: [
-                        {
-                            label: `${allyLabel}, урон/с (окно 10 с)`,
-                            data: intAlly.map((y, i) => ({ x: intT[i], y })),
-                            borderColor: 'rgba(56, 189, 248, 0.95)',
-                            backgroundColor: 'rgba(56, 189, 248, 0.08)',
-                            fill: false,
-                            tension: 0.15,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
+                if (intT.length > 0) {
+                    intensityChart = new Chart(intCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            datasets: [
+                                {
+                                    label: `${allyLabel}, урон/с (окно 10 с)`,
+                                    data: intAlly.map((y, i) => ({ x: intT[i], y })),
+                                    borderColor: 'rgba(56, 189, 248, 0.95)',
+                                    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+                                    fill: false,
+                                    tension: 0.15,
+                                    borderWidth: 2,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 3,
+                                },
+                                {
+                                    label: `${enemyLabel}, урон/с (окно 10 с)`,
+                                    data: intEnemy.map((y, i) => ({ x: intT[i], y })),
+                                    borderColor: 'rgba(251, 146, 60, 0.95)',
+                                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                                    fill: false,
+                                    tension: 0.15,
+                                    borderWidth: 2,
+                                    pointRadius: 0,
+                                    pointHoverRadius: 3,
+                                },
+                            ],
                         },
-                        {
-                            label: `${enemyLabel}, урон/с (окно 10 с)`,
-                            data: intEnemy.map((y, i) => ({ x: intT[i], y })),
-                            borderColor: 'rgba(251, 146, 60, 0.95)',
-                            backgroundColor: 'rgba(251, 146, 60, 0.08)',
-                            fill: false,
-                            tension: 0.15,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 3,
-                        },
-                    ],
-                },
-                options: {
-                    ...commonLineOptions,
-                    parsing: false,
-                    scales: {
-                        ...commonLineOptions.scales,
-                        x: {
-                            ...commonLineOptions.scales.x,
-                            type: 'linear',
-                            min: intX.min,
-                            max: intX.max,
-                        },
-                        y: {
-                            ...commonLineOptions.scales.y,
-                            title: {
-                                display: true,
-                                text: 'Урон в секунду (среднее за 10 с)',
-                                color: '#9ca3af',
-                                font: { size: 11 },
+                        options: {
+                            ...commonLineOptions,
+                            parsing: false,
+                            scales: {
+                                ...commonLineOptions.scales,
+                                x: {
+                                    ...commonLineOptions.scales.x,
+                                    type: 'linear',
+                                    min: intX.min,
+                                    max: intX.max,
+                                },
+                                y: {
+                                    ...commonLineOptions.scales.y,
+                                    title: {
+                                        display: true,
+                                        text: 'Урон в секунду (среднее за 10 с)',
+                                        color: '#9ca3af',
+                                        font: { size: 11 },
+                                    },
+                                    beginAtZero: true,
+                                },
                             },
-                            beginAtZero: true,
                         },
-                    },
-                },
-            });
-            chartPointerUnsubs.push(attachChartBrushAndCursor(intensityChart, intCanvas, intWrap));
-        }
+                    });
+                    chartPointerUnsubs.push(attachChartBrushAndCursor(intensityChart, intCanvas, intWrap));
+                }
 
-        const sec = getTimelineCursorSec();
-        if (sec !== null && (lifeChart || intensityChart)) {
-            setTimelineCursorSec(sec);
-        }
+                const sec = getTimelineCursorSec();
+                if (sec !== null && (lifeChart || intensityChart)) {
+                    setTimelineCursorSec(sec);
+                }
+            } finally {
+                if (myGen === battleInsightLoadGen) {
+                    hideChartPreloader(lifeWrap);
+                    hideChartPreloader(intWrap);
+                }
+            }
+        });
     }
 
     window.addEventListener('resize', () => {
