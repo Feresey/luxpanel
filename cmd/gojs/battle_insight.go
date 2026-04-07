@@ -19,10 +19,10 @@ type lifePoint struct {
 
 type intensityPoint struct {
 	TimeSec  float64 `json:"t"`
-	AllyDPS  float64 `json:"ally"`  // средний урон за 10 с (кросс-команда), со стороны союзников
+	AllyDPS  float64 `json:"ally"`  // средний урон/с по плавающему окну 10 с (9 с + текущая)
 	EnemyDPS float64 `json:"enemy"`
-	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон выбранного игрока в сек
-	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон по выбранному игроку в сек
+	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон/с выбранного игрока (то же окно)
+	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон/с (то же окно)
 }
 
 type battleInsightResult struct {
@@ -36,7 +36,8 @@ type battleInsightResult struct {
 	Intensity      []intensityPoint `json:"intensity"`
 }
 
-const intensitySampleStepSec = 0.25
+// Одна точка на секунду; окно — последние 9 с + текущая секунда (10 с суммарно), плавающее.
+const intensitySampleStepSec = 1.0
 const intensityWindowSec = 10.0
 
 type lifeEvent struct {
@@ -278,7 +279,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 
 	lifeOut := clipLifeSeries(fullLife, lo, hi)
 
-	// Интенсивность: скользящее среднее урона за 10 с (кросс-командный урон, как в графиках)
+	// Интенсивность: плавающее окно 10 с (9 с + текущая), средний урон/с по окну
 	var dmgList []dmgEv
 	var playerOutList []dmgAmtEv
 	var playerInList []dmgAmtEv
@@ -408,64 +409,60 @@ func sampleIntensity(t0 time.Time, dmgList []dmgEv, playerOutList, playerInList 
 		return nil
 	}
 	step := intensitySampleStepSec
-	maxPts := int((hi-lo)/step) + 2
-	if maxPts > 12000 {
-		step = (hi - lo) / 8000
-		if step < 0.05 {
-			step = 0.05
-		}
-	}
+	winDur := time.Duration(float64(time.Second) * intensityWindowSec)
 
 	var out []intensityPoint
-	head := 0
-	tail := 0
-	headPO := 0
-	tailPO := 0
-	headPI := 0
-	tailPI := 0
-	sumAlly := 0.0
-	sumEnemy := 0.0
+	la, ra := 0, 0
+	sumAlly, sumEnemy := 0.0, 0.0
+	lPO, rPO := 0, 0
 	sumPO := 0.0
+	lPI, rPI := 0, 0
 	sumPI := 0.0
+
 	for t := lo; t <= hi+1e-9; t += step {
 		curTime := t0.Add(time.Duration(t * float64(time.Second)))
-		winLoTime := curTime.Add(-time.Duration(intensityWindowSec * float64(time.Second)))
-		for head < len(dmgList) && (dmgList[head].t.Before(winLoTime) || dmgList[head].t.Equal(winLoTime)) {
-			if dmgList[head].tid == 0 {
-				sumAlly -= dmgList[head].amt
+		winLoTime := curTime.Add(-winDur)
+
+		// Окно (winLoTime, curTime]: сначала добавляем события с t <= curTime, затем убираем t <= winLoTime.
+		for ra < len(dmgList) && !dmgList[ra].t.After(curTime) {
+			if dmgList[ra].tid == 0 {
+				sumAlly += dmgList[ra].amt
 			} else {
-				sumEnemy -= dmgList[head].amt
+				sumEnemy += dmgList[ra].amt
 			}
-			head++
+			ra++
 		}
-		for tail < len(dmgList) && (dmgList[tail].t.Before(curTime) || dmgList[tail].t.Equal(curTime)) {
-			if dmgList[tail].tid == 0 {
-				sumAlly += dmgList[tail].amt
+		for la < ra && !dmgList[la].t.After(winLoTime) {
+			if dmgList[la].tid == 0 {
+				sumAlly -= dmgList[la].amt
 			} else {
-				sumEnemy += dmgList[tail].amt
+				sumEnemy -= dmgList[la].amt
 			}
-			tail++
+			la++
 		}
-		for headPO < len(playerOutList) && (playerOutList[headPO].t.Before(winLoTime) || playerOutList[headPO].t.Equal(winLoTime)) {
-			sumPO -= playerOutList[headPO].amt
-			headPO++
+
+		for rPO < len(playerOutList) && !playerOutList[rPO].t.After(curTime) {
+			sumPO += playerOutList[rPO].amt
+			rPO++
 		}
-		for tailPO < len(playerOutList) && (playerOutList[tailPO].t.Before(curTime) || playerOutList[tailPO].t.Equal(curTime)) {
-			sumPO += playerOutList[tailPO].amt
-			tailPO++
+		for lPO < rPO && !playerOutList[lPO].t.After(winLoTime) {
+			sumPO -= playerOutList[lPO].amt
+			lPO++
 		}
-		for headPI < len(playerInList) && (playerInList[headPI].t.Before(winLoTime) || playerInList[headPI].t.Equal(winLoTime)) {
-			sumPI -= playerInList[headPI].amt
-			headPI++
+
+		for rPI < len(playerInList) && !playerInList[rPI].t.After(curTime) {
+			sumPI += playerInList[rPI].amt
+			rPI++
 		}
-		for tailPI < len(playerInList) && (playerInList[tailPI].t.Before(curTime) || playerInList[tailPI].t.Equal(curTime)) {
-			sumPI += playerInList[tailPI].amt
-			tailPI++
+		for lPI < rPI && !playerInList[lPI].t.After(winLoTime) {
+			sumPI -= playerInList[lPI].amt
+			lPI++
 		}
+
 		out = append(out, intensityPoint{
-			TimeSec:  t,
-			AllyDPS:  sumAlly / intensityWindowSec,
-			EnemyDPS: sumEnemy / intensityWindowSec,
+			TimeSec:   t,
+			AllyDPS:   sumAlly / intensityWindowSec,
+			EnemyDPS:  sumEnemy / intensityWindowSec,
 			PlayerOut: sumPO / intensityWindowSec,
 			PlayerIn:  sumPI / intensityWindowSec,
 		})

@@ -1122,7 +1122,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 if (intT.length > 0) {
                     const intDatasets = [
                         {
-                            label: `${allyLabel}, урон/с (окно 10 с)`,
+                            label: `${allyLabel}, урон/с (окно 10 с: текущая + 9 с)`,
                             data: intAllySeries.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(56, 189, 248, 0.95)',
                             backgroundColor: 'rgba(56, 189, 248, 0.08)',
@@ -1133,7 +1133,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             pointHoverRadius: 3,
                         },
                         {
-                            label: `${enemyLabel}, урон/с (окно 10 с)`,
+                            label: `${enemyLabel}, урон/с (окно 10 с: текущая + 9 с)`,
                             data: intEnemySeries.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(251, 146, 60, 0.95)',
                             backgroundColor: 'rgba(251, 146, 60, 0.08)',
@@ -1190,7 +1190,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                                     ...commonLineOptions.scales.y,
                                     title: {
                                         display: true,
-                                        text: 'Урон в секунду (среднее за 10 с)',
+                                        text: 'Урон/с (плавающее окно 10 с)',
                                         color: '#9ca3af',
                                         font: { size: 11 },
                                     },
