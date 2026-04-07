@@ -94,7 +94,11 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if len(args) >= 3 && args[2].Type() == js.TypeString {
 			timeRangeJSON = args[2].String()
 		}
-		s, err := r.marshalChartMatricesJSON(ctx, level, mode, timeRangeJSON)
+		optsJSON := ""
+		if len(args) >= 4 && args[3].Type() == js.TypeString {
+			optsJSON = args[3].String()
+		}
+		s, err := r.marshalChartMatricesJSON(ctx, level, mode, timeRangeJSON, optsJSON)
 		if err != nil {
 			return "null"
 		}

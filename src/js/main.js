@@ -574,7 +574,7 @@ if (playerFocusSelect) {
     });
 }
 
-if (document.getElementById('pieChart1') && document.getElementById('pieChart2')) {
+if (document.getElementById('graphs_root')) {
     CreateCharts();
     setupGraphViewToolbar(refreshCharts);
 }

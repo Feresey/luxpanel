@@ -16,6 +16,7 @@ import (
 type damageDefaultTableBaseRequest struct {
 	Initiator   string   `json:"initiator"`
 	Recipient   string   `json:"recipient"`
+	Perspective string   `json:"perspective,omitempty"` // "initiator" | "recipient"
 	Weapon      string   `json:"weapon"`
 	TimeFromSec *float64 `json:"time_from_sec,omitempty"`
 	TimeToSec   *float64 `json:"time_to_sec,omitempty"`
@@ -99,6 +100,7 @@ func (r *Runtime) marshalDamageDefaultFiltersTableJSON(ctx context.Context, leve
 		wasmReq := wasmDamageFilterRequest{
 			Initiator:   req.Initiator,
 			Recipient:   req.Recipient,
+			Perspective: req.Perspective,
 			Weapon:      req.Weapon,
 			Modifiers:   mods,
 			TimeFromSec: req.TimeFromSec,
@@ -123,9 +125,16 @@ func (r *Runtime) marshalDamageDefaultFiltersTableJSON(ctx context.Context, leve
 }
 
 func filterDamageRowWithModifiers(level *splitter.Level, req damageDefaultTableBaseRequest, modifiers map[string]bool, humans map[string]struct{}, lo, hi float64) (damageTableSummary, []string) {
+	isIncoming := isRecipientPerspective(req.Perspective)
+	initiatorName := strings.TrimSpace(req.Initiator)
+	recipientName := strings.TrimSpace(req.Recipient)
+	if isIncoming {
+		recipientName = initiatorName
+		initiatorName = strings.TrimSpace(req.Recipient)
+	}
 	cfg := damagefilters.PlayerDamageFilterConfig{
-		InitiatorName: strings.TrimSpace(req.Initiator),
-		RecipientName: strings.TrimSpace(req.Recipient),
+		InitiatorName: initiatorName,
+		RecipientName: recipientName,
 		DamageType:    damagefilters.DamageTypeTotal,
 		Weapon:        strings.TrimSpace(req.Weapon),
 	}
@@ -155,9 +164,6 @@ func filterDamageRowWithModifiers(level *splitter.Level, req damageDefaultTableB
 		if !timeInRangeFromStart(t, t0, lo, hi) {
 			continue
 		}
-		if dmg.Initiator.Name != req.Initiator {
-			continue
-		}
 		detailed, ok := cfg.Filter(dmg)
 		if !ok {
 			continue
@@ -169,11 +175,18 @@ func filterDamageRowWithModifiers(level *splitter.Level, req damageDefaultTableB
 		damageSum += selected
 
 		if needTargets {
-			if dmg.Recipient.Name != "" {
-				if _, ok := humans[dmg.Recipient.Name]; !ok {
+			if !isIncoming {
+				if dmg.Recipient.Name != "" {
+					if _, ok := humans[dmg.Recipient.Name]; !ok {
+						continue
+					}
+					targetSet[dmg.Recipient.Name] = struct{}{}
+				}
+			} else if dmg.Initiator.Name != "" {
+				if _, ok := humans[dmg.Initiator.Name]; !ok {
 					continue
 				}
-				targetSet[dmg.Recipient.Name] = struct{}{}
+				targetSet[dmg.Initiator.Name] = struct{}{}
 			}
 		}
 	}

@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
+	"github.com/Feresey/luxpanel/internal/parser/combat"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
@@ -22,7 +24,50 @@ type chartMatricesResult struct {
 	Panels []teamPairPanel `json:"panels"`
 }
 
-func (r *Runtime) marshalChartMatricesJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON string) (string, error) {
+type chartQueryOptions struct {
+	DamageType  string `json:"damage_type,omitempty"`  // all | thermal | kinetic | emp
+	IncludeBots bool   `json:"include_bots,omitempty"` // include bot players and bot damage
+}
+
+func parseChartQueryOptions(raw string) chartQueryOptions {
+	opts := chartQueryOptions{DamageType: "all", IncludeBots: false}
+	if strings.TrimSpace(raw) == "" {
+		return opts
+	}
+	_ = json.Unmarshal([]byte(raw), &opts)
+	opts.DamageType = strings.ToLower(strings.TrimSpace(opts.DamageType))
+	switch opts.DamageType {
+	case "thermal", "kinetic", "emp":
+	default:
+		opts.DamageType = "all"
+	}
+	return opts
+}
+
+func damageMatchesType(dmg *combat.Damage, damageType string) bool {
+	if dmg == nil || damageType == "" || damageType == "all" {
+		return true
+	}
+	want := ""
+	switch damageType {
+	case "thermal":
+		want = "THERMAL"
+	case "kinetic":
+		want = "KINETIC"
+	case "emp":
+		want = "EMP"
+	default:
+		return true
+	}
+	for _, m := range dmg.DamageModifiers {
+		if string(m) == want {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Runtime) marshalChartMatricesJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON, optsJSON string) (string, error) {
 	if level == nil {
 		b, err := json.Marshal(chartMatricesResult{})
 		if err != nil {
@@ -34,13 +79,14 @@ func (r *Runtime) marshalChartMatricesJSON(ctx context.Context, level *splitter.
 		return s, nil
 	}
 	lo, hi := clampTimeRange(level, timeRangeJSON)
+	opts := parseChartQueryOptions(optsJSON)
 	switch mode {
 	case "heal":
-		return r.marshalHealMatrices(ctx, level, lo, hi)
+		return r.marshalHealMatrices(ctx, level, lo, hi, opts)
 	case "kill":
-		return r.marshalKillMatrices(ctx, level, lo, hi)
+		return r.marshalKillMatrices(ctx, level, lo, hi, opts)
 	default:
-		return r.marshalDamageMatrices(ctx, level, lo, hi)
+		return r.marshalDamageMatrices(ctx, level, lo, hi, opts)
 	}
 }
 
@@ -62,7 +108,7 @@ func sumMatrix(m [][]float64) float64 {
 	return t
 }
 
-func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Level, lo, hi float64) (string, error) {
+func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Level, lo, hi float64, opts chartQueryOptions) (string, error) {
 	if level.CombatLog == nil {
 		b, err := json.Marshal(chartMatricesResult{Metric: "damage"})
 		if err != nil {
@@ -73,7 +119,7 @@ func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Lev
 		r.lg.For(ctx).Debugw("marshalDamageMatrices", "no_combat_log", true, "out_len", len(s))
 		return s, nil
 	}
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, opts.IncludeBots)
 	if !ok {
 		b, err := json.Marshal(chartMatricesResult{Metric: "damage"})
 		if err != nil {
@@ -96,6 +142,9 @@ func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Lev
 	t0 := level.StartLevelTime
 	for _, dmg := range level.CombatLog.Damage {
 		if dmg == nil || dmg.IsEmpty() {
+			continue
+		}
+		if !damageMatchesType(dmg, opts.DamageType) {
 			continue
 		}
 		st, okS := nameToTeam[dmg.Initiator.Name]
@@ -148,7 +197,7 @@ func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Lev
 	return s, nil
 }
 
-func (r *Runtime) marshalKillMatrices(ctx context.Context, level *splitter.Level, lo, hi float64) (string, error) {
+func (r *Runtime) marshalKillMatrices(ctx context.Context, level *splitter.Level, lo, hi float64, opts chartQueryOptions) (string, error) {
 	if level.CombatLog == nil {
 		b, err := json.Marshal(chartMatricesResult{Metric: "kill"})
 		if err != nil {
@@ -159,7 +208,7 @@ func (r *Runtime) marshalKillMatrices(ctx context.Context, level *splitter.Level
 		r.lg.For(ctx).Debugw("marshalKillMatrices", "no_combat_log", true, "out_len", len(s))
 		return s, nil
 	}
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, opts.IncludeBots)
 	if !ok {
 		b, err := json.Marshal(chartMatricesResult{Metric: "kill"})
 		if err != nil {
@@ -233,7 +282,7 @@ func (r *Runtime) marshalKillMatrices(ctx context.Context, level *splitter.Level
 	return s, nil
 }
 
-func (r *Runtime) marshalHealMatrices(ctx context.Context, level *splitter.Level, lo, hi float64) (string, error) {
+func (r *Runtime) marshalHealMatrices(ctx context.Context, level *splitter.Level, lo, hi float64, opts chartQueryOptions) (string, error) {
 	if level.CombatLog == nil {
 		b, err := json.Marshal(chartMatricesResult{Metric: "heal"})
 		if err != nil {
@@ -244,7 +293,7 @@ func (r *Runtime) marshalHealMatrices(ctx context.Context, level *splitter.Level
 		r.lg.For(ctx).Debugw("marshalHealMatrices", "no_combat_log", true, "out_len", len(s))
 		return s, nil
 	}
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, opts.IncludeBots)
 	if !ok {
 		b, err := json.Marshal(chartMatricesResult{Metric: "heal"})
 		if err != nil {

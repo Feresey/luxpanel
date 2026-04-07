@@ -94,7 +94,20 @@ type chartCurve struct {
 	Step []float64 `json:"step"`
 }
 
-func twoTeamRosters(level *splitter.Level) (
+func filterRosterPlayers(players []splitter.Player, includeBots bool) []splitter.Player {
+	if includeBots {
+		return players
+	}
+	out := make([]splitter.Player, 0, len(players))
+	for _, p := range players {
+		if p.PlayerID != 0 {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+func twoTeamRosters(level *splitter.Level, includeBots bool) (
 	pla, plb []splitter.Player,
 	nameToTeam map[string]int,
 	nameToIdx map[string]int,
@@ -103,6 +116,11 @@ func twoTeamRosters(level *splitter.Level) (
 	var okTeams bool
 	pla, plb, okTeams = chartTeams(level)
 	if !okTeams {
+		return nil, nil, nil, nil, false
+	}
+	pla = filterRosterPlayers(pla, includeBots)
+	plb = filterRosterPlayers(plb, includeBots)
+	if len(pla) == 0 || len(plb) == 0 {
 		return nil, nil, nil, nil, false
 	}
 	nameToTeam = make(map[string]int)
@@ -123,7 +141,7 @@ func buildDamageCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 		return emptyCharts(level)
 	}
 
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, false)
 	if !ok {
 		return emptyCharts(level)
 	}
@@ -211,7 +229,7 @@ func buildHealCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 	if level == nil || level.CombatLog == nil {
 		return emptyChartsMetric(level, "heal")
 	}
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, false)
 	if !ok {
 		return emptyChartsMetric(level, "heal")
 	}
@@ -258,7 +276,7 @@ func buildKillCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 	if level == nil || level.CombatLog == nil {
 		return emptyChartsMetric(level, "kill")
 	}
-	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level)
+	pla, plb, nameToTeam, nameToIdx, ok := twoTeamRosters(level, false)
 	if !ok {
 		return emptyChartsMetric(level, "kill")
 	}

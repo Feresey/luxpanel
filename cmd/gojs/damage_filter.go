@@ -23,6 +23,7 @@ type damageFilterMeta struct {
 type wasmDamageFilterRequest struct {
 	Initiator   string          `json:"initiator"`
 	Recipient   string          `json:"recipient"`
+	Perspective string          `json:"perspective,omitempty"` // "initiator" | "recipient"
 	Weapon      string          `json:"weapon"`
 	Modifiers   map[string]bool `json:"modifiers,omitempty"`
 	Aggregate   *bool           `json:"aggregate,omitempty"`
@@ -55,6 +56,10 @@ type damageEventRow struct {
 	Weapon    string          `json:"weapon"`
 	Modifiers map[string]bool `json:"modifiers"`
 	Amount    float64         `json:"amount"`
+}
+
+func isRecipientPerspective(v string) bool {
+	return strings.EqualFold(strings.TrimSpace(v), "recipient")
 }
 
 func (r *Runtime) marshalDamageFilterMetaJSON(ctx context.Context, level *splitter.Level, initiator string, timeRangeJSON string) (string, error) {
@@ -299,6 +304,7 @@ func filterDamageRow(level *splitter.Level, req *wasmDamageFilterRequest, humans
 	targetSet := make(map[string]struct{})
 	needTargets := strings.TrimSpace(req.Recipient) == ""
 	requestedRecipient := strings.TrimSpace(req.Recipient)
+	isIncoming := isRecipientPerspective(req.Perspective)
 	filter := toDamageFilter(req)
 	t0 := level.StartLevelTime
 
@@ -324,11 +330,18 @@ func filterDamageRow(level *splitter.Level, req *wasmDamageFilterRequest, humans
 		damageSum += selected
 
 		if needTargets {
-			if dmg.Recipient.Name != "" {
-				if _, ok := humans[dmg.Recipient.Name]; !ok {
+			if !isIncoming {
+				if dmg.Recipient.Name != "" {
+					if _, ok := humans[dmg.Recipient.Name]; !ok {
+						continue
+					}
+					targetSet[dmg.Recipient.Name] = struct{}{}
+				}
+			} else if dmg.Initiator.Name != "" {
+				if _, ok := humans[dmg.Initiator.Name]; !ok {
 					continue
 				}
-				targetSet[dmg.Recipient.Name] = struct{}{}
+				targetSet[dmg.Initiator.Name] = struct{}{}
 			}
 		}
 	}
@@ -348,8 +361,12 @@ func filterDamageRow(level *splitter.Level, req *wasmDamageFilterRequest, humans
 		mods = map[string]bool{}
 	}
 
+	sourceTitle := req.Initiator
+	if isIncoming {
+		sourceTitle = req.Initiator + " (получает)"
+	}
 	return damageTableRow{
-		Source:    req.Initiator,
+		Source:    sourceTitle,
 		Targets:   targets,
 		Modifiers: mods,
 		Summary: damageTableSummary{
@@ -364,9 +381,16 @@ func toDamageFilter(req *wasmDamageFilterRequest) damagefilters.PlayerDamageFilt
 	for k, v := range req.Modifiers {
 		mods[combat.DamageModifier(k)] = v
 	}
+	isIncoming := isRecipientPerspective(req.Perspective)
+	initiatorName := strings.TrimSpace(req.Initiator)
+	recipientName := strings.TrimSpace(req.Recipient)
+	if isIncoming {
+		recipientName = initiatorName
+		initiatorName = strings.TrimSpace(req.Recipient)
+	}
 	return damagefilters.PlayerDamageFilterConfig{
-		InitiatorName:   strings.TrimSpace(req.Initiator),
-		RecipientName:   strings.TrimSpace(req.Recipient),
+		InitiatorName:   initiatorName,
+		RecipientName:   recipientName,
 		DamageType:      damagefilters.DamageTypeTotal,
 		DamageModifiers: mods,
 		Weapon:          strings.TrimSpace(req.Weapon),

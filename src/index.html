@@ -47,9 +47,19 @@
         <div id="watcher_banner" class="watcher-banner" role="status" hidden></div>
         <div class="graphs graphs-view-table" id="graphs_root">
             <div class="graph-view-toolbar" role="group" aria-label="Вид графиков">
-                <span class="graph-view-label">Вид:</span>
-                <button type="button" class="graph-view-btn" data-graph-view="pie">Круги</button>
-                <button type="button" class="graph-view-btn active" data-graph-view="table">Таблица</button>
+                <label class="graph-player-focus">
+                    <span class="graph-view-label">Тип урона:</span>
+                    <select id="graph_damage_type_select" class="graph-player-focus-select">
+                        <option value="all">Весь урон</option>
+                        <option value="thermal">Термальный</option>
+                        <option value="kinetic">Кинетический</option>
+                        <option value="emp">EMP</option>
+                    </select>
+                </label>
+                <label class="graph-player-focus">
+                    <input type="checkbox" id="graph_include_bots_cb" />
+                    <span class="graph-view-label">Учитывать ботов</span>
+                </label>
             </div>
             <div class="graph-team-swap-row">
                 <button type="button" class="graph-team-swap-btn" id="graph_swap_teams_btn" aria-pressed="false" title="Поменять левую и правую команды местами">
@@ -63,11 +73,6 @@
                     <span class="graph-total" id="graph_total_0" title="Сумма по текущему виду">—</span>
                 </div>
                 <p class="graph-matrix-hint" id="graph_matrix_hint_0" hidden></p>
-                <div class="chart-pane chart-pane-pie">
-                <div class="pie-chart-wrap">
-                    <canvas id="pieChart1"></canvas>
-                </div>
-                </div>
                 <div class="chart-pane chart-pane-table" id="chart_matrix_0" hidden></div>
             </div>
             <div class="graph-box" data-team-panel="1">
@@ -76,11 +81,6 @@
                     <span class="graph-total" id="graph_total_1" title="Сумма по текущему виду">—</span>
                 </div>
                 <p class="graph-matrix-hint" id="graph_matrix_hint_1" hidden></p>
-                <div class="chart-pane chart-pane-pie">
-                <div class="pie-chart-wrap">
-                    <canvas id="pieChart2"></canvas>
-                </div>
-                </div>
                 <div class="chart-pane chart-pane-table" id="chart_matrix_1" hidden></div>
             </div>
             </div>
@@ -133,6 +133,13 @@
                 <label class="df-field">
                     <span class="df-label">Игрок (источник)</span>
                     <select id="df_initiator" class="df-select"></select>
+                </label>
+                <label class="df-field df-field-mode">
+                    <span class="df-label">Направление</span>
+                    <select id="df_perspective" class="df-select">
+                        <option value="initiator">Исходящий (игрок наносит)</option>
+                        <option value="recipient">Входящий (урон по игроку)</option>
+                    </select>
                 </label>
                 <label class="df-field">
                     <span class="df-label">Цель</span>

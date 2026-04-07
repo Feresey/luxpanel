@@ -174,8 +174,15 @@ function renderTableBody(tbody, rows) {
         const s = r.summary || {};
         const hits = isEvent ? 1 : (typeof s.hits === 'number' ? s.hits : 0);
         const dmg = isEvent ? r.amount : s.damage;
-        const source = isEvent ? r.initiator : r.source;
-        const targets = isEvent ? [r.recipient] : r.targets;
+        const incoming = panelEls && panelEls.perspective && panelEls.perspective.value === 'recipient';
+        let source = isEvent ? r.initiator : r.source;
+        let targets = isEvent ? [r.recipient] : r.targets;
+        if (incoming && !isEvent) {
+            // Для входящего урона хотим видеть список источников именно в колонке "Источник урона".
+            const srcList = Array.isArray(r.targets) ? r.targets : [];
+            source = srcList.length ? srcList.join(', ') : '—';
+            targets = r && r.source ? [r.source] : [];
+        }
         const weapon = isEvent ? (r.weapon || '') : '—';
         const time = isEvent ? formatTime(r.time_sec) : '—';
 
@@ -427,9 +434,16 @@ function refreshTableSync() {
     const recipient = panelEls.recipient.value.trim();
     const weapon = panelEls.weapon.value.trim();
     const mode = panelEls.mode.value || 'defaults';
+    const perspective = panelEls.perspective && panelEls.perspective.value === 'recipient'
+        ? 'recipient'
+        : 'initiator';
 
     if (!initiator) {
-        if (hint) hint.textContent = 'Выберите игрока (источник урона)';
+        if (hint) {
+            hint.textContent = perspective === 'recipient'
+                ? 'Выберите игрока (по которому получен урон)'
+                : 'Выберите игрока (источник урона)';
+        }
         renderTableBody(tbody, []);
         return;
     }
@@ -440,6 +454,7 @@ function refreshTableSync() {
         initiator,
         recipient: recipient || '',
         weapon: weapon || '',
+        perspective,
     });
 
     try {
@@ -501,28 +516,45 @@ function refreshMetaSync(levelIndex) {
 
     if (prevInitiator && players.includes(prevInitiator)) {
         panelEls.initiator.value = prevInitiator;
-    } else if (players.length) {
-        panelEls.initiator.value = players[0];
+    } else {
+        panelEls.initiator.value = emptyOptionValue;
     }
 
     const initiator = panelEls.initiator.value.trim();
     if (!initiator) {
-        return;
-    }
-
-    raw = metaFn(levelIndex, initiator, tr0);
-    if (!raw || raw === 'null') {
-        fillSelect(panelEls.recipient, [], 'Любая цель');
+        fillSelect(panelEls.recipient, [], panelEls.perspective && panelEls.perspective.value === 'recipient' ? 'Любой источник' : 'Любая цель');
         fillSelect(panelEls.weapon, [], 'Любое оружие');
         populateCustomModifiers([]);
+        refreshTableSync();
         return;
     }
 
-    meta = JSON.parse(raw);
-    const recipients = Array.isArray(meta.recipients) ? meta.recipients : [];
+    const perspective = panelEls.perspective && panelEls.perspective.value === 'recipient'
+        ? 'recipient'
+        : 'initiator';
+    if (perspective === 'recipient') {
+        const sources = players.filter((p) => p !== initiator);
+        fillSelect(panelEls.recipient, sources, 'Любой источник');
+        raw = metaFn(levelIndex, '', tr0);
+        if (!raw || raw === 'null') {
+            fillSelect(panelEls.weapon, [], 'Любое оружие');
+            populateCustomModifiers([]);
+            return;
+        }
+        meta = JSON.parse(raw);
+    } else {
+        raw = metaFn(levelIndex, initiator, tr0);
+        if (!raw || raw === 'null') {
+            fillSelect(panelEls.recipient, [], 'Любая цель');
+            fillSelect(panelEls.weapon, [], 'Любое оружие');
+            populateCustomModifiers([]);
+            return;
+        }
+        meta = JSON.parse(raw);
+        const recipients = Array.isArray(meta.recipients) ? meta.recipients : [];
+        fillSelect(panelEls.recipient, recipients, 'Любая цель');
+    }
     const weapons = Array.isArray(meta.weapons) ? meta.weapons : [];
-
-    fillSelect(panelEls.recipient, recipients, 'Любая цель');
     fillSelect(panelEls.weapon, weapons, 'Любое оружие');
     refreshModifiersMeta(levelIndex);
     refreshTableSync();
@@ -555,9 +587,10 @@ export function setupDamageTablePanel(getMatchIndex) {
     const foot = document.getElementById('df_foot');
     const clearMods = document.getElementById('df_clear_modifiers');
     const mode = document.getElementById('df_table_mode');
+    const perspective = document.getElementById('df_perspective');
     const customBlock = document.getElementById('df_custom_modifiers_block');
 
-    if (!initiator || !recipient || !weapon || !tbody || !mode || !customBlock) {
+    if (!initiator || !recipient || !weapon || !tbody || !mode || !perspective || !customBlock) {
         return;
     }
 
@@ -570,6 +603,7 @@ export function setupDamageTablePanel(getMatchIndex) {
         hint,
         foot,
         mode,
+        perspective,
     };
 
     function setModeVisibility() {
@@ -588,6 +622,10 @@ export function setupDamageTablePanel(getMatchIndex) {
     recipient.addEventListener('change', () => refreshTable());
     weapon.addEventListener('change', () => refreshTable());
     mode.addEventListener('change', () => setModeVisibility());
+    perspective.addEventListener('change', () => {
+        const levelIndex = getLevelIndex(panelEls.getMatchIndex);
+        refreshMeta(levelIndex);
+    });
 
     if (clearMods) {
         clearMods.addEventListener('click', () => {

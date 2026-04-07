@@ -27,6 +27,8 @@ const pieColors = [
 let graphViewMode = 'table';
 let graphToolbarRefresh = null;
 let matrixLoadGen = 0;
+let graphDamageType = 'all';
+let graphIncludeBots = false;
 let teamsSwapped = false;
 let currentLevelIndex = 0;
 const swapCookieName = 'lux_team_swap_by_match';
@@ -224,7 +226,11 @@ function fetchMatricesJSON(levelIndex, mode) {
     if (typeof fn !== 'function') {
         return null;
     }
-    return fn(levelIndex, String(mode), tr);
+    const opts = JSON.stringify({
+        damage_type: graphDamageType,
+        include_bots: graphIncludeBots,
+    });
+    return fn(levelIndex, String(mode), tr, opts);
 }
 
 function escapeHtml(s) {
@@ -623,86 +629,30 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
     syncSwapStateForLevel(levelIndex);
     syncSwapButtonUi();
     updateTeamPanelTitles();
-
-    const tc0 = performance.now();
-    const raw = fetchChartsJSON(levelIndex, mode);
-    const chartsWasmMs = performance.now() - tc0;
-    if (!raw || raw === 'null') {
-        return;
-    }
-
-    const tj0 = performance.now();
-    let parsed;
-    try {
-        parsed = JSON.parse(raw);
-    } catch (_) {
-        return;
-    }
-    const chartsJsonMs = performance.now() - tj0;
-    if (!Array.isArray(parsed) || parsed.length < 2) {
-        return;
-    }
-
-    const team1 = Array.isArray(parsed[0]) ? parsed[0] : [];
-    const team2 = Array.isArray(parsed[1]) ? parsed[1] : [];
-    const leftTeam = teamsSwapped ? team2 : team1;
-    const rightTeam = teamsSwapped ? team1 : team2;
-    const t1PlayerCurves = leftTeam.slice(1);
-    const t2PlayerCurves = rightTeam.slice(1);
-    const focusName = currentFocusedPlayerName();
-    const orderedLeft = focusName
-        ? moveNameFirst(t1PlayerCurves.map((c) => c.name || "Unknown"), focusName)
-        : t1PlayerCurves.map((c) => c.name || "Unknown");
-    const orderedRight = focusName
-        ? moveNameFirst(t2PlayerCurves.map((c) => c.name || "Unknown"), focusName)
-        : t2PlayerCurves.map((c) => c.name || "Unknown");
-    const toValuesByOrder = (order, curves) => order.map((name) => {
-        const i = curves.findIndex((c) => String(c.name || "Unknown") === String(name));
-        return i >= 0 ? getLastValue(curves[i]) : 0;
-    });
-
-    const labels1 = orderedLeft;
-    const values1 = toValuesByOrder(orderedLeft, t1PlayerCurves);
-    const labels2 = orderedRight;
-    const values2 = toValuesByOrder(orderedRight, t2PlayerCurves);
-
-    const label = mode === 'heal' ? 'Heal' : mode === 'kill' ? 'Kills' : 'Damage';
-    const tp0 = performance.now();
-    updateChartDataset(pieChart1, labels1, values1, label);
-    updateChartDataset(pieChart2, labels2, values2, label);
-    const pieRenderMs = performance.now() - tp0;
-
+    const chartsWasmMs = 0;
+    const chartsJsonMs = 0;
+    const pieRenderMs = 0;
     const c0 = document.getElementById('chart_matrix_0');
     const c1 = document.getElementById('chart_matrix_1');
-
-    if (graphViewMode === 'table') {
-        const myGen = ++matrixLoadGen;
-        showChartPreloader(c0, { label: 'Таблица Team 1…' });
-        showChartPreloader(c1, { label: 'Таблица Team 2…' });
-        deferAfterPaint(() => {
-            try {
-                if (myGen !== matrixLoadGen) {
-                    return;
-                }
-                const mt = applyMatrixTables(levelIndex, mode);
-                if (myGen === matrixLoadGen) {
-                    emitChartsTiming(mode, 'table', chartsWasmMs, chartsJsonMs, pieRenderMs, mt);
-                }
-            } finally {
-                if (myGen === matrixLoadGen) {
-                    hideChartPreloader(c0);
-                    hideChartPreloader(c1);
-                }
+    const myGen = ++matrixLoadGen;
+    showChartPreloader(c0, { label: 'Таблица Team 1…' });
+    showChartPreloader(c1, { label: 'Таблица Team 2…' });
+    deferAfterPaint(() => {
+        try {
+            if (myGen !== matrixLoadGen) {
+                return;
             }
-        });
-    } else {
-        matrixLoadGen += 1;
-        hideChartPreloader(c0);
-        hideChartPreloader(c1);
-        setPieTotalsFixed(values1, values2, mode);
-        hideMatrixHints();
-        emitChartsTiming(mode, 'pie', chartsWasmMs, chartsJsonMs, pieRenderMs, null);
-    }
+            const mt = applyMatrixTables(levelIndex, mode);
+            if (myGen === matrixLoadGen) {
+                emitChartsTiming(mode, 'table', chartsWasmMs, chartsJsonMs, pieRenderMs, mt);
+            }
+        } finally {
+            if (myGen === matrixLoadGen) {
+                hideChartPreloader(c0);
+                hideChartPreloader(c1);
+            }
+        }
+    });
 }
 
 function setupGraphViewToolbar(onViewChange) {
@@ -711,24 +661,25 @@ function setupGraphViewToolbar(onViewChange) {
         return;
     }
     graphToolbarRefresh = typeof onViewChange === 'function' ? onViewChange : null;
-    setGraphsRootView(graphViewMode);
-    root.querySelectorAll('.graph-view-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const v = btn.dataset.graphView;
-            if (v !== 'pie' && v !== 'table') {
-                return;
-            }
-            graphViewMode = v;
-            gaEvent('lux_graph_view', { view: v });
-            root.querySelectorAll('.graph-view-btn').forEach((b) => {
-                b.classList.toggle('active', b === btn);
-            });
-            setGraphsRootView(v);
+    setGraphsRootView('table');
+    const dmgTypeSel = document.getElementById('graph_damage_type_select');
+    if (dmgTypeSel) {
+        dmgTypeSel.addEventListener('change', () => {
+            graphDamageType = String(dmgTypeSel.value || 'all');
             if (graphToolbarRefresh) {
                 graphToolbarRefresh();
             }
         });
-    });
+    }
+    const botsCb = document.getElementById('graph_include_bots_cb');
+    if (botsCb) {
+        botsCb.addEventListener('change', () => {
+            graphIncludeBots = !!botsCb.checked;
+            if (graphToolbarRefresh) {
+                graphToolbarRefresh();
+            }
+        });
+    }
 
     swapBtnEl = document.getElementById('graph_swap_teams_btn');
     syncSwapButtonUi();
@@ -773,12 +724,6 @@ function makePiePlaceholder() {
 }
 
 function CreateCharts() {
-    pieChart1 = createPieWithData(
-        document.getElementById('pieChart1').getContext('2d'),
-        makePiePlaceholder()
-    );
-    pieChart2 = createPieWithData(
-        document.getElementById('pieChart2').getContext('2d'),
-        makePiePlaceholder()
-    );
+    pieChart1 = null;
+    pieChart2 = null;
 }
