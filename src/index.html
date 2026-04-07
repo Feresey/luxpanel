@@ -36,18 +36,16 @@
         <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
     </div>
     <div class="content">
-        <div class="top-controls-bar" aria-label="Основные пользовательские настройки">
-            <label class="warrior-picker" for="warrior_nick_select">
-                <span>Кто ты, воин?</span>
-                <select id="warrior_nick_select">
-                    <option value="">Не выбрано</option>
-                </select>
-            </label>
-        </div>
         <div id="watcher_banner" class="watcher-banner" role="status" hidden></div>
         <div class="graphs graphs-view-table" id="graphs_root">
             <div class="graph-view-toolbar" role="group" aria-label="Вид графиков">
-                <label class="graph-player-focus">
+                <label class="warrior-picker toolbar-picker" for="warrior_nick_select">
+                    <span>Кто ты, воин?</span>
+                    <select id="warrior_nick_select">
+                        <option value="">Не выбрано</option>
+                    </select>
+                </label>
+                <label class="warrior-picker toolbar-picker">
                     <span class="graph-view-label">Тип урона:</span>
                     <select id="graph_damage_type_select" class="graph-player-focus-select">
                         <option value="all">Весь урон</option>
@@ -56,7 +54,7 @@
                         <option value="emp">EMP</option>
                     </select>
                 </label>
-                <label class="graph-player-focus">
+                <label class="warrior-picker toolbar-picker">
                     <input type="checkbox" id="graph_include_bots_cb" />
                     <span class="graph-view-label">Учитывать ботов</span>
                 </label>

@@ -18,9 +18,9 @@ type lifePoint struct {
 }
 
 type intensityPoint struct {
-	TimeSec  float64 `json:"t"`
-	AllyDPS  float64 `json:"ally"`  // средний урон за 10 с (кросс-команда), со стороны союзников
-	EnemyDPS float64 `json:"enemy"`
+	TimeSec   float64 `json:"t"`
+	AllyDPS   float64 `json:"ally"` // средний урон за 10 с (кросс-команда), со стороны союзников
+	EnemyDPS  float64 `json:"enemy"`
 	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон выбранного игрока в сек
 	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон по выбранному игроку в сек
 }
@@ -463,9 +463,9 @@ func sampleIntensity(t0 time.Time, dmgList []dmgEv, playerOutList, playerInList 
 			tailPI++
 		}
 		out = append(out, intensityPoint{
-			TimeSec:  t,
-			AllyDPS:  sumAlly / intensityWindowSec,
-			EnemyDPS: sumEnemy / intensityWindowSec,
+			TimeSec:   t,
+			AllyDPS:   sumAlly / intensityWindowSec,
+			EnemyDPS:  sumEnemy / intensityWindowSec,
 			PlayerOut: sumPO / intensityWindowSec,
 			PlayerIn:  sumPI / intensityWindowSec,
 		})
