@@ -4,6 +4,7 @@
 
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 import { gaEvent } from './analytics.js';
+import { getFocusedPlayer } from './player_focus.js';
 
 const MIN_VIEW_SPAN_SEC = 0.4;
 
@@ -12,6 +13,7 @@ let viewStart = 0;
 let viewEnd = 0;
 let timelineReady = false;
 let timelineLoadGen = 0;
+let matchStartUnixMs = 0;
 
 let rootEl = null;
 let trackEl = null;
@@ -31,10 +33,61 @@ let lastMarkers = [];
 let rangeChangeCb = null;
 /** Обновление таблицы combat-логов под выбранный интервал (ставится в setupTimeline). */
 let combatLogRefresh = null;
+let getMatchIndexRef = null;
+const swapCookieName = 'lux_team_swap_by_match';
+let teamsSwapped = false;
 
 /** Общий курсор времени (сек от начала матча) для синхронизации с графиками «ситуация в бою». */
 let syncCursorSec = null;
 const syncCursorListeners = new Set();
+
+function readSwapStateForMatch(matchIndex) {
+    if (typeof document === 'undefined') {
+        return false;
+    }
+    const row = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${swapCookieName}=`));
+    if (!row) {
+        return false;
+    }
+    try {
+        const raw = decodeURIComponent(row.slice(swapCookieName.length + 1));
+        const map = JSON.parse(raw);
+        if (!map || typeof map !== 'object') {
+            return false;
+        }
+        return map[String(Number(matchIndex) || 0)] === 1;
+    } catch (_) {
+        return false;
+    }
+}
+
+function displayKind(kind) {
+    if (!teamsSwapped) {
+        return kind;
+    }
+    if (kind === 'spawn') return 'enemy_spawn';
+    if (kind === 'enemy_spawn') return 'spawn';
+    if (kind === 'kill') return 'death';
+    if (kind === 'death') return 'kill';
+    return kind;
+}
+
+function updateLegend() {
+    if (!legendEl) {
+        return;
+    }
+    const spawnLabel = teamsSwapped ? 'Спавн (враги)' : 'Спавн (союзники)';
+    const enemySpawnLabel = teamsSwapped ? 'Спавн (союзники)' : 'Спавн (враги)';
+    const killLabel = teamsSwapped ? 'Убийство (союзник)' : 'Убийство (враг)';
+    const deathLabel = teamsSwapped ? 'Смерть союзника' : 'Смерть противника';
+    legendEl.innerHTML = ''
+        + `<span class="timeline-legend-item"><i class="timeline-dot spawn"></i> ${spawnLabel}</span>`
+        + `<span class="timeline-legend-item"><i class="timeline-dot enemy-spawn"></i> ${enemySpawnLabel}</span>`
+        + `<span class="timeline-legend-item"><i class="timeline-dot kill"></i> ${killLabel}</span>`
+        + `<span class="timeline-legend-item"><i class="timeline-dot death"></i> ${deathLabel}</span>`;
+}
 
 function formatSec(sec) {
     if (typeof sec !== 'number' || Number.isNaN(sec)) {
@@ -45,6 +98,22 @@ function formatSec(sec) {
     const mm = String(m).padStart(2, '0');
     const ss = s < 10 ? `0${s.toFixed(2)}` : s.toFixed(2);
     return `${mm}:${ss}`;
+}
+
+function formatClockSec(sec) {
+    if (typeof sec !== 'number' || Number.isNaN(sec)) {
+        return '—';
+    }
+    if (!matchStartUnixMs || !Number.isFinite(matchStartUnixMs)) {
+        return formatSec(sec);
+    }
+    const d = new Date(matchStartUnixMs + sec * 1000);
+    return d.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    });
 }
 
 function clamp(v, lo, hi) {
@@ -124,7 +193,7 @@ function renderTimeAxis() {
         line.setAttribute('aria-hidden', 'true');
         const label = document.createElement('span');
         label.className = 'timeline-time-tick-label';
-        label.textContent = formatSec(t);
+        label.textContent = formatClockSec(t);
         tick.appendChild(line);
         tick.appendChild(label);
         timeAxisEl.appendChild(tick);
@@ -144,7 +213,7 @@ function renderTimeAxis() {
             line.setAttribute('aria-hidden', 'true');
             const label = document.createElement('span');
             label.className = 'timeline-time-tick-label';
-            label.textContent = formatSec(t);
+            label.textContent = formatClockSec(t);
             tick.appendChild(line);
             tick.appendChild(label);
             timeAxisEl.appendChild(tick);
@@ -175,29 +244,36 @@ function formatMarkerTooltip(m) {
     if (!m || typeof m !== 'object') {
         return '';
     }
+    const tsec = typeof m.time_sec === 'number' ? m.time_sec : null;
+    const tline = tsec === null ? '' : `Время: ${formatClockSec(tsec)}\n`;
     if (m.kind === 'spawn') {
+        const dKind = displayKind(m.kind);
         const n = (m.player || '').trim();
         const sh = (m.player_ship || '').trim();
+        const side = dKind === 'spawn' ? 'союзники' : 'враги';
         if (n && sh) {
-            return `Спавн (союзники): ${n} · ${sh}`;
+            return `${tline}Спавн (${side}): ${n} · ${sh}`;
         }
         if (n) {
-            return `Спавн (союзники): ${n}`;
+            return `${tline}Спавн (${side}): ${n}`;
         }
-        return 'Спавн (союзники)';
+        return `${tline}Спавн (${side})`;
     }
     if (m.kind === 'enemy_spawn') {
+        const dKind = displayKind(m.kind);
         const n = (m.player || '').trim();
         const sh = (m.player_ship || '').trim();
+        const side = dKind === 'spawn' ? 'союзники' : 'враги';
         if (n && sh) {
-            return `Спавн (враги): ${n} · ${sh}`;
+            return `${tline}Спавн (${side}): ${n} · ${sh}`;
         }
         if (n) {
-            return `Спавн (враги): ${n}`;
+            return `${tline}Спавн (${side}): ${n}`;
         }
-        return 'Спавн (враги)';
+        return `${tline}Спавн (${side})`;
     }
     if (m.kind === 'kill') {
+        const dKind = displayKind(m.kind);
         const ks = (m.killer_ship || '').trim();
         const vs = (m.victim_ship || '').trim();
         const kPart = m.killer
@@ -208,14 +284,20 @@ function formatMarkerTooltip(m) {
             : '';
         let line1 = '';
         if (kPart && vPart) {
-            line1 = `Убийство: ${kPart} → ${vPart}`;
+            line1 = dKind === 'kill'
+                ? `Убийство: ${kPart} → ${vPart}`
+                : `Смерть союзника: ${kPart} → ${vPart}`;
         } else {
-            line1 = `Убийство: ${kPart || vPart}`;
+            line1 = dKind === 'kill'
+                ? `Убийство: ${kPart || vPart}`
+                : `Смерть союзника: ${kPart || vPart}`;
         }
         const extra = killDeathTooltipExtra(m);
-        return extra ? `${line1}\n${extra}` : line1;
+        const body = extra ? `${line1}\n${extra}` : line1;
+        return `${tline}${body}`;
     }
     if (m.kind === 'death') {
+        const dKind = displayKind(m.kind);
         const ks = (m.killer_ship || '').trim();
         const vs = (m.victim_ship || '').trim();
         const kPart = m.killer
@@ -227,16 +309,19 @@ function formatMarkerTooltip(m) {
             : '';
         let line1 = '';
         if (kPart && vPart) {
-            line1 = `Смерть союзника: ${kPart} → ${vPart}`;
+            line1 = dKind === 'death'
+                ? `Смерть союзника: ${kPart} → ${vPart}`
+                : `Убийство: ${kPart} → ${vPart}`;
         } else if (vPart) {
-            line1 = `Смерть союзника: ${vPart}`;
+            line1 = dKind === 'death' ? `Смерть союзника: ${vPart}` : `Убийство: ${vPart}`;
         } else {
-            line1 = 'Смерть союзника';
+            line1 = dKind === 'death' ? 'Смерть союзника' : 'Убийство';
         }
         const extra = killDeathTooltipExtra(m);
-        return extra ? `${line1}\n${extra}` : line1;
+        const body = extra ? `${line1}\n${extra}` : line1;
+        return `${tline}${body}`;
     }
-    return m.label || '';
+    return `${tline}${m.label || ''}`;
 }
 
 function shortLabelUnderMarker(m) {
@@ -313,13 +398,20 @@ function showTooltip(clientX, clientY, text) {
     const pad = 8;
     const tw = el.offsetWidth;
     const th = el.offsetHeight;
-    let left = clientX + pad;
+    let left = clientX - tw / 2;
     let top = clientY + pad;
-    if (left + tw > window.innerWidth - 8) {
-        left = clientX - tw - pad;
-    }
-    if (top + th > window.innerHeight - 8) {
-        top = clientY - th - pad;
+    if (trackEl) {
+        const rect = trackEl.getBoundingClientRect();
+        // Тултип всегда под графиком, чтобы не перекрывать сами линии/маркеры.
+        top = rect.bottom + 10;
+        left = clamp(clientX - tw / 2, 8, window.innerWidth - tw - 8);
+    } else {
+        if (left + tw > window.innerWidth - 8) {
+            left = clientX - tw - pad;
+        }
+        if (top + th > window.innerHeight - 8) {
+            top = clientY - th - pad;
+        }
     }
     el.style.left = `${Math.max(8, left)}px`;
     el.style.top = `${Math.max(8, top)}px`;
@@ -414,7 +506,7 @@ function setHint() {
         hintEl.textContent = '';
         return;
     }
-    hintEl.textContent = `Окно: ${formatSec(viewStart)} — ${formatSec(viewEnd)} · матч ${formatSec(matchDurationSec)}`;
+    hintEl.textContent = `Окно: ${formatClockSec(viewStart)} — ${formatClockSec(viewEnd)} · длительность ${formatSec(matchDurationSec)}`;
 }
 
 function layoutBrushPreview(fromSec, toSec) {
@@ -475,6 +567,25 @@ function sortMarkersForPaint(markers) {
     });
 }
 
+function markerKindCounts(markers) {
+    const counts = {
+        spawn: 0,
+        enemy_spawn: 0,
+        kill: 0,
+        death: 0,
+        other: 0,
+    };
+    (Array.isArray(markers) ? markers : []).forEach((m) => {
+        const k = String((m && m.kind) || '');
+        if (k in counts) {
+            counts[k] += 1;
+        } else {
+            counts.other += 1;
+        }
+    });
+    return counts;
+}
+
 function renderMarkers() {
     if (!markersLayerEl || !matchDurationSec || matchDurationSec <= 0 || viewEnd <= viewStart) {
         if (markersLayerEl) markersLayerEl.innerHTML = '';
@@ -500,10 +611,11 @@ function renderMarkers() {
 
     for (let i = 0; i < visible.length; i++) {
         const m = visible[i];
+        const dKind = displayKind(m.kind);
         const t = typeof m.time_sec === 'number' ? m.time_sec : 0;
         const pct = clamp(((t - viewStart) / span) * 100, 0, 100);
         const dot = document.createElement('div');
-        dot.className = `timeline-marker ${kindClass[m.kind] || 'timeline-marker-other'}`;
+        dot.className = `timeline-marker ${kindClass[dKind] || 'timeline-marker-other'}`;
         dot.style.left = `${pct}%`;
         const tt = formatMarkerTooltip(m);
         dot.setAttribute('aria-label', tt);
@@ -638,6 +750,7 @@ function endDrag(ev) {
 }
 
 export function setupTimeline(getMatchIndex, onRangeChange) {
+    getMatchIndexRef = getMatchIndex || null;
     rangeChangeCb = onRangeChange || null;
     rootEl = document.getElementById('timeline_root');
     hintEl = document.getElementById('timeline_hint');
@@ -652,11 +765,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
 
     legendEl = document.createElement('div');
     legendEl.className = 'timeline-legend';
-    legendEl.innerHTML = ''
-        + '<span class="timeline-legend-item"><i class="timeline-dot spawn"></i> Спавн (союзники)</span>'
-        + '<span class="timeline-legend-item"><i class="timeline-dot enemy-spawn"></i> Спавн (враги)</span>'
-        + '<span class="timeline-legend-item"><i class="timeline-dot kill"></i> Убийство (враг)</span>'
-        + '<span class="timeline-legend-item"><i class="timeline-dot death"></i> Смерть союзника</span>';
+    updateLegend();
 
     const trackWrap = document.createElement('div');
     trackWrap.className = 'timeline-track-wrap';
@@ -816,6 +925,12 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
         renderTimeAxis();
         layoutSyncCursorLine();
     });
+    window.addEventListener('lux-team-swap-changed', () => {
+        const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
+        teamsSwapped = readSwapStateForMatch(idx);
+        updateLegend();
+        renderMarkers();
+    });
 
     function loadMatch() {
         hideTooltip();
@@ -837,9 +952,18 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                     return;
                 }
                 const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
+                teamsSwapped = readSwapStateForMatch(idx);
+                updateLegend();
+                const focusPlayer = String(getFocusedPlayer(idx) || '');
                 const tw0 = performance.now();
-                const raw = fn(idx);
+                const raw = fn(idx, focusPlayer);
                 const timelineWasmMs = performance.now() - tw0;
+                console.debug('[timeline] raw payload', {
+                    match_index: idx,
+                    focused_player: focusPlayer,
+                    raw_len: typeof raw === 'string' ? raw.length : 0,
+                    wasm_ms: Math.round(timelineWasmMs),
+                });
                 if (!raw || raw === 'null') {
                     timelineReady = false;
                     matchDurationSec = 0;
@@ -860,7 +984,25 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                 }
                 const timelineJsonMs = performance.now() - tj0;
                 matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
+                matchStartUnixMs = typeof data.start_unix_ms === 'number' ? data.start_unix_ms : 0;
                 lastMarkers = Array.isArray(data.markers) ? data.markers : [];
+                const counts = markerKindCounts(lastMarkers);
+                console.debug('[timeline] parsed markers', {
+                    match_index: idx,
+                    focused_player: focusPlayer,
+                    start_unix_ms: matchStartUnixMs,
+                    end_sec: matchDurationSec,
+                    marker_total: lastMarkers.length,
+                    marker_counts: counts,
+                    markers_head: lastMarkers.slice(0, 5).map((m) => ({
+                        kind: m && m.kind,
+                        time_sec: m && m.time_sec,
+                        killer: m && m.killer,
+                        victim: m && m.victim,
+                        player: m && m.player,
+                    })),
+                    json_ms: Math.round(timelineJsonMs),
+                });
                 timelineReady = matchDurationSec > 0;
                 viewStart = 0;
                 viewEnd = matchDurationSec;
@@ -871,6 +1013,13 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                 setHint();
                 renderCombatLogLines(idx);
                 const timelineRenderMs = performance.now() - td0;
+                console.debug('[timeline] rendered', {
+                    match_index: idx,
+                    view_from_sec: viewStart,
+                    view_to_sec: viewEnd,
+                    marker_total: lastMarkers.length,
+                    render_ms: Math.round(timelineRenderMs),
+                });
                 gaEvent('lux_timeline_timing', {
                     timeline_wasm_ms: Math.round(timelineWasmMs),
                     timeline_json_ms: Math.round(timelineJsonMs),
@@ -887,4 +1036,8 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     }
 
     return { refresh: loadMatch, reset: resetTimelineView };
+}
+
+export function getTimelineStartUnixMs() {
+    return matchStartUnixMs || 0;
 }

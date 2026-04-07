@@ -4,12 +4,13 @@ import '../scss/styles.scss'
 // Импортируйте весь JS Bootstrap
 import * as bootstrap from 'bootstrap'
 
-import { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar } from './charts.js'
+import { CreateCharts, ApplyParsedCharts, applyTeamSwapState, clearTeamSwapCookieState, setupGraphViewToolbar } from './charts.js'
 import { setupDamageTablePanel } from './damage_table.js'
 import { setupTimeline } from './timeline.js'
 import { setupBattleInsightCharts } from './battle_insight_charts.js'
 import { deferAfterPaint } from './chart_preloader.js'
 import { byteSizeBucket, gaEvent } from './analytics.js'
+import { clearFocusedPlayers, getFocusedPlayer, setFocusedPlayer } from './player_focus.js'
 
 import './wasm_exec.js'
 
@@ -39,6 +40,11 @@ if (WebAssembly) {
 
 const pickLogs = document.getElementById('pick_logs');
 const matchSelect = document.getElementById('match_select');
+const playerFocusSelect = document.getElementById('graph_player_focus_select');
+const warriorNickSelect = document.getElementById('warrior_nick_select');
+const swapCookieName = 'lux_team_swap_by_match';
+const warriorCookieName = 'lux_warrior_nick';
+const timelineResetTopBtn = document.getElementById('timeline_reset_top_btn');
 
 let currentMetric = 'damage';
 
@@ -51,6 +57,295 @@ function getSelectedMatchIndex() {
 
 function refreshCharts() {
     ApplyParsedCharts(getSelectedMatchIndex(), currentMetric);
+}
+
+function readSwapStateForMatch(matchIndex) {
+    if (typeof document === 'undefined') {
+        return false;
+    }
+    const row = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${swapCookieName}=`));
+    if (!row) {
+        return false;
+    }
+    try {
+        const raw = decodeURIComponent(row.slice(swapCookieName.length + 1));
+        const map = JSON.parse(raw);
+        if (!map || typeof map !== 'object') {
+            return false;
+        }
+        return map[String(Number(matchIndex) || 0)] === 1;
+    } catch (_) {
+        return false;
+    }
+}
+
+function hasExplicitSwapState(matchIndex) {
+    if (typeof document === 'undefined') {
+        return false;
+    }
+    const row = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${swapCookieName}=`));
+    if (!row) {
+        return false;
+    }
+    try {
+        const raw = decodeURIComponent(row.slice(swapCookieName.length + 1));
+        const map = JSON.parse(raw);
+        if (!map || typeof map !== 'object') {
+            return false;
+        }
+        const key = String(Number(matchIndex) || 0);
+        return Object.prototype.hasOwnProperty.call(map, key);
+    } catch (_) {
+        return false;
+    }
+}
+
+function selectedTeamIDs(matchIndex, allyTeamID, enemyTeamID) {
+    const isSwap = readSwapStateForMatch(matchIndex);
+    if (isSwap) {
+        return {
+            ally: enemyTeamID || allyTeamID || 0,
+            enemy: allyTeamID || enemyTeamID || 0,
+        };
+    }
+    return {
+        ally: allyTeamID || 0,
+        enemy: enemyTeamID || 0,
+    };
+}
+
+function readCookieValue(name) {
+    if (typeof document === 'undefined') {
+        return '';
+    }
+    const row = document.cookie.split('; ').find((x) => x.startsWith(`${name}=`));
+    if (!row) {
+        return '';
+    }
+    try {
+        return decodeURIComponent(row.slice(name.length + 1));
+    } catch (_) {
+        return '';
+    }
+}
+
+function writeCookieValue(name, value, maxAgeSec) {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const v = encodeURIComponent(String(value || ''));
+    document.cookie = `${name}=${v}; path=/; max-age=${maxAgeSec}; samesite=lax`;
+}
+
+function getWarriorNick() {
+    return readCookieValue(warriorCookieName).trim();
+}
+
+function setWarriorNick(v) {
+    writeCookieValue(warriorCookieName, String(v || '').trim(), 60 * 60 * 24 * 365 * 5);
+}
+
+function playerTeamsFromTimeline(matchIndex) {
+    const fn = globalThis.getTimelineJSON;
+    if (typeof fn !== 'function') {
+        return { allyTeamID: 0, enemyTeamID: 0, byPlayer: new Map() };
+    }
+    try {
+        const raw = fn(matchIndex, '');
+        const data = JSON.parse(raw || '{}');
+        const markers = Array.isArray(data && data.markers) ? data.markers : [];
+        const byPlayer = new Map();
+        markers.forEach((m) => {
+            const t = Number(m && m.team_id) || 0;
+            const kt = Number(m && m.killer_team_id) || 0;
+            const vt = Number(m && m.victim_team_id) || 0;
+            const p = String((m && m.player) || '').trim();
+            const k = String((m && m.killer) || '').trim();
+            const v = String((m && m.victim) || '').trim();
+            if (p && t) byPlayer.set(p, t);
+            if (k && kt) byPlayer.set(k, kt);
+            if (v && vt) byPlayer.set(v, vt);
+        });
+        return {
+            allyTeamID: Number(data && data.ally_team_id) || 0,
+            enemyTeamID: Number(data && data.enemy_team_id) || 0,
+            byPlayer,
+        };
+    } catch (_) {
+        return { allyTeamID: 0, enemyTeamID: 0, byPlayer: new Map() };
+    }
+}
+
+function warriorSwapFromCharts(matchIndex, nick) {
+    const fn = globalThis.getChartsJSON;
+    if (typeof fn !== 'function') {
+        return null;
+    }
+    try {
+        const raw = fn(matchIndex, 'damage', '{}');
+        const parsed = JSON.parse(raw || '[]');
+        if (!Array.isArray(parsed) || parsed.length < 2) {
+            return null;
+        }
+        const canon = String(nick || '').trim().toLowerCase();
+        const inTeam = (arr) => (Array.isArray(arr) ? arr : [])
+            .slice(1)
+            .some((c) => String(c && c.name ? c.name : '').trim().toLowerCase() === canon);
+        if (inTeam(parsed[0])) {
+            return false;
+        }
+        if (inTeam(parsed[1])) {
+            return true;
+        }
+    } catch (_) {
+        return null;
+    }
+    return null;
+}
+
+function syncSwapButtonState(swapped) {
+    return applyTeamSwapState(getSelectedMatchIndex(), Boolean(swapped));
+}
+
+function applyWarriorAllianceForMatch(matchIndex) {
+    // Ник задает только дефолт. Если пользователь уже переключал команду в этом матче,
+    // больше не переопределяем его выбор.
+    if (hasExplicitSwapState(matchIndex)) {
+        return false;
+    }
+    const nick = getWarriorNick();
+    if (!nick) {
+        return false;
+    }
+    // Для верхних графиков опираемся на тот же источник (getChartsJSON), чтобы
+    // дефолтный swap гарантированно отражался в левой/правой панели.
+    const byCharts = warriorSwapFromCharts(matchIndex, nick);
+    if (byCharts !== null) {
+        return syncSwapButtonState(byCharts);
+    }
+    const teamMeta = playerTeamsFromTimeline(matchIndex);
+    const tid = teamMeta.byPlayer.get(nick) || 0;
+    if (!tid) {
+        return false;
+    }
+    const allyID = teamMeta.allyTeamID || 0;
+    const enemyID = teamMeta.enemyTeamID || 0;
+    if (!allyID || !enemyID || allyID === enemyID) {
+        return false;
+    }
+    if (tid === allyID) {
+        return syncSwapButtonState(false);
+    } else if (tid === enemyID) {
+        return syncSwapButtonState(true);
+    }
+    return false;
+}
+
+function loadWarriorOptions() {
+    if (!warriorNickSelect) {
+        return;
+    }
+    const idx = getSelectedMatchIndex();
+    const teamMeta = playerTeamsFromTimeline(idx);
+    const selected = selectedTeamIDs(idx, teamMeta.allyTeamID, teamMeta.enemyTeamID);
+    const allPlayers = Array.from(teamMeta.byPlayer.keys()).sort((a, b) => String(a).localeCompare(String(b)));
+    const allies = [];
+    const enemies = [];
+    const other = [];
+    allPlayers.forEach((p) => {
+        const tid = teamMeta.byPlayer.get(p) || 0;
+        if (selected.ally && tid === selected.ally) {
+            allies.push(p);
+        } else if (selected.enemy && tid === selected.enemy) {
+            enemies.push(p);
+        } else {
+            other.push(p);
+        }
+    });
+    warriorNickSelect.innerHTML = '<option value="">Не выбрано</option>';
+    const appendGroup = (label, arr) => {
+        if (!arr.length) {
+            return;
+        }
+        const g = document.createElement('optgroup');
+        g.label = label;
+        arr.forEach((p) => {
+            const o = document.createElement('option');
+            o.value = p;
+            o.textContent = p;
+            g.appendChild(o);
+        });
+        warriorNickSelect.appendChild(g);
+    };
+    appendGroup('Союзники', allies);
+    appendGroup('Противники', enemies);
+    appendGroup('Прочие', other);
+    const saved = getWarriorNick();
+    warriorNickSelect.value = allPlayers.includes(saved) ? saved : '';
+}
+
+function loadPlayerFocusOptions() {
+    if (!playerFocusSelect) {
+        return;
+    }
+    const idx = getSelectedMatchIndex();
+    let players = [];
+    const fn = globalThis.getDamageFilterMetaJSON;
+    if (typeof fn === 'function') {
+        try {
+            const raw = fn(idx, '', '{}');
+            const meta = JSON.parse(raw || '{}');
+            if (meta && Array.isArray(meta.players)) {
+                players = meta.players.slice().sort((a, b) => String(a).localeCompare(String(b)));
+            }
+        } catch (_) {
+            players = [];
+        }
+    }
+    const prev = getFocusedPlayer(idx);
+    const warrior = getWarriorNick();
+    const defaultPlayer = prev || (players.includes(warrior) ? warrior : '');
+    const teamMeta = playerTeamsFromTimeline(idx);
+    const selected = selectedTeamIDs(idx, teamMeta.allyTeamID, teamMeta.enemyTeamID);
+    const allies = [];
+    const enemies = [];
+    const other = [];
+    players.forEach((p) => {
+        const tid = teamMeta.byPlayer.get(p) || 0;
+        if (selected.ally && tid === selected.ally) {
+            allies.push(p);
+        } else if (selected.enemy && tid === selected.enemy) {
+            enemies.push(p);
+        } else {
+            other.push(p);
+        }
+    });
+    playerFocusSelect.innerHTML = '<option value="">Все игроки</option>';
+    const appendGroup = (label, arr) => {
+        if (!arr.length) {
+            return;
+        }
+        const g = document.createElement('optgroup');
+        g.label = label;
+        arr.forEach((p) => {
+            const o = document.createElement('option');
+            o.value = p;
+            o.textContent = p;
+            g.appendChild(o);
+        });
+        playerFocusSelect.appendChild(g);
+    };
+    appendGroup('Союзники', allies);
+    appendGroup('Противники', enemies);
+    appendGroup('Прочие', other);
+    playerFocusSelect.value = players.includes(defaultPlayer) ? defaultPlayer : '';
+    if (playerFocusSelect.value !== prev) {
+        setFocusedPlayer(idx, playerFocusSelect.value || '');
+    }
 }
 
 const damagePanel = setupDamageTablePanel(getSelectedMatchIndex);
@@ -108,7 +403,16 @@ function updateWatcherBanner() {
 }
 
 function refreshAll() {
+    const idx = getSelectedMatchIndex();
+    // Сначала синхронизируем charts-state для текущего матча (в т.ч. swap-кнопку).
     refreshCharts();
+    // Затем применяем дефолт от "Кто ты, воин?" уже к актуальному состоянию матча.
+    const autoSwapChanged = applyWarriorAllianceForMatch(idx);
+    if (autoSwapChanged) {
+        refreshCharts();
+    }
+    loadWarriorOptions();
+    loadPlayerFocusOptions();
     updateWatcherBanner();
     deferAfterPaint(() => {
         if (damagePanel && typeof damagePanel.refresh === 'function') {
@@ -124,6 +428,14 @@ function refreshAll() {
 
 const timelineCtl = setupTimeline(getSelectedMatchIndex, refreshAll);
 const battleInsightCtl = setupBattleInsightCharts(getSelectedMatchIndex);
+
+if (timelineResetTopBtn) {
+    timelineResetTopBtn.addEventListener('click', () => {
+        if (timelineCtl && typeof timelineCtl.reset === 'function') {
+            timelineCtl.reset();
+        }
+    });
+}
 
 function setupMetricButtons() {
     const wrap = document.querySelector('.metric-buttons');
@@ -155,6 +467,16 @@ function setupBattleInsightTooltips() {
     });
 }
 setupBattleInsightTooltips();
+
+if (warriorNickSelect) {
+    warriorNickSelect.addEventListener('change', () => {
+        setWarriorNick(warriorNickSelect.value || '');
+        applyWarriorAllianceForMatch(getSelectedMatchIndex());
+        loadWarriorOptions();
+        loadPlayerFocusOptions();
+        refreshAll();
+    });
+}
 
 function renderMatchOptions() {
     if (!matchSelect) {
@@ -237,6 +559,21 @@ if (matchSelect) {
     });
 }
 
+if (playerFocusSelect) {
+    playerFocusSelect.addEventListener('change', () => {
+        const idx = getSelectedMatchIndex();
+        const player = playerFocusSelect.value || '';
+        setFocusedPlayer(idx, player);
+        gaEvent('lux_player_focus_change', { match_index: idx, has_player: player ? '1' : '0' });
+        if (timelineCtl && typeof timelineCtl.refresh === 'function') {
+            timelineCtl.refresh();
+        }
+        if (battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
+            battleInsightCtl.refresh();
+        }
+    });
+}
+
 if (document.getElementById('pieChart1') && document.getElementById('pieChart2')) {
     CreateCharts();
     setupGraphViewToolbar(refreshCharts);
@@ -273,6 +610,11 @@ function runParseAndRenderLogs(data) {
 }
 
 pickLogs.addEventListener('change', function () {
+    clearTeamSwapCookieState();
+    clearFocusedPlayers();
+    if (playerFocusSelect) {
+        playerFocusSelect.innerHTML = '<option value="">Все игроки</option>';
+    }
     const data = {
         rawGame: '',
         rawCombat: '',

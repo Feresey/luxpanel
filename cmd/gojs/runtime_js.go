@@ -106,7 +106,11 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
-		s, err := r.marshalTimelineJSON(ctx, level)
+		focusPlayer := ""
+		if len(args) >= 2 && args[1].Type() == js.TypeString {
+			focusPlayer = args[1].String()
+		}
+		s, err := r.marshalTimelineJSON(ctx, level, focusPlayer)
 		if err != nil {
 			return "null"
 		}
@@ -122,7 +126,11 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if len(args) >= 2 && args[1].Type() == js.TypeString {
 			timeRangeJSON = args[1].String()
 		}
-		s, err := r.marshalBattleInsightJSON(ctx, level, timeRangeJSON)
+		focusPlayer := ""
+		if len(args) >= 3 && args[2].Type() == js.TypeString {
+			focusPlayer = args[2].String()
+		}
+		s, err := r.marshalBattleInsightJSON(ctx, level, timeRangeJSON, focusPlayer)
 		if err != nil {
 			return "null"
 		}

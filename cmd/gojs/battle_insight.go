@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
@@ -13,18 +14,24 @@ type lifePoint struct {
 	TimeSec float64 `json:"t"`
 	Allies  int     `json:"allies"`
 	Enemies int     `json:"enemies"`
+	Player  int     `json:"player,omitempty"` // 0/1: жив ли выбранный игрок в момент времени
 }
 
 type intensityPoint struct {
 	TimeSec  float64 `json:"t"`
 	AllyDPS  float64 `json:"ally"`  // средний урон за 10 с (кросс-команда), со стороны союзников
 	EnemyDPS float64 `json:"enemy"`
+	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон выбранного игрока в сек
+	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон по выбранному игроку в сек
 }
 
 type battleInsightResult struct {
 	EndSec         float64          `json:"end_sec"`
+	AllyTeamID     int              `json:"ally_team_id,omitempty"`
+	EnemyTeamID    int              `json:"enemy_team_id,omitempty"`
 	AllyTeamLabel  string           `json:"ally_team_label"`
 	EnemyTeamLabel string           `json:"enemy_team_label"`
+	FocusedPlayer  string           `json:"focused_player,omitempty"`
 	Life           []lifePoint      `json:"life"`
 	Intensity      []intensityPoint `json:"intensity"`
 }
@@ -33,12 +40,12 @@ const intensitySampleStepSec = 0.25
 const intensityWindowSec = 10.0
 
 type lifeEvent struct {
-	t    float64
+	t    time.Time
 	kind int // 0 spawn ally, 1 spawn enemy, 2 ally death, 3 enemy death
 	name string
 }
 
-func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.Level, timeRangeJSON string) (string, error) {
+func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.Level, timeRangeJSON string, focusedPlayer string) (string, error) {
 	if level == nil {
 		b, err := json.Marshal(battleInsightResult{})
 		if err != nil {
@@ -48,6 +55,9 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	}
 	lo, hi := clampTimeRange(level, timeRangeJSON)
 	span := levelSpanSeconds(level)
+	focusedPlayer = strings.TrimSpace(focusedPlayer)
+	focusKey := strings.ToLower(focusedPlayer)
+	hasFocus := focusKey != ""
 
 	allyID, allyOk := allyTeamIDForTimeline(level)
 	id0, id1, twoOk := leftRightTeamIDs(level)
@@ -74,6 +84,26 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 
 	t0 := level.StartLevelTime
 	nameTeam := rosterNameToTeamID(level)
+	nameCanon := make(map[string]string)
+	if level != nil {
+		for _, pl := range level.Teams {
+			for _, p := range pl {
+				n := strings.TrimSpace(p.Name)
+				if n == "" {
+					continue
+				}
+				k := strings.ToLower(n)
+				if _, ok := nameCanon[k]; !ok {
+					nameCanon[k] = n
+				}
+			}
+		}
+	}
+	if hasFocus {
+		if canon, ok := nameCanon[focusKey]; ok {
+			focusedPlayer = canon
+		}
+	}
 
 	var events []lifeEvent
 
@@ -94,11 +124,30 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if t.Before(t0) {
 				t = t0
 			}
-			sec := t.Sub(t0).Seconds()
 			if tid == allyID {
-				events = append(events, lifeEvent{t: sec, kind: 0, name: name})
+				r.lg.For(ctx).Debugw(
+					"life_event_source_line",
+					"line_type", "spawn",
+					"time", sp.Time.Time,
+					"time_sec", t.Sub(t0).Seconds(),
+					"kind", "ally_spawn",
+					"player", name,
+					"ship", strings.TrimSpace(sp.Ship),
+					"team_id", tid,
+				)
+				events = append(events, lifeEvent{t: t, kind: 0, name: name})
 			} else if tid == enemyID {
-				events = append(events, lifeEvent{t: sec, kind: 1, name: name})
+				r.lg.For(ctx).Debugw(
+					"life_event_source_line",
+					"line_type", "spawn",
+					"time", sp.Time.Time,
+					"time_sec", t.Sub(t0).Seconds(),
+					"kind", "enemy_spawn",
+					"player", name,
+					"ship", strings.TrimSpace(sp.Ship),
+					"team_id", tid,
+				)
+				events = append(events, lifeEvent{t: t, kind: 1, name: name})
 			}
 		}
 
@@ -115,7 +164,6 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if t.Before(t0) {
 				t = t0
 			}
-			sec := t.Sub(t0).Seconds()
 			victimTeam, inRoster := nameTeam[strings.ToLower(victim)]
 			if !inRoster {
 				continue
@@ -123,20 +171,53 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			allyDeath := victim != "" && len(nameTeam) > 0 && victimTeam == allyID
 
 			if allyDeath {
-				events = append(events, lifeEvent{t: sec, kind: 2, name: victim})
+				r.lg.For(ctx).Debugw(
+					"life_event_source_line",
+					"line_type", "kill",
+					"time", k.Time.Time,
+					"time_sec", t.Sub(t0).Seconds(),
+					"kind", "ally_death",
+					"killer", killer,
+					"victim", victim,
+					"victim_team_id", victimTeam,
+				)
+				events = append(events, lifeEvent{t: t, kind: 2, name: victim})
 				continue
 			}
 			if killer != "" && victim != "" {
-				events = append(events, lifeEvent{t: sec, kind: 3, name: victim})
+				r.lg.For(ctx).Debugw(
+					"life_event_source_line",
+					"line_type", "kill",
+					"time", k.Time.Time,
+					"time_sec", t.Sub(t0).Seconds(),
+					"kind", "enemy_death",
+					"killer", killer,
+					"victim", victim,
+					"victim_team_id", victimTeam,
+				)
+				events = append(events, lifeEvent{t: t, kind: 3, name: victim})
 			}
 		}
 	}
 
+	// При одинаковом времени сначала применяем смерти, потом спавны.
+	// Иначе на метке "смерть" линия может визуально идти вверх из-за спавнов в ту же секунду.
+	lifeEventOrder := map[int]int{
+		2: 0, // ally death
+		3: 1, // enemy death
+		0: 2, // ally spawn
+		1: 3, // enemy spawn
+	}
 	sort.Slice(events, func(i, j int) bool {
-		if events[i].t != events[j].t {
-			return events[i].t < events[j].t
+		if !events[i].t.Equal(events[j].t) {
+			return events[i].t.Before(events[j].t)
 		}
-		return events[i].kind < events[j].kind
+		pi := lifeEventOrder[events[i].kind]
+		pj := lifeEventOrder[events[j].kind]
+		if pi != pj {
+			return pi < pj
+		}
+		return events[i].name < events[j].name
 	})
 
 	allyRoster := level.Teams[allyID]
@@ -163,9 +244,23 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 
 	allyAlive := make(map[string]bool)
 	enemyAlive := make(map[string]bool)
+	playerAlive := false
+	if hasFocus {
+		// Если первый найденный эвент игрока — смерть, значит до него игрок был жив,
+		// даже если в логе нет явного spawn (или он не сопоставился по нику).
+		for _, ev := range events {
+			if strings.ToLower(strings.TrimSpace(ev.name)) != focusKey {
+				continue
+			}
+			if ev.kind == 2 || ev.kind == 3 {
+				playerAlive = true
+			}
+			break
+		}
+	}
 
 	var fullLife []lifePoint
-	fullLife = append(fullLife, lifePoint{TimeSec: 0, Allies: 0, Enemies: 0})
+	fullLife = append(fullLife, lifePoint{TimeSec: 0, Allies: 0, Enemies: 0, Player: 0})
 
 	for _, ev := range events {
 		switch ev.kind {
@@ -178,10 +273,19 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		case 3:
 			enemyAlive[ev.name] = false
 		}
+		if hasFocus && strings.ToLower(strings.TrimSpace(ev.name)) == focusKey {
+			playerAlive = ev.kind == 0 || ev.kind == 1
+		}
 		fullLife = append(fullLife, lifePoint{
-			TimeSec: ev.t,
+			TimeSec: ev.t.Sub(t0).Seconds(),
 			Allies:  countAlly(allyAlive),
 			Enemies: countEnemy(enemyAlive),
+			Player: func() int {
+				if playerAlive {
+					return 1
+				}
+				return 0
+			}(),
 		})
 	}
 
@@ -189,6 +293,8 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 
 	// Интенсивность: скользящее среднее урона за 10 с (кросс-командный урон, как в графиках)
 	var dmgList []dmgEv
+	var playerOutList []dmgAmtEv
+	var playerInList []dmgAmtEv
 	if level.CombatLog != nil {
 		for _, dmg := range level.CombatLog.Damage {
 			if dmg == nil || dmg.IsEmpty() {
@@ -206,7 +312,6 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if t.Before(t0) {
 				t = t0
 			}
-			sec := t.Sub(t0).Seconds()
 			var teamMark int
 			if st == allyID {
 				teamMark = 0
@@ -215,19 +320,28 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			} else {
 				continue
 			}
-			dmgList = append(dmgList, dmgEv{t: sec, amt: amount, tid: teamMark})
+			dmgList = append(dmgList, dmgEv{t: t, amt: amount, tid: teamMark})
+			if hasFocus && strings.EqualFold(srcName, focusedPlayer) {
+				playerOutList = append(playerOutList, dmgAmtEv{t: t, amt: amount})
+			}
+			if hasFocus && strings.EqualFold(tgtName, focusedPlayer) {
+				playerInList = append(playerInList, dmgAmtEv{t: t, amt: amount})
+			}
 		}
 	}
 	sort.Slice(dmgList, func(i, j int) bool {
-		return dmgList[i].t < dmgList[j].t
+		return dmgList[i].t.Before(dmgList[j].t)
 	})
 
-	intensityOut := sampleIntensity(dmgList, lo, hi)
+	intensityOut := sampleIntensity(t0, dmgList, playerOutList, playerInList, lo, hi)
 
 	res := battleInsightResult{
 		EndSec:         span,
+		AllyTeamID:     allyID,
+		EnemyTeamID:    enemyID,
 		AllyTeamLabel:  "Союзники",
 		EnemyTeamLabel: "Противники",
+		FocusedPlayer:  focusedPlayer,
 		Life:           lifeOut,
 		Intensity:      intensityOut,
 	}
@@ -236,7 +350,20 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		r.lg.For(ctx).Errorw("marshalBattleInsightJSON", "err", err)
 		return "", err
 	}
-	return string(b), nil
+	s := string(b)
+	r.lg.For(ctx).Debugw(
+		"marshalBattleInsightJSON",
+		"focus", focusedPlayer,
+		"range_lo_sec", lo,
+		"range_hi_sec", hi,
+		"life_points", len(lifeOut),
+		"intensity_points", len(intensityOut),
+		"raw_damage_events", len(dmgList),
+		"player_out_events", len(playerOutList),
+		"player_in_events", len(playerInList),
+		"out_len", len(s),
+	)
+	return s, nil
 }
 
 func clipLifeSeries(full []lifePoint, lo, hi float64) []lifePoint {
@@ -251,7 +378,7 @@ func clipLifeSeries(full []lifePoint, lo, hi float64) []lifePoint {
 			break
 		}
 	}
-	out := []lifePoint{{TimeSec: lo, Allies: last.Allies, Enemies: last.Enemies}}
+	out := []lifePoint{{TimeSec: lo, Allies: last.Allies, Enemies: last.Enemies, Player: last.Player}}
 	for _, p := range full {
 		if p.TimeSec <= lo {
 			continue
@@ -270,18 +397,23 @@ func clipLifeSeries(full []lifePoint, lo, hi float64) []lifePoint {
 	}
 	lastPt := out[len(out)-1]
 	if lastPt.TimeSec < hi-1e-9 {
-		out = append(out, lifePoint{TimeSec: hi, Allies: lastPt.Allies, Enemies: lastPt.Enemies})
+		out = append(out, lifePoint{TimeSec: hi, Allies: lastPt.Allies, Enemies: lastPt.Enemies, Player: lastPt.Player})
 	}
 	return out
 }
 
 type dmgEv struct {
-	t   float64
+	t   time.Time
 	amt float64
 	tid int // 0 = союзная команда, 1 = вражеская (инициатор)
 }
 
-func sampleIntensity(dmgList []dmgEv, lo, hi float64) []intensityPoint {
+type dmgAmtEv struct {
+	t   time.Time
+	amt float64
+}
+
+func sampleIntensity(t0 time.Time, dmgList []dmgEv, playerOutList, playerInList []dmgAmtEv, lo, hi float64) []intensityPoint {
 	if hi < lo {
 		lo, hi = hi, lo
 	}
@@ -300,11 +432,18 @@ func sampleIntensity(dmgList []dmgEv, lo, hi float64) []intensityPoint {
 	var out []intensityPoint
 	head := 0
 	tail := 0
+	headPO := 0
+	tailPO := 0
+	headPI := 0
+	tailPI := 0
 	sumAlly := 0.0
 	sumEnemy := 0.0
+	sumPO := 0.0
+	sumPI := 0.0
 	for t := lo; t <= hi+1e-9; t += step {
-		winLo := t - intensityWindowSec
-		for head < len(dmgList) && dmgList[head].t <= winLo {
+		curTime := t0.Add(time.Duration(t * float64(time.Second)))
+		winLoTime := curTime.Add(-time.Duration(intensityWindowSec * float64(time.Second)))
+		for head < len(dmgList) && (dmgList[head].t.Before(winLoTime) || dmgList[head].t.Equal(winLoTime)) {
 			if dmgList[head].tid == 0 {
 				sumAlly -= dmgList[head].amt
 			} else {
@@ -312,7 +451,7 @@ func sampleIntensity(dmgList []dmgEv, lo, hi float64) []intensityPoint {
 			}
 			head++
 		}
-		for tail < len(dmgList) && dmgList[tail].t <= t {
+		for tail < len(dmgList) && (dmgList[tail].t.Before(curTime) || dmgList[tail].t.Equal(curTime)) {
 			if dmgList[tail].tid == 0 {
 				sumAlly += dmgList[tail].amt
 			} else {
@@ -320,10 +459,28 @@ func sampleIntensity(dmgList []dmgEv, lo, hi float64) []intensityPoint {
 			}
 			tail++
 		}
+		for headPO < len(playerOutList) && (playerOutList[headPO].t.Before(winLoTime) || playerOutList[headPO].t.Equal(winLoTime)) {
+			sumPO -= playerOutList[headPO].amt
+			headPO++
+		}
+		for tailPO < len(playerOutList) && (playerOutList[tailPO].t.Before(curTime) || playerOutList[tailPO].t.Equal(curTime)) {
+			sumPO += playerOutList[tailPO].amt
+			tailPO++
+		}
+		for headPI < len(playerInList) && (playerInList[headPI].t.Before(winLoTime) || playerInList[headPI].t.Equal(winLoTime)) {
+			sumPI -= playerInList[headPI].amt
+			headPI++
+		}
+		for tailPI < len(playerInList) && (playerInList[tailPI].t.Before(curTime) || playerInList[tailPI].t.Equal(curTime)) {
+			sumPI += playerInList[tailPI].amt
+			tailPI++
+		}
 		out = append(out, intensityPoint{
 			TimeSec:  t,
 			AllyDPS:  sumAlly / intensityWindowSec,
 			EnemyDPS: sumEnemy / intensityWindowSec,
+			PlayerOut: sumPO / intensityWindowSec,
+			PlayerIn:  sumPI / intensityWindowSec,
 		})
 	}
 	return out

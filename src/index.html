@@ -33,7 +33,15 @@
                 <button type="button" class="metric-btn" data-metric="kill">Kill</button>
             </div>
         </div>
-        <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
+        <div class="header-corner-controls">
+            <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
+            <label class="warrior-picker" for="warrior_nick_select">
+                <span>Кто ты, воин?</span>
+                <select id="warrior_nick_select">
+                    <option value="">Не выбрано</option>
+                </select>
+            </label>
+        </div>
     </div>
     <div class="content">
         <div id="watcher_banner" class="watcher-banner" role="status" hidden></div>
@@ -42,6 +50,11 @@
                 <span class="graph-view-label">Вид:</span>
                 <button type="button" class="graph-view-btn" data-graph-view="pie">Круги</button>
                 <button type="button" class="graph-view-btn active" data-graph-view="table">Таблица</button>
+            </div>
+            <div class="graph-team-swap-row">
+                <button type="button" class="graph-team-swap-btn" id="graph_swap_teams_btn" aria-pressed="false" title="Поменять левую и правую команды местами">
+                    ↔ Поменять команды местами
+                </button>
             </div>
             <div class="graphs-grid">
             <div class="graph-box" data-team-panel="0">
@@ -75,10 +88,19 @@
 
         <section class="match-timeline-section" aria-label="Время матча и ситуация в бою">
             <h3 class="timeline-title">Таймлайн матча</h3>
-            <p class="timeline-lead">Дорожка: спавны, убийства, смерти в логе. Зажмите и проведите по дорожке или по графикам ниже, чтобы увеличить выбранный отрезок; «Сбросить масштаб» — весь матч. Вертикальная линия синхронизирована между дорожкой и графиками. Окно времени задаёт детализацию таблицы и графиков.</p>
+            <p class="timeline-lead">События боя отображаются прямо на графике «Линия жизни» при наведении на ключевые точки. Вертикальная линия синхронизирована между графиками.</p>
             <div class="timeline-stack">
-                <div id="timeline_root" class="timeline-root"></div>
+                <div id="timeline_root" class="timeline-root" hidden></div>
                 <div class="battle-insight-in-timeline" aria-label="Графики ситуации в бою">
+                    <div class="battle-player-focus-row">
+                        <label class="graph-player-focus">
+                            <span class="graph-view-label">Игрок:</span>
+                            <select id="graph_player_focus_select" class="graph-player-focus-select">
+                                <option value="">Все игроки</option>
+                            </select>
+                        </label>
+                        <button type="button" id="timeline_reset_top_btn" class="timeline-reset-btn timeline-reset-btn-top">Сбросить масштаб</button>
+                    </div>
                     <div class="battle-insight-row">
                         <div class="battle-insight-chart-head">
                             <h4 class="battle-insight-chart-title">Линия жизни</h4>

@@ -12,19 +12,52 @@
 }
 
 .header-corner-link {
-    position: absolute;
-    top: 0.75rem;
-    right: 1rem;
     font-size: 0.85rem;
     color: #94a3b8;
     text-decoration: none;
     white-space: nowrap;
-    z-index: 2;
 }
 
 .header-corner-link:hover {
     color: #e2e8f0;
     text-decoration: underline;
+}
+
+.header-corner-controls {
+    position: absolute;
+    top: 0.55rem;
+    right: 1rem;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.warrior-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(30, 41, 59, 0.45);
+    color: #dbeafe;
+    font-size: 0.84rem;
+}
+
+.warrior-picker span {
+    white-space: nowrap;
+}
+
+.warrior-picker select {
+    min-width: 170px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.84rem;
 }
 
 .buttons {
@@ -82,6 +115,24 @@
     font-size: 0.85rem;
 }
 
+.graph-player-focus {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 0;
+}
+
+.graph-player-focus-select {
+    min-width: 220px;
+    max-width: 320px;
+    background: #121212;
+    color: #f3f4f6;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
 .graph-view-btn {
     padding: 6px 14px;
     font-size: 0.85rem;
@@ -98,6 +149,35 @@
 }
 
 .graph-view-btn.active {
+    border-color: #38bdf8;
+    background: #0c4a6e33;
+    color: #e0f2fe;
+}
+
+.graph-team-swap-row {
+    display: flex;
+    justify-content: center;
+    margin-top: -2px;
+    margin-bottom: 4px;
+}
+
+.graph-team-swap-btn {
+    padding: 6px 14px;
+    font-size: 0.84rem;
+    border-radius: 999px;
+    border: 1px solid #3f3f46;
+    background: #17171b;
+    color: #d4d4d8;
+    cursor: pointer;
+    transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+}
+
+.graph-team-swap-btn:hover {
+    border-color: #71717a;
+    background: #222228;
+}
+
+.graph-team-swap-btn.is-swapped {
     border-color: #38bdf8;
     background: #0c4a6e33;
     color: #e0f2fe;
@@ -357,6 +437,19 @@
     gap: 18px;
     width: 100%;
     min-width: 0;
+}
+
+.battle-player-focus-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: -2px;
+    margin-bottom: -2px;
+}
+
+.timeline-reset-btn-top {
+    flex-shrink: 0;
 }
 
 .battle-insight-row {
@@ -632,12 +725,22 @@
 .timeline-marker {
     position: absolute;
     bottom: 2px;
-    width: 3px;
+    width: 6px;
     height: 70%;
     transform: translateX(-50%);
     border-radius: 1px;
     pointer-events: auto;
     z-index: 1;
+}
+
+.timeline-marker::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -6px;
+    bottom: -6px;
+    width: 18px;
+    transform: translateX(-50%);
 }
 
 .timeline-marker-spawn {

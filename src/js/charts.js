@@ -6,7 +6,7 @@ import { gaEvent } from "./analytics.js";
 
 Chart.register(...registerables, ChartDataLabels);
 
-export { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar };
+export { CreateCharts, ApplyParsedCharts, setupGraphViewToolbar, clearTeamSwapCookieState, applyTeamSwapState };
 
 const pieBorder = 'rgba(24, 24, 28, 0.55)';
 const pieBorderWidth = 1.5;
@@ -27,6 +27,82 @@ const pieColors = [
 let graphViewMode = 'table';
 let graphToolbarRefresh = null;
 let matrixLoadGen = 0;
+let teamsSwapped = false;
+let currentLevelIndex = 0;
+const swapCookieName = 'lux_team_swap_by_match';
+let swapByMatch = readSwapCookieMap();
+let swapBtnEl = null;
+const intFmt = new Intl.NumberFormat('ru-RU');
+
+function readSwapCookieMap() {
+    if (typeof document === 'undefined') {
+        return {};
+    }
+    const row = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${swapCookieName}=`));
+    if (!row) {
+        return {};
+    }
+    try {
+        const raw = decodeURIComponent(row.slice(swapCookieName.length + 1));
+        const v = JSON.parse(raw);
+        if (!v || typeof v !== 'object') {
+            return {};
+        }
+        return v;
+    } catch (_) {
+        return {};
+    }
+}
+
+function writeSwapCookieMap() {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const raw = encodeURIComponent(JSON.stringify(swapByMatch));
+    // 30 дней достаточно, при новой пачке логов очищаем вручную.
+    document.cookie = `${swapCookieName}=${raw}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+}
+
+function swapStateForMatch(levelIndex) {
+    const k = String(Number(levelIndex) || 0);
+    return swapByMatch[k] === 1;
+}
+
+function setSwapStateForMatch(levelIndex, swapped) {
+    const k = String(Number(levelIndex) || 0);
+    if (swapped) {
+        swapByMatch[k] = 1;
+    } else {
+        delete swapByMatch[k];
+    }
+    writeSwapCookieMap();
+}
+
+function syncSwapStateForLevel(levelIndex) {
+    currentLevelIndex = Number(levelIndex) || 0;
+    teamsSwapped = swapStateForMatch(currentLevelIndex);
+}
+
+function syncSwapButtonUi() {
+    if (!swapBtnEl) {
+        return;
+    }
+    swapBtnEl.classList.toggle('is-swapped', teamsSwapped);
+    swapBtnEl.setAttribute('aria-pressed', teamsSwapped ? 'true' : 'false');
+    swapBtnEl.title = teamsSwapped
+        ? 'Сейчас слева Team 2. Нажмите, чтобы вернуть Team 1 слева.'
+        : 'Сейчас слева Team 1. Нажмите, чтобы поменять местами.';
+}
+
+function formatWholeNumber(v) {
+    const n = typeof v === 'number' ? v : Number(v);
+    if (!Number.isFinite(n)) {
+        return '—';
+    }
+    return intFmt.format(Math.round(n));
+}
 
 function chartDevicePixelRatio() {
     if (typeof window === "undefined" || !window.devicePixelRatio) {
@@ -83,8 +159,7 @@ const pieOptions = {
                 label(ctx) {
                     const name = ctx.label || '';
                     const v = ctx.raw;
-                    const n = typeof v === 'number' ? v : Number(v);
-                    const s = Number.isInteger(n) ? String(n) : n.toFixed(1);
+                    const s = formatWholeNumber(v);
                     return `${name}: ${s}`;
                 },
             },
@@ -164,13 +239,10 @@ function formatMatrixCell(v, mode) {
     if (typeof v !== 'number' || Number.isNaN(v)) {
         return '—';
     }
-    if (mode === 'kill') {
-        return String(Math.round(v));
-    }
     if (v === 0) {
         return '0';
     }
-    return v.toFixed(1);
+    return formatWholeNumber(v);
 }
 
 function matrixCellAt(mat, c, r) {
@@ -178,12 +250,31 @@ function matrixCellAt(mat, c, r) {
     return row[r];
 }
 
-/** Фон ячейки: насыщенность по доле от максимума в строке (фокус источника по целям). */
-function matrixCellHeatStyle(v, maxInRow, mode) {
-    if (typeof v !== 'number' || Number.isNaN(v) || v <= 0 || maxInRow <= 0) {
+function currentFocusedPlayerName() {
+    const el = document.getElementById('graph_player_focus_select');
+    return el ? String(el.value || '').trim() : '';
+}
+
+function moveNameFirst(names, focus) {
+    if (!focus || !Array.isArray(names) || names.length < 2) {
+        return names.slice();
+    }
+    const canon = String(focus).trim().toLowerCase();
+    const out = names.slice();
+    const i = out.findIndex((n) => String(n || '').trim().toLowerCase() === canon);
+    if (i > 0) {
+        const [v] = out.splice(i, 1);
+        out.unshift(v);
+    }
+    return out;
+}
+
+/** Фон ячейки: насыщенность по доле от максимума всей таблицы (глобальная нормализация). */
+function matrixCellHeatStyle(v, maxInTable, mode) {
+    if (typeof v !== 'number' || Number.isNaN(v) || v <= 0 || maxInTable <= 0) {
         return '';
     }
-    const t = Math.min(1, v / maxInRow);
+    const t = Math.min(1, v / maxInTable);
     const a = 0.07 + t * 0.42;
     if (mode === 'heal') {
         return `background-color:rgba(52,211,153,${a})`;
@@ -244,19 +335,32 @@ function renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, g
     return `<p class="graph-matrix-insight" role="status">${line}</p>`;
 }
 
-function renderMatrixTable(panel, mode) {
+function renderMatrixTable(panel, mode, opts = {}) {
     const colPlayers = Array.isArray(panel.col_players) ? panel.col_players : [];
     const rowPlayers = Array.isArray(panel.row_players) ? panel.row_players : [];
     const mat = Array.isArray(panel.matrix) ? panel.matrix : [];
     // Транспонированная таблица: заголовки столбцов = бывшие строки, строки = бывшие столбцы.
-    const headerCols = rowPlayers;
-    const bodyRows = colPlayers;
+    let headerCols = rowPlayers.slice();
+    let bodyRows = colPlayers.slice();
+    const focus = String(opts.focusName || '').trim();
+    const focusPlace = opts.focusPlace === 'col' ? 'col' : 'row';
+    if (focus) {
+        if (focusPlace === 'row') {
+            bodyRows = moveNameFirst(bodyRows, focus);
+        } else {
+            headerCols = moveNameFirst(headerCols, focus);
+        }
+    }
     const corner = mode === 'heal' ? 'Леч. \\ Получ.' : 'Источн. \\ Цель';
+    const rowIdxByName = new Map(colPlayers.map((n, i) => [String(n), i]));
+    const colIdxByName = new Map(rowPlayers.map((n, i) => [String(n), i]));
 
     const rowTotals = bodyRows.map((_, r) => {
         let s = 0;
+        const srcIdx = rowIdxByName.get(String(bodyRows[r]));
         for (let c = 0; c < headerCols.length; c++) {
-            const v = matrixCellAt(mat, c, r);
+            const dstIdx = colIdxByName.get(String(headerCols[c]));
+            const v = matrixCellAt(mat, dstIdx, srcIdx);
             if (typeof v === 'number' && !Number.isNaN(v)) {
                 s += v;
             }
@@ -265,8 +369,10 @@ function renderMatrixTable(panel, mode) {
     });
     const colTotals = headerCols.map((_, c) => {
         let s = 0;
+        const dstIdx = colIdxByName.get(String(headerCols[c]));
         for (let r = 0; r < bodyRows.length; r++) {
-            const v = matrixCellAt(mat, c, r);
+            const srcIdx = rowIdxByName.get(String(bodyRows[r]));
+            const v = matrixCellAt(mat, dstIdx, srcIdx);
             if (typeof v === 'number' && !Number.isNaN(v)) {
                 s += v;
             }
@@ -275,16 +381,17 @@ function renderMatrixTable(panel, mode) {
     });
     const grandTotal = rowTotals.reduce((a, b) => a + b, 0);
 
-    const maxPerRow = bodyRows.map((_, r) => {
-        let m = 0;
+    let maxInTable = 0;
+    for (let r = 0; r < bodyRows.length; r++) {
         for (let c = 0; c < headerCols.length; c++) {
-            const v = matrixCellAt(mat, c, r);
-            if (typeof v === 'number' && !Number.isNaN(v) && v > m) {
-                m = v;
+            const srcIdx = rowIdxByName.get(String(bodyRows[r]));
+            const dstIdx = colIdxByName.get(String(headerCols[c]));
+            const v = matrixCellAt(mat, dstIdx, srcIdx);
+            if (typeof v === 'number' && !Number.isNaN(v) && v > maxInTable) {
+                maxInTable = v;
             }
         }
-        return m;
-    });
+    }
 
     let html = '<table class="pair-matrix-table"><thead><tr>';
     html += `<th class="corner">${escapeHtml(corner)}</th>`;
@@ -296,11 +403,12 @@ function renderMatrixTable(panel, mode) {
     for (let r = 0; r < bodyRows.length; r++) {
         html += '<tr>';
         html += `<th class="row-head" title="${escapeHtml(bodyRows[r])}">${escapeHtml(bodyRows[r])}</th>`;
-        const maxR = maxPerRow[r];
         for (let c = 0; c < headerCols.length; c++) {
-            const v = matrixCellAt(mat, c, r);
-            const heat = matrixCellHeatStyle(v, maxR, mode);
-            const peak = typeof v === 'number' && maxR > 0 && Math.abs(v - maxR) < 1e-6;
+            const srcIdx = rowIdxByName.get(String(bodyRows[r]));
+            const dstIdx = colIdxByName.get(String(headerCols[c]));
+            const v = matrixCellAt(mat, dstIdx, srcIdx);
+            const heat = matrixCellHeatStyle(v, maxInTable, mode);
+            const peak = typeof v === 'number' && maxInTable > 0 && Math.abs(v - maxInTable) < 1e-6;
             const tip = matrixCellTooltip(bodyRows[r], headerCols[c], v, rowTotals[r], grandTotal, mode);
             const cls = `matrix-cell-inner${peak ? ' matrix-cell-peak' : ''}`;
             const styleAttr = heat ? ` style="${heat}"` : '';
@@ -366,6 +474,63 @@ function hideMatrixHints() {
     });
 }
 
+function pairPanelsForView(panels) {
+    const p0 = panels[0] || {};
+    const p1 = panels[1] || {};
+    return teamsSwapped ? [p1, p0] : [p0, p1];
+}
+
+function updateTeamPanelTitles() {
+    const titles = document.querySelectorAll('[data-team-panel] .graph-box-title');
+    if (titles.length < 2) {
+        return;
+    }
+    if (teamsSwapped) {
+        titles[0].textContent = 'Team 2';
+        titles[1].textContent = 'Team 1';
+    } else {
+        titles[0].textContent = 'Team 1';
+        titles[1].textContent = 'Team 2';
+    }
+}
+
+function clearTeamSwapCookieState() {
+    swapByMatch = {};
+    if (typeof document !== 'undefined') {
+        document.cookie = `${swapCookieName}=; path=/; max-age=0; samesite=lax`;
+    }
+    teamsSwapped = false;
+    currentLevelIndex = 0;
+    syncSwapButtonUi();
+    updateTeamPanelTitles();
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
+            detail: { matchIndex: currentLevelIndex, swapped: false },
+        }));
+    }
+}
+
+function applyTeamSwapState(levelIndex, swapped) {
+    const idx = Number(levelIndex) || 0;
+    const next = Boolean(swapped);
+    currentLevelIndex = idx;
+    if (teamsSwapped === next && swapStateForMatch(idx) === next) {
+        syncSwapButtonUi();
+        updateTeamPanelTitles();
+        return false;
+    }
+    teamsSwapped = next;
+    setSwapStateForMatch(idx, teamsSwapped);
+    syncSwapButtonUi();
+    updateTeamPanelTitles();
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
+            detail: { matchIndex: currentLevelIndex, swapped: teamsSwapped },
+        }));
+    }
+    return true;
+}
+
 /** @returns {{ matrices_wasm_ms: number, matrices_json_ms: number, matrix_dom_ms: number }} */
 function applyMatrixTables(levelIndex, mode) {
     const timing = { matrices_wasm_ms: 0, matrices_json_ms: 0, matrix_dom_ms: 0 };
@@ -397,11 +562,11 @@ function applyMatrixTables(levelIndex, mode) {
     timing.matrices_json_ms = Math.round(performance.now() - tj0);
     const panels = Array.isArray(data.panels) ? data.panels : [];
     const metric = data.metric || mode;
-    const p0 = panels[0] || {};
-    const p1 = panels[1] || {};
+    const [p0, p1] = pairPanelsForView(panels);
+    const focusName = currentFocusedPlayerName();
     const td0 = performance.now();
-    c0.innerHTML = renderMatrixTable(p0, metric);
-    c1.innerHTML = renderMatrixTable(p1, metric);
+    c0.innerHTML = renderMatrixTable(p0, metric, { focusName, focusPlace: 'row' });
+    c1.innerHTML = renderMatrixTable(p1, metric, { focusName, focusPlace: 'col' });
     const t0 = document.getElementById('graph_total_0');
     const t1 = document.getElementById('graph_total_1');
     if (t0) {
@@ -419,8 +584,7 @@ function formatTotal(total, mode) {
     if (typeof total !== 'number' || Number.isNaN(total)) {
         return '—';
     }
-    const s = mode === 'kill' ? String(Math.round(total)) : total.toFixed(1);
-    return `Σ ${s}`;
+    return `Σ ${formatWholeNumber(total)}`;
 }
 
 function setPieTotalsFixed(values1, values2, mode) {
@@ -456,6 +620,10 @@ function emitChartsTiming(mode, viewMode, chartsWasmMs, chartsJsonMs, pieRenderM
 }
 
 function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
+    syncSwapStateForLevel(levelIndex);
+    syncSwapButtonUi();
+    updateTeamPanelTitles();
+
     const tc0 = performance.now();
     const raw = fetchChartsJSON(levelIndex, mode);
     const chartsWasmMs = performance.now() - tc0;
@@ -477,13 +645,26 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
 
     const team1 = Array.isArray(parsed[0]) ? parsed[0] : [];
     const team2 = Array.isArray(parsed[1]) ? parsed[1] : [];
-    const t1PlayerCurves = team1.slice(1);
-    const t2PlayerCurves = team2.slice(1);
+    const leftTeam = teamsSwapped ? team2 : team1;
+    const rightTeam = teamsSwapped ? team1 : team2;
+    const t1PlayerCurves = leftTeam.slice(1);
+    const t2PlayerCurves = rightTeam.slice(1);
+    const focusName = currentFocusedPlayerName();
+    const orderedLeft = focusName
+        ? moveNameFirst(t1PlayerCurves.map((c) => c.name || "Unknown"), focusName)
+        : t1PlayerCurves.map((c) => c.name || "Unknown");
+    const orderedRight = focusName
+        ? moveNameFirst(t2PlayerCurves.map((c) => c.name || "Unknown"), focusName)
+        : t2PlayerCurves.map((c) => c.name || "Unknown");
+    const toValuesByOrder = (order, curves) => order.map((name) => {
+        const i = curves.findIndex((c) => String(c.name || "Unknown") === String(name));
+        return i >= 0 ? getLastValue(curves[i]) : 0;
+    });
 
-    const labels1 = t1PlayerCurves.map((c) => c.name || "Unknown");
-    const values1 = t1PlayerCurves.map((c) => getLastValue(c));
-    const labels2 = t2PlayerCurves.map((c) => c.name || "Unknown");
-    const values2 = t2PlayerCurves.map((c) => getLastValue(c));
+    const labels1 = orderedLeft;
+    const values1 = toValuesByOrder(orderedLeft, t1PlayerCurves);
+    const labels2 = orderedRight;
+    const values2 = toValuesByOrder(orderedRight, t2PlayerCurves);
 
     const label = mode === 'heal' ? 'Heal' : mode === 'kill' ? 'Kills' : 'Damage';
     const tp0 = performance.now();
@@ -548,6 +729,30 @@ function setupGraphViewToolbar(onViewChange) {
             }
         });
     });
+
+    swapBtnEl = document.getElementById('graph_swap_teams_btn');
+    syncSwapButtonUi();
+    updateTeamPanelTitles();
+    if (swapBtnEl) {
+        swapBtnEl.addEventListener('click', () => {
+            teamsSwapped = !teamsSwapped;
+            setSwapStateForMatch(currentLevelIndex, teamsSwapped);
+            syncSwapButtonUi();
+            updateTeamPanelTitles();
+            gaEvent('lux_team_swap_toggle', {
+                swapped: teamsSwapped ? '1' : '0',
+                match_index: currentLevelIndex,
+            });
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
+                    detail: { matchIndex: currentLevelIndex, swapped: teamsSwapped },
+                }));
+            }
+            if (graphToolbarRefresh) {
+                graphToolbarRefresh();
+            }
+        });
+    }
 }
 
 function makePiePlaceholder() {

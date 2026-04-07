@@ -7,12 +7,14 @@ import {
     commitZoomFromBrush,
     getTimeRangeBounds,
     getTimeRangeJSON,
+    getTimelineStartUnixMs,
     getTimelineCursorSec,
     setTimelineCursorSec,
     subscribeTimelineCursor,
 } from './timeline.js';
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 import { gaEvent } from './analytics.js';
+import { getFocusedPlayer } from './player_focus.js';
 
 Chart.register(...registerables);
 
@@ -53,6 +55,8 @@ let intensityChart = null;
 let battleInsightLoadGen = 0;
 let chartPointerUnsubs = [];
 let cursorUnsub = null;
+const swapCookieName = 'lux_team_swap_by_match';
+const intFmt = new Intl.NumberFormat('ru-RU');
 
 /** Пока тянем кисть на любом графике боя — не сбрасывать курсор по pointerleave. */
 let battleChartBrushActive = false;
@@ -198,6 +202,31 @@ function formatAxisSec(sec) {
     return `${mm}:${ss}`;
 }
 
+function formatAxisClock(sec) {
+    if (typeof sec !== 'number' || Number.isNaN(sec)) {
+        return '';
+    }
+    const startMs = getTimelineStartUnixMs();
+    if (!startMs) {
+        return formatAxisSec(sec);
+    }
+    const d = new Date(startMs + sec * 1000);
+    return d.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    });
+}
+
+function formatWholeNumber(v) {
+    const n = typeof v === 'number' ? v : Number(v);
+    if (!Number.isFinite(n)) {
+        return '—';
+    }
+    return intFmt.format(Math.round(n));
+}
+
 /** Ширина оси Y = --timeline-plot-gutter-left в .match-timeline-section (метки времени ровно с таймлайном). */
 function readTimelinePlotGutterLeftPx() {
     const el = document.querySelector('.match-timeline-section');
@@ -239,7 +268,7 @@ const commonLineOptions = {
     layout: {
         padding: {
             left: 0,
-            right: 6,
+            right: 12,
             top: 4,
             bottom: 28,
         },
@@ -266,14 +295,12 @@ const commonLineOptions = {
                         return '';
                     }
                     const x = items[0].parsed.x;
-                    return typeof x === 'number' ? `Время ${formatAxisSec(x)}` : '';
+                    return typeof x === 'number' ? `Время ${formatAxisClock(x)}` : '';
                 },
                 label(ctx) {
                     const ds = ctx.dataset.label || '';
                     const y = ctx.parsed.y;
-                    const v = typeof y === 'number' && Number.isFinite(y)
-                        ? (Number.isInteger(y) ? String(y) : y.toFixed(2))
-                        : '—';
+                    const v = formatWholeNumber(y);
                     return ds ? `${ds}: ${v}` : v;
                 },
             },
@@ -284,26 +311,29 @@ const commonLineOptions = {
             type: 'linear',
             title: {
                 display: true,
-                text: 'Время от начала матча (с)',
+                text: 'Текущее время',
                 color: '#9ca3af',
                 font: { size: 11 },
             },
             ticks: {
                 ...axisStyle.ticks,
-                callback: (v) => formatAxisSec(Number(v)),
+                callback: (v) => formatAxisClock(Number(v)),
             },
             grid: axisStyle.grid,
             border: axisStyle.border,
         },
         y: {
-            ticks: { color: '#a1a1aa' },
+            ticks: {
+                color: '#a1a1aa',
+                callback: (v) => formatWholeNumber(v),
+            },
             grid: axisStyle.grid,
             border: axisStyle.border,
             afterFit(scale) {
                 if (typeof scale.isHorizontal === 'function' && !scale.isHorizontal()) {
                     const minW = readTimelinePlotGutterLeftPx();
-                    // Нельзя ужимать ширину ниже расчёта Chart.js — иначе chartArea ломается и график не рисуется.
-                    scale.width = Math.max(scale.width, minW);
+                    // Фиксируем ширину оси Y, чтобы таймлайн и оба графика совпадали по X-позициям.
+                    scale.width = minW;
                 }
             },
         },
@@ -316,7 +346,179 @@ function fetchBattleInsightJSON(levelIndex) {
     if (typeof fn !== 'function') {
         return null;
     }
-    return fn(levelIndex, tr);
+    const focused = getFocusedPlayer(levelIndex);
+    return fn(levelIndex, tr, focused || '');
+}
+
+function seriesHead(points, max = 5) {
+    if (!Array.isArray(points)) {
+        return [];
+    }
+    return points.slice(0, max).map((p) => ({
+        t: p && p.t,
+        allies: p && p.allies,
+        enemies: p && p.enemies,
+        ally: p && p.ally,
+        enemy: p && p.enemy,
+        player: p && p.player,
+        player_out: p && p.player_out,
+        player_in: p && p.player_in,
+    }));
+}
+
+function fetchTimelineMarkers(levelIndex, focusedPlayer) {
+    const fn = globalThis.getTimelineJSON;
+    if (typeof fn !== 'function') {
+        return { markers: [], allyTeamID: 0, enemyTeamID: 0 };
+    }
+    try {
+        const raw = fn(levelIndex, focusedPlayer || '');
+        const data = JSON.parse(raw || '{}');
+        return {
+            markers: Array.isArray(data && data.markers) ? data.markers : [],
+            allyTeamID: Number(data && data.ally_team_id) || 0,
+            enemyTeamID: Number(data && data.enemy_team_id) || 0,
+        };
+    } catch (_) {
+        return { markers: [], allyTeamID: 0, enemyTeamID: 0 };
+    }
+}
+
+function selectedTeamIDs(levelIndex, allyTeamID, enemyTeamID) {
+    // Для семантики событий используем реальные teamID из backend без инверсии.
+    // Swap влияет на раскладку/вид, но не должен переопределять "кто союзник".
+    void levelIndex;
+    return {
+        ally: allyTeamID || 0,
+        enemy: enemyTeamID || 0,
+    };
+}
+
+function markerRoleByTeams(marker, allyTeamID, enemyTeamID) {
+    const kind = String((marker && marker.kind) || '');
+    const teamID = Number(marker && marker.team_id) || 0;
+    const victimTeamID = Number(marker && marker.victim_team_id) || 0;
+    if (kind === 'spawn' || kind === 'enemy_spawn') {
+        if (teamID && teamID === allyTeamID) return 'spawn';
+        if (teamID && teamID === enemyTeamID) return 'enemy_spawn';
+        return kind;
+    }
+    if (kind === 'kill' || kind === 'death') {
+        if (victimTeamID && victimTeamID === allyTeamID) return 'death';
+        if (victimTeamID && victimTeamID === enemyTeamID) return 'kill';
+        return kind;
+    }
+    return kind;
+}
+
+function markerRelatedToPlayer(m, focusedPlayer) {
+    const fp = String(focusedPlayer || '').trim().toLowerCase();
+    if (!fp || !m || typeof m !== 'object') {
+        return false;
+    }
+    const has = (v) => String(v || '').trim().toLowerCase() === fp;
+    if (has(m.player) || has(m.killer) || has(m.victim)) {
+        return true;
+    }
+    if (Array.isArray(m.assists) && m.assists.some((a) => has(a))) {
+        return true;
+    }
+    return false;
+}
+
+function relatedEventTimes(markers, focusedPlayer) {
+    return (Array.isArray(markers) ? markers : [])
+        .filter((m) => markerRelatedToPlayer(m, focusedPlayer) && typeof m.time_sec === 'number')
+        .map((m) => m.time_sec)
+        .sort((a, b) => a - b);
+}
+
+function hasRelatedEventAtSec(sec, times) {
+    if (typeof sec !== 'number' || Number.isNaN(sec) || !Array.isArray(times) || !times.length) {
+        return false;
+    }
+    // Небольшой допуск на случай погрешности float при сериализации/отрисовке.
+    const tol = 1e-4;
+    for (let i = 0; i < times.length; i++) {
+        if (Math.abs(times[i] - sec) <= tol) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function formatMarkerTooltipLine(m, allyTeamID, enemyTeamID, focusedPlayer) {
+    if (!m || typeof m !== 'object') {
+        return '';
+    }
+    const related = markerRelatedToPlayer(m, focusedPlayer);
+    const mark = related ? '● ' : '· ';
+    const kind = markerRoleByTeams(m, allyTeamID, enemyTeamID);
+    const killer = String(m.killer || '').trim();
+    const victim = String(m.victim || m.player || '').trim();
+    const player = String(m.player || '').trim();
+    const ship = String(m.player_ship || '').trim();
+    const killerShip = String(m.killer_ship || '').trim();
+    const victimShip = String(m.victim_ship || '').trim();
+    const weapon = String(m.weapon || '').trim();
+    const assists = Array.isArray(m.assists) ? m.assists.filter(Boolean).map(String) : [];
+    if (kind === 'spawn') {
+        return `${mark}Спавн (союзники): ${player}${ship ? ` · ${ship}` : ''}`;
+    }
+    if (kind === 'enemy_spawn') {
+        return `${mark}Спавн (враги): ${player}${ship ? ` · ${ship}` : ''}`;
+    }
+    if (kind === 'kill') {
+        const k = killerShip ? `${killer} (${killerShip})` : killer;
+        const v = victimShip ? `${victim} (${victimShip})` : victim;
+        const extra = [weapon ? `Оружие: ${weapon}` : '', assists.length ? `Помогали: ${assists.join(', ')}` : ''].filter(Boolean).join(' · ');
+        return extra ? `${mark}Убийство: ${k} → ${v} · ${extra}` : `${mark}Убийство: ${k} → ${v}`;
+    }
+    if (kind === 'death') {
+        const k = killerShip ? `${killer} (${killerShip})` : killer;
+        const v = victimShip ? `${victim} (${victimShip})` : victim;
+        const extra = [weapon ? `Оружие: ${weapon}` : '', assists.length ? `Помогали: ${assists.join(', ')}` : ''].filter(Boolean).join(' · ');
+        return extra ? `${mark}Смерть союзника: ${k} → ${v} · ${extra}` : `${mark}Смерть союзника: ${k} → ${v}`;
+    }
+    return `${mark}${String(m.label || '').trim()}`;
+}
+
+function markerLinesForSec(markers, sec, allyTeamID, enemyTeamID, focusedPlayer) {
+    const tol = 0.26;
+    const near = (Array.isArray(markers) ? markers : [])
+        .filter((m) => typeof m.time_sec === 'number' && Math.abs(m.time_sec - sec) <= tol)
+        .sort((a, b) => {
+            const ar = markerRelatedToPlayer(a, focusedPlayer) ? 0 : 1;
+            const br = markerRelatedToPlayer(b, focusedPlayer) ? 0 : 1;
+            if (ar !== br) {
+                return ar - br;
+            }
+            return Math.abs(a.time_sec - sec) - Math.abs(b.time_sec - sec);
+        })
+        .slice(0, 5);
+    return near.map((m) => formatMarkerTooltipLine(m, allyTeamID, enemyTeamID, focusedPlayer)).filter(Boolean);
+}
+
+function readSwapStateForMatch(levelIndex) {
+    if (typeof document === 'undefined') {
+        return false;
+    }
+    const row = document.cookie
+        .split('; ')
+        .find((x) => x.startsWith(`${swapCookieName}=`));
+    if (!row) {
+        return false;
+    }
+    try {
+        const raw = decodeURIComponent(row.slice(swapCookieName.length + 1));
+        const map = JSON.parse(raw);
+        if (!map || typeof map !== 'object') {
+            return false;
+        }
+        return map[String(Number(levelIndex) || 0)] === 1;
+    } catch (_) {
+        return false;
+    }
 }
 
 function destroyCharts() {
@@ -371,6 +573,11 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const tbw0 = performance.now();
                 const raw = fetchBattleInsightJSON(idx);
                 const battleWasmMs = performance.now() - tbw0;
+                console.debug('[battle] raw payload', {
+                    match_index: idx,
+                    raw_len: typeof raw === 'string' ? raw.length : 0,
+                    wasm_ms: Math.round(battleWasmMs),
+                });
                 destroyCharts();
                 if (!raw || raw === 'null') {
                     return;
@@ -388,52 +595,138 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const intensity = Array.isArray(data.intensity) ? data.intensity : [];
                 const allyLabel = data.ally_team_label || 'Союзники';
                 const enemyLabel = data.enemy_team_label || 'Противники';
+                const focusedPlayer = String(data.focused_player || '').trim();
+                const timelineData = fetchTimelineMarkers(idx, '');
+                const baseAllyTeamID = Number(timelineData.allyTeamID) || Number(data.ally_team_id) || 0;
+                const baseEnemyTeamID = Number(timelineData.enemyTeamID) || Number(data.enemy_team_id) || 0;
+                const selectedTeams = selectedTeamIDs(idx, baseAllyTeamID, baseEnemyTeamID);
+                // Для подсказок на линии жизни нужны все события, а не только фильтр выбранного игрока.
+                const timelineMarkers = timelineData.markers;
+                const focusedEventTimes = relatedEventTimes(timelineMarkers, focusedPlayer);
+                console.debug('[battle] parsed series', {
+                    match_index: idx,
+                    focused_player: focusedPlayer,
+                    ally_label: allyLabel,
+                    enemy_label: enemyLabel,
+                    ally_team_id: selectedTeams.ally,
+                    enemy_team_id: selectedTeams.enemy,
+                    life_points: life.length,
+                    intensity_points: intensity.length,
+                    life_head: seriesHead(life),
+                    intensity_head: seriesHead(intensity),
+                    timeline_markers: timelineMarkers.length,
+                    focused_events: focusedEventTimes.length,
+                    json_ms: Math.round(battleJsonMs),
+                });
 
                 const lifeT = life.map((p) => p.t);
-                const lifeAlly = life.map((p) => p.allies);
-                const lifeEnemy = life.map((p) => p.enemies);
+                const lifeAllies = life.map((p) => p.allies);
+                const lifeEnemies = life.map((p) => p.enemies);
+                const lifeFocused = life.map((p) => (p && p.player ? 1 : 0));
                 const lifeX = xDomainSec(lifeT);
                 const intT = intensity.map((p) => p.t);
-                const intAlly = intensity.map((p) => p.ally);
-                const intEnemy = intensity.map((p) => p.enemy);
+                const intAllies = intensity.map((p) => p.ally);
+                const intEnemies = intensity.map((p) => p.enemy);
+                const intFocusedOut = intensity.map((p) => p.player_out || 0);
+                const intFocusedIn = intensity.map((p) => p.player_in || 0);
                 const intX = xDomainSec(intT);
+                const allyIsBaseAlly = !selectedTeams.ally || selectedTeams.ally === baseAllyTeamID;
+                // Жестко маппим по выбранным teamID: союзники всегда "ally" (зеленый), противники всегда "enemy" (красный).
+                const lifeAllySeries = allyIsBaseAlly ? lifeAllies : lifeEnemies;
+                const lifeEnemySeries = allyIsBaseAlly ? lifeEnemies : lifeAllies;
+                const intAllySeries = allyIsBaseAlly ? intAllies : intEnemies;
+                const intEnemySeries = allyIsBaseAlly ? intEnemies : intAllies;
                 const battleSeriesPrepMs = performance.now() - tSeries0;
 
                 const tChart0 = performance.now();
                 if (lifeT.length > 0) {
+                    const lifeDatasets = [
+                        {
+                            label: `${allyLabel} (живых)`,
+                            data: lifeAllySeries.map((y, i) => ({ x: lifeT[i], y })),
+                            borderColor: 'rgba(52, 211, 153, 0.95)',
+                            backgroundColor: 'rgba(52, 211, 153, 0.12)',
+                            stepped: 'before',
+                            fill: false,
+                            tension: 0,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                        },
+                        {
+                            label: `${enemyLabel} (живых)`,
+                            data: lifeEnemySeries.map((y, i) => ({ x: lifeT[i], y })),
+                            borderColor: 'rgba(248, 113, 113, 0.95)',
+                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                            stepped: 'before',
+                            fill: false,
+                            tension: 0,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                        },
+                    ];
+                    if (focusedPlayer) {
+                        lifeDatasets.push({
+                            label: `${focusedPlayer} (жив/мертв)`,
+                            data: lifeFocused.map((y, i) => ({ x: lifeT[i], y })),
+                            borderColor: 'rgba(250, 204, 21, 0.95)',
+                            backgroundColor: 'rgba(250, 204, 21, 0.08)',
+                            stepped: 'before',
+                            fill: false,
+                            tension: 0,
+                            borderWidth: 2,
+                            // В ключевых точках, связанных с выбранным игроком, рисуем заметные маркеры.
+                            pointRadius(ctx) {
+                                const raw = ctx && ctx.raw;
+                                const x = raw && typeof raw.x === 'number' ? raw.x : NaN;
+                                return hasRelatedEventAtSec(x, focusedEventTimes) ? 5 : 0;
+                            },
+                            pointHoverRadius(ctx) {
+                                const raw = ctx && ctx.raw;
+                                const x = raw && typeof raw.x === 'number' ? raw.x : NaN;
+                                return hasRelatedEventAtSec(x, focusedEventTimes) ? 7 : 4;
+                            },
+                            pointBackgroundColor: 'rgba(250, 204, 21, 1)',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.92)',
+                            pointBorderWidth: 1.5,
+                            borderDash: [7, 5],
+                        });
+                    }
                     lifeChart = new Chart(lifeCanvas.getContext('2d'), {
                         type: 'line',
                         data: {
-                            datasets: [
-                                {
-                                    label: `${allyLabel} (живых)`,
-                                    data: lifeAlly.map((y, i) => ({ x: lifeT[i], y })),
-                                    borderColor: 'rgba(52, 211, 153, 0.95)',
-                                    backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                                    stepped: 'after',
-                                    fill: false,
-                                    tension: 0,
-                                    borderWidth: 2,
-                                    pointRadius: 0,
-                                    pointHoverRadius: 4,
-                                },
-                                {
-                                    label: `${enemyLabel} (живых)`,
-                                    data: lifeEnemy.map((y, i) => ({ x: lifeT[i], y })),
-                                    borderColor: 'rgba(248, 113, 113, 0.95)',
-                                    backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                                    stepped: 'after',
-                                    fill: false,
-                                    tension: 0,
-                                    borderWidth: 2,
-                                    pointRadius: 0,
-                                    pointHoverRadius: 4,
-                                },
-                            ],
+                            datasets: lifeDatasets,
                         },
                         options: {
                             ...commonLineOptions,
                             parsing: false,
+                            plugins: {
+                                ...commonLineOptions.plugins,
+                                tooltip: {
+                                    ...commonLineOptions.plugins.tooltip,
+                                    callbacks: {
+                                        ...commonLineOptions.plugins.tooltip.callbacks,
+                                        afterBody(items) {
+                                            if (!items.length) {
+                                                return [];
+                                            }
+                                            const x = items[0].parsed && items[0].parsed.x;
+                                            if (typeof x !== 'number' || Number.isNaN(x)) {
+                                                return [];
+                                            }
+                                            const lines = markerLinesForSec(
+                                                timelineMarkers,
+                                                x,
+                                                selectedTeams.ally,
+                                                selectedTeams.enemy,
+                                                focusedPlayer,
+                                            );
+                                            return lines.length ? ['События:'].concat(lines) : [];
+                                        },
+                                    },
+                                },
+                            },
                             scales: {
                                 ...commonLineOptions.scales,
                                 x: {
@@ -460,33 +753,60 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 }
 
                 if (intT.length > 0) {
+                    const intDatasets = [
+                        {
+                            label: `${allyLabel}, урон/с (окно 10 с)`,
+                            data: intAllySeries.map((y, i) => ({ x: intT[i], y })),
+                            borderColor: 'rgba(56, 189, 248, 0.95)',
+                            backgroundColor: 'rgba(56, 189, 248, 0.08)',
+                            fill: false,
+                            tension: 0.15,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                        },
+                        {
+                            label: `${enemyLabel}, урон/с (окно 10 с)`,
+                            data: intEnemySeries.map((y, i) => ({ x: intT[i], y })),
+                            borderColor: 'rgba(251, 146, 60, 0.95)',
+                            backgroundColor: 'rgba(251, 146, 60, 0.08)',
+                            fill: false,
+                            tension: 0.15,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                        },
+                    ];
+                    if (focusedPlayer) {
+                        intDatasets.push({
+                            label: `${focusedPlayer}, исходящий урон/с`,
+                            data: intFocusedOut.map((y, i) => ({ x: intT[i], y })),
+                            borderColor: 'rgba(250, 204, 21, 0.95)',
+                            backgroundColor: 'rgba(250, 204, 21, 0.08)',
+                            fill: false,
+                            tension: 0.15,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            borderDash: [7, 5],
+                        });
+                        intDatasets.push({
+                            label: `${focusedPlayer}, входящий урон/с`,
+                            data: intFocusedIn.map((y, i) => ({ x: intT[i], y })),
+                            borderColor: 'rgba(244, 114, 182, 0.95)',
+                            backgroundColor: 'rgba(244, 114, 182, 0.08)',
+                            fill: false,
+                            tension: 0.15,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 3,
+                            borderDash: [4, 4],
+                        });
+                    }
                     intensityChart = new Chart(intCanvas.getContext('2d'), {
                         type: 'line',
                         data: {
-                            datasets: [
-                                {
-                                    label: `${allyLabel}, урон/с (окно 10 с)`,
-                                    data: intAlly.map((y, i) => ({ x: intT[i], y })),
-                                    borderColor: 'rgba(56, 189, 248, 0.95)',
-                                    backgroundColor: 'rgba(56, 189, 248, 0.08)',
-                                    fill: false,
-                                    tension: 0.15,
-                                    borderWidth: 2,
-                                    pointRadius: 0,
-                                    pointHoverRadius: 3,
-                                },
-                                {
-                                    label: `${enemyLabel}, урон/с (окно 10 с)`,
-                                    data: intEnemy.map((y, i) => ({ x: intT[i], y })),
-                                    borderColor: 'rgba(251, 146, 60, 0.95)',
-                                    backgroundColor: 'rgba(251, 146, 60, 0.08)',
-                                    fill: false,
-                                    tension: 0.15,
-                                    borderWidth: 2,
-                                    pointRadius: 0,
-                                    pointHoverRadius: 3,
-                                },
-                            ],
+                            datasets: intDatasets,
                         },
                         options: {
                             ...commonLineOptions,
@@ -517,7 +837,16 @@ export function setupBattleInsightCharts(getMatchIndex) {
 
                 const battleChartRenderMs = performance.now() - tChart0;
                 const prepTotal = battleWasmMs + battleJsonMs + battleSeriesPrepMs;
+                console.debug('[battle] rendered', {
+                    match_index: idx,
+                    focused_player: focusedPlayer,
+                    life_points: lifeT.length,
+                    intensity_points: intT.length,
+                    data_prep_ms: Math.round(prepTotal),
+                    render_ms: Math.round(battleChartRenderMs),
+                });
                 gaEvent('lux_battle_charts_timing', {
+                    swapped: allyIsBaseAlly ? '0' : '1',
                     battle_wasm_ms: Math.round(battleWasmMs),
                     battle_json_ms: Math.round(battleJsonMs),
                     battle_series_prep_ms: Math.round(battleSeriesPrepMs),
@@ -549,6 +878,10 @@ export function setupBattleInsightCharts(getMatchIndex) {
             intensityChart.options.devicePixelRatio = chartDpr();
             intensityChart.resize();
         }
+    });
+
+    window.addEventListener('lux-team-swap-changed', () => {
+        refresh();
     });
 
     return { refresh };

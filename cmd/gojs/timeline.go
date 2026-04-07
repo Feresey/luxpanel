@@ -17,6 +17,9 @@ import (
 type timelineMarker struct {
 	Kind       string  `json:"kind"`
 	TimeSec    float64 `json:"time_sec"`
+	TeamID     int     `json:"team_id,omitempty"`
+	KillerTeamID int   `json:"killer_team_id,omitempty"`
+	VictimTeamID int   `json:"victim_team_id,omitempty"`
 	Label      string  `json:"label,omitempty"`
 	Player     string  `json:"player,omitempty"`
 	Killer     string  `json:"killer,omitempty"`
@@ -29,12 +32,15 @@ type timelineMarker struct {
 }
 
 type timelineResult struct {
-	StartSec float64          `json:"start_sec"`
-	EndSec   float64          `json:"end_sec"`
-	Markers  []timelineMarker `json:"markers"`
+	StartSec    float64          `json:"start_sec"`
+	EndSec      float64          `json:"end_sec"`
+	StartUnixMs int64            `json:"start_unix_ms,omitempty"`
+	AllyTeamID  int              `json:"ally_team_id,omitempty"`
+	EnemyTeamID int              `json:"enemy_team_id,omitempty"`
+	Markers     []timelineMarker `json:"markers"`
 }
 
-func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level) (string, error) {
+func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level, focusedPlayer string) (string, error) {
 	if level == nil {
 		b, err := json.Marshal(timelineResult{})
 		if err != nil {
@@ -48,8 +54,30 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 
 	t0 := level.StartLevelTime
 	span := levelSpanSeconds(level)
+	focusKey := strings.ToLower(strings.TrimSpace(focusedPlayer))
+	if focusKey != "" {
+		if roster := rosterNameToTeamID(level); len(roster) > 0 {
+			// Нормализуем регистр/оригинальный ник по ростеру, чтобы battle-insight и timeline совпадали.
+			for n := range roster {
+				if n == focusKey {
+					focusKey = n
+					break
+				}
+			}
+		}
+	}
 
 	var markers []timelineMarker
+
+	allyTeamID, allyTeamOk := allyTeamIDForTimeline(level)
+	leftID, rightID, lrOK := leftRightTeamIDs(level)
+	enemyTeamID := 0
+	if lrOK {
+		enemyTeamID = rightID
+		if allyTeamID == rightID {
+			enemyTeamID = leftID
+		}
+	}
 
 	if level.CombatLog != nil {
 		nameTeam := rosterNameToTeamID(level)
@@ -77,16 +105,26 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 				t = t0
 			}
 			sec := t.Sub(t0).Seconds()
+			r.lg.For(ctx).Debugw(
+				"timeline_event_source_line",
+				"line_type", "spawn",
+				"time", sp.Time.Time,
+				"time_sec", sec,
+				"kind", kind,
+				"player", name,
+				"ship", strings.TrimSpace(sp.Ship),
+				"team_id", tid,
+			)
 			markers = append(markers, timelineMarker{
 				Kind:       kind,
 				TimeSec:    sec,
+				TeamID:     tid,
 				Player:     name,
 				Label:      name,
 				PlayerShip: strings.TrimSpace(sp.Ship),
 			})
 		}
 
-		allyTeamID, allyTeamOk := allyTeamIDForTimeline(level)
 		for _, k := range level.CombatLog.Kill {
 			if k == nil || k.IsEmpty() {
 				continue
@@ -105,6 +143,10 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 			}
 			sec := t.Sub(t0).Seconds()
 			victimTeam, inRoster := nameTeam[strings.ToLower(victim)]
+			killerTeam := 0
+			if killer != "" {
+				killerTeam = nameTeam[strings.ToLower(killer)]
+			}
 			// NPC/объекты на карте: ник в логе не совпадает с ростером матча.
 			if !inRoster {
 				continue
@@ -120,9 +162,26 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 				if killer != "" {
 					lbl = killer + " → " + victim
 				}
+				r.lg.For(ctx).Debugw(
+					"timeline_event_source_line",
+					"line_type", "kill",
+					"time", k.Time.Time,
+					"time_sec", sec,
+					"kind", "death",
+					"killer", killer,
+					"victim", victim,
+					"killer_ship", killerShip,
+					"victim_ship", victimShip,
+					"weapon", weapon,
+					"assists", assists,
+					"victim_team_id", victimTeam,
+				)
 				markers = append(markers, timelineMarker{
 					Kind:       "death",
 					TimeSec:    sec,
+					TeamID:     victimTeam,
+					KillerTeamID: killerTeam,
+					VictimTeamID: victimTeam,
 					Player:     victim,
 					Killer:     killer,
 					Victim:     victim,
@@ -136,9 +195,26 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 				continue
 			}
 			if killer != "" {
+				r.lg.For(ctx).Debugw(
+					"timeline_event_source_line",
+					"line_type", "kill",
+					"time", k.Time.Time,
+					"time_sec", sec,
+					"kind", "kill",
+					"killer", killer,
+					"victim", victim,
+					"killer_ship", killerShip,
+					"victim_ship", victimShip,
+					"weapon", weapon,
+					"assists", assists,
+					"victim_team_id", victimTeam,
+				)
 				markers = append(markers, timelineMarker{
 					Kind:       "kill",
 					TimeSec:    sec,
+					TeamID:     killerTeam,
+					KillerTeamID: killerTeam,
+					VictimTeamID: victimTeam,
 					Killer:     killer,
 					Victim:     victim,
 					KillerShip: killerShip,
@@ -157,19 +233,87 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 		}
 		return markers[i].Kind < markers[j].Kind
 	})
+	if focusKey != "" {
+		var filtered []timelineMarker
+		matches := func(s string) bool {
+			return strings.ToLower(strings.TrimSpace(s)) == focusKey
+		}
+		for _, m := range markers {
+			switch m.Kind {
+			case "spawn", "enemy_spawn":
+				if matches(m.Player) {
+					filtered = append(filtered, m)
+				}
+			case "death":
+				// Для death учитываем только смерть выбранного игрока.
+				if matches(m.Victim) || matches(m.Player) {
+					filtered = append(filtered, m)
+				}
+			case "kill":
+				if matches(m.Killer) || matches(m.Victim) {
+					filtered = append(filtered, m)
+					continue
+				}
+				keep := false
+				for _, a := range m.Assists {
+					if matches(a) {
+						keep = true
+						break
+					}
+				}
+				if keep {
+					filtered = append(filtered, m)
+				}
+			default:
+				if matches(m.Player) || matches(m.Killer) || matches(m.Victim) {
+					filtered = append(filtered, m)
+				}
+			}
+		}
+		markers = filtered
+	}
 
 	res := timelineResult{
-		StartSec: 0,
-		EndSec:   span,
-		Markers:  markers,
+		StartSec:    0,
+		EndSec:      span,
+		StartUnixMs: t0.UnixMilli(),
+		AllyTeamID:  allyTeamID,
+		EnemyTeamID: enemyTeamID,
+		Markers:     markers,
 	}
 	b, err := json.Marshal(res)
 	if err != nil {
 		r.lg.For(ctx).Errorw("marshalTimelineJSON", "err", err, "markers", len(markers))
 		return "", err
 	}
+	var cSpawn, cEnemySpawn, cKill, cDeath, cOther int
+	for _, m := range markers {
+		switch m.Kind {
+		case "spawn":
+			cSpawn++
+		case "enemy_spawn":
+			cEnemySpawn++
+		case "kill":
+			cKill++
+		case "death":
+			cDeath++
+		default:
+			cOther++
+		}
+	}
 	s := string(b)
-	r.lg.For(ctx).Debugw("marshalTimelineJSON", "markers", len(markers), "end_sec", span, "out_len", len(s))
+	r.lg.For(ctx).Debugw(
+		"marshalTimelineJSON",
+		"focus", focusKey,
+		"markers", len(markers),
+		"spawn", cSpawn,
+		"enemy_spawn", cEnemySpawn,
+		"kill", cKill,
+		"death", cDeath,
+		"other", cOther,
+		"end_sec", span,
+		"out_len", len(s),
+	)
 	return s, nil
 }
 
