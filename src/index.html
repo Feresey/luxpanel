@@ -33,8 +33,10 @@
                 <button type="button" class="metric-btn" data-metric="kill">Kill</button>
             </div>
         </div>
-        <div class="header-corner-controls">
-            <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
+        <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
+    </div>
+    <div class="content">
+        <div class="top-controls-bar" aria-label="Основные пользовательские настройки">
             <label class="warrior-picker" for="warrior_nick_select">
                 <span>Кто ты, воин?</span>
                 <select id="warrior_nick_select">
@@ -42,8 +44,6 @@
                 </select>
             </label>
         </div>
-    </div>
-    <div class="content">
         <div id="watcher_banner" class="watcher-banner" role="status" hidden></div>
         <div class="graphs graphs-view-table" id="graphs_root">
             <div class="graph-view-toolbar" role="group" aria-label="Вид графиков">
@@ -93,13 +93,16 @@
                 <div id="timeline_root" class="timeline-root" hidden></div>
                 <div class="battle-insight-in-timeline" aria-label="Графики ситуации в бою">
                     <div class="battle-player-focus-row">
+                        <div class="timeline-controls-left">
+                            <button type="button" id="timeline_reset_top_btn" class="timeline-reset-btn timeline-reset-btn-top">Сбросить масштаб</button>
+                            <p id="timeline_hint" class="timeline-hint timeline-hint-inline" role="status"></p>
+                        </div>
                         <label class="graph-player-focus">
                             <span class="graph-view-label">Игрок:</span>
                             <select id="graph_player_focus_select" class="graph-player-focus-select">
-                                <option value="">Все игроки</option>
+                                <option value="">Игрок не выбран</option>
                             </select>
                         </label>
-                        <button type="button" id="timeline_reset_top_btn" class="timeline-reset-btn timeline-reset-btn-top">Сбросить масштаб</button>
                     </div>
                     <div class="battle-insight-row">
                         <div class="battle-insight-chart-head">
@@ -121,7 +124,6 @@
                     </div>
                 </div>
             </div>
-            <p id="timeline_hint" class="timeline-hint" role="status"></p>
         </section>
 
         <section class="damage-table-section" aria-label="Детализация урона">

@@ -69,15 +69,7 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 
 	var markers []timelineMarker
 
-	allyTeamID, allyTeamOk := allyTeamIDForTimeline(level)
-	leftID, rightID, lrOK := leftRightTeamIDs(level)
-	enemyTeamID := 0
-	if lrOK {
-		enemyTeamID = rightID
-		if allyTeamID == rightID {
-			enemyTeamID = leftID
-		}
-	}
+	allyTeamID, enemyTeamID, teamsOK := resolveAllyEnemyTeamIDs(level)
 
 	if level.CombatLog != nil {
 		nameTeam := rosterNameToTeamID(level)
@@ -151,7 +143,7 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 			if !inRoster {
 				continue
 			}
-			allyDeath := victim != "" && allyTeamOk && len(nameTeam) > 0 && victimTeam == allyTeamID
+			allyDeath := victim != "" && teamsOK && len(nameTeam) > 0 && victimTeam == allyTeamID
 
 			weapon := strings.TrimSpace(k.Source)
 			assists := assistNamesForKill(level, t0, sec, victim, killer)

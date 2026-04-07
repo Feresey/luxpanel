@@ -324,7 +324,7 @@ function loadPlayerFocusOptions() {
             other.push(p);
         }
     });
-    playerFocusSelect.innerHTML = '<option value="">Все игроки</option>';
+    playerFocusSelect.innerHTML = '<option value="">Игрок не выбран</option>';
     const appendGroup = (label, arr) => {
         if (!arr.length) {
             return;
@@ -613,7 +613,7 @@ pickLogs.addEventListener('change', function () {
     clearTeamSwapCookieState();
     clearFocusedPlayers();
     if (playerFocusSelect) {
-        playerFocusSelect.innerHTML = '<option value="">Все игроки</option>';
+        playerFocusSelect.innerHTML = '<option value="">Игрок не выбран</option>';
     }
     const data = {
         rawGame: '',

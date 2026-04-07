@@ -7,7 +7,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background-color: #333;
+    background: linear-gradient(180deg, #232833 0%, #1c212b 100%);
+    border-bottom: 1px solid #2f3642;
     width: 100%;
 }
 
@@ -23,17 +24,6 @@
     text-decoration: underline;
 }
 
-.header-corner-controls {
-    position: absolute;
-    top: 0.55rem;
-    right: 1rem;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-}
-
 .warrior-picker {
     display: inline-flex;
     align-items: center;
@@ -46,12 +36,19 @@
     font-size: 0.84rem;
 }
 
+.top-controls-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .warrior-picker span {
     white-space: nowrap;
 }
 
 .warrior-picker select {
-    min-width: 170px;
+    min-width: 210px;
     padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid rgba(148, 163, 184, 0.35);
@@ -62,7 +59,7 @@
 
 .buttons {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
@@ -76,7 +73,7 @@
 
 .content {
     display: block;
-    background-color: #181818;
+    background: #13171f;
     min-height: calc(100vh - 90px);
     padding: 20px;
 }
@@ -84,8 +81,8 @@
 .watcher-banner {
     margin-bottom: 14px;
     padding: 10px 14px;
-    background: rgba(248, 113, 113, 0.1);
-    border: 1px solid rgba(248, 113, 113, 0.42);
+    background: rgba(244, 63, 94, 0.08);
+    border: 1px solid rgba(244, 63, 94, 0.28);
     border-radius: 8px;
     color: #fecaca;
     font-size: 0.92rem;
@@ -136,22 +133,22 @@
 .graph-view-btn {
     padding: 6px 14px;
     font-size: 0.85rem;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #1a1a1e;
-    color: #e4e4e7;
+    border-radius: 8px;
+    border: 1px solid #3a4454;
+    background: #1d2430;
+    color: #dbe3ef;
     cursor: pointer;
 }
 
 .graph-view-btn:hover {
-    border-color: #71717a;
-    background: #222228;
+    border-color: #5a6a82;
+    background: #263142;
 }
 
 .graph-view-btn.active {
-    border-color: #38bdf8;
-    background: #0c4a6e33;
-    color: #e0f2fe;
+    border-color: #60a5fa;
+    background: rgba(37, 99, 235, 0.22);
+    color: #eaf2ff;
 }
 
 .graph-team-swap-row {
@@ -165,22 +162,22 @@
     padding: 6px 14px;
     font-size: 0.84rem;
     border-radius: 999px;
-    border: 1px solid #3f3f46;
-    background: #17171b;
-    color: #d4d4d8;
+    border: 1px solid #3a4454;
+    background: #1b2431;
+    color: #d6deea;
     cursor: pointer;
     transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
 }
 
 .graph-team-swap-btn:hover {
-    border-color: #71717a;
-    background: #222228;
+    border-color: #5a6a82;
+    background: #273448;
 }
 
 .graph-team-swap-btn.is-swapped {
-    border-color: #38bdf8;
-    background: #0c4a6e33;
-    color: #e0f2fe;
+    border-color: #60a5fa;
+    background: rgba(37, 99, 235, 0.24);
+    color: #eff6ff;
 }
 
 .graphs-grid {
@@ -191,9 +188,10 @@
 }
 
 .graph-box {
-    background: #101010;
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
+    background: #171c25;
+    border: 1px solid #2e3644;
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -440,16 +438,31 @@
 }
 
 .battle-player-focus-row {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin-top: -2px;
     margin-bottom: -2px;
+    padding-left: var(--timeline-plot-gutter-left);
+    padding-right: var(--timeline-plot-gutter-right);
+    box-sizing: border-box;
 }
 
 .timeline-reset-btn-top {
-    flex-shrink: 0;
+    justify-self: start;
+}
+
+.timeline-controls-left {
+    justify-self: start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.battle-player-focus-row .graph-player-focus {
+    justify-self: center;
 }
 
 .battle-insight-row {
@@ -542,9 +555,10 @@
 
     margin-top: 28px;
     padding: 16px;
-    background: #101010;
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
+    background: #171c25;
+    border: 1px solid #2e3644;
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -828,16 +842,16 @@
 .timeline-reset-btn {
     padding: 6px 12px;
     font-size: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid #3f3f46;
-    background: #1e1e24;
-    color: #e4e4e7;
+    border-radius: 8px;
+    border: 1px solid #3a4454;
+    background: #1d2430;
+    color: #dbe3ef;
     cursor: pointer;
 }
 
 .timeline-reset-btn:hover {
-    background: #27272f;
-    border-color: #71717a;
+    background: #263142;
+    border-color: #5a6a82;
 }
 
 .timeline-reset-btn:focus-visible {
@@ -865,8 +879,13 @@
 
 .timeline-hint {
     margin: 10px 0 0;
-    font-size: 0.85rem;
-    color: #9ca3af;
+    font-size: 0.96rem;
+    color: #d1d5db;
+    font-weight: 500;
+}
+
+.timeline-hint-inline {
+    margin: 0;
 }
 
 .timeline-combat-loglines {
@@ -930,9 +949,10 @@
 .damage-table-section {
     margin-top: 28px;
     padding: 16px;
-    background: #101010;
-    border: 1px solid #2a2a2a;
-    border-radius: 8px;
+    background: #171c25;
+    border: 1px solid #2e3644;
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
     max-width: 100%;
 }
 
@@ -1270,10 +1290,10 @@ label {
 }
 
 .match-picker select {
-  background: #121212;
-  color: #fff;
-  border: 1px solid #3a3a3a;
-  border-radius: 6px;
+  background: #1d2430;
+  color: #e9eef8;
+  border: 1px solid #3a4454;
+  border-radius: 8px;
   padding: 8px 10px;
   min-width: min(92vw, 520px);
   max-width: 100%;
@@ -1293,18 +1313,18 @@ label {
   min-width: 100px;
   opacity: 1 !important;
   padding: 10px 16px;
-  border-radius: 6px;
-  background: #222 !important;
-  color: #eee !important;
-  border: 1px solid #444 !important;
+  border-radius: 8px;
+  background: #1d2430 !important;
+  color: #dbe3ef !important;
+  border: 1px solid #3a4454 !important;
   cursor: pointer;
 }
 
 .metric-btn:hover {
-  background: #2e2e2e !important;
+  background: #263142 !important;
 }
 
 .metric-btn.active {
-  border-color: #8cf !important;
-  box-shadow: 0 0 0 1px #8cf;
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.55);
 }

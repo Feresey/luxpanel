@@ -59,21 +59,8 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	focusKey := strings.ToLower(focusedPlayer)
 	hasFocus := focusKey != ""
 
-	allyID, allyOk := allyTeamIDForTimeline(level)
-	id0, id1, twoOk := leftRightTeamIDs(level)
-	if !allyOk || !twoOk || allyID == 0 {
-		res := battleInsightResult{EndSec: span, AllyTeamLabel: "Союзники", EnemyTeamLabel: "Противники"}
-		b, err := json.Marshal(res)
-		if err != nil {
-			return "", err
-		}
-		return string(b), nil
-	}
-	enemyID := id1
-	if allyID == id1 {
-		enemyID = id0
-	}
-	if enemyID == allyID {
+	allyID, enemyID, ok := resolveAllyEnemyTeamIDs(level)
+	if !ok {
 		res := battleInsightResult{EndSec: span, AllyTeamLabel: "Союзники", EnemyTeamLabel: "Противники"}
 		b, err := json.Marshal(res)
 		if err != nil {
