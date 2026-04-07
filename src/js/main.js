@@ -47,6 +47,7 @@ const warriorCookieName = 'lux_warrior_nick';
 const timelineResetTopBtn = document.getElementById('timeline_reset_top_btn');
 
 let currentMetric = 'damage';
+const intFmt = new Intl.NumberFormat('ru-RU');
 
 function getSelectedMatchIndex() {
     if (!matchSelect || matchSelect.disabled) {
@@ -57,6 +58,55 @@ function getSelectedMatchIndex() {
 
 function refreshCharts() {
     ApplyParsedCharts(getSelectedMatchIndex(), currentMetric);
+}
+
+function formatSummaryDuration(sec) {
+    const n = Number(sec) || 0;
+    const m = Math.floor(n / 60);
+    const s = Math.floor(n % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateMatchSummary() {
+    const card = document.getElementById('match_summary_card');
+    if (!card) {
+        return;
+    }
+    const fn = globalThis.getMatchSummaryJSON;
+    if (typeof fn !== 'function') {
+        card.hidden = true;
+        return;
+    }
+    const idx = getSelectedMatchIndex();
+    let data = null;
+    try {
+        const raw = fn(idx);
+        data = JSON.parse(raw || '{}');
+    } catch (_) {
+        card.hidden = true;
+        return;
+    }
+    if (!data || typeof data !== 'object') {
+        card.hidden = true;
+        return;
+    }
+    const map = String(data.map_name || '').trim();
+    const mode = String(data.game_mode || '').trim();
+    const meta = [mode, map, formatSummaryDuration(data.duration_sec)].filter(Boolean).join(' · ');
+    const setText = (id, v) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = v;
+    };
+    setText('match_summary_meta', meta);
+    setText('match_summary_left_name', String(data.team_left_name || 'Team 1'));
+    setText('match_summary_right_name', String(data.team_right_name || 'Team 2'));
+    setText('match_summary_left_damage', intFmt.format(Math.round(Number(data.damage_left) || 0)));
+    setText('match_summary_right_damage', intFmt.format(Math.round(Number(data.damage_right) || 0)));
+    setText('match_summary_left_heal', intFmt.format(Math.round(Number(data.heal_left) || 0)));
+    setText('match_summary_right_heal', intFmt.format(Math.round(Number(data.heal_right) || 0)));
+    setText('match_summary_left_kills', String(Math.round(Number(data.kills_left) || 0)));
+    setText('match_summary_right_kills', String(Math.round(Number(data.kills_right) || 0)));
+    card.hidden = false;
 }
 
 function readSwapStateForMatch(matchIndex) {
@@ -413,6 +463,7 @@ function refreshAll() {
     }
     loadWarriorOptions();
     loadPlayerFocusOptions();
+    updateMatchSummary();
     updateWatcherBanner();
     deferAfterPaint(() => {
         if (damagePanel && typeof damagePanel.refresh === 'function') {

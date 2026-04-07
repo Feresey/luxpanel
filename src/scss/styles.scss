@@ -30,9 +30,9 @@
     gap: 8px;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: rgba(30, 41, 59, 0.45);
-    color: #dbeafe;
+    border: 1px solid rgba(125, 211, 252, 0.58);
+    background: rgba(30, 41, 59, 0.72);
+    color: #ebf5ff;
     font-size: 0.84rem;
 }
 
@@ -44,9 +44,9 @@
     min-width: 210px;
     padding: 4px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: #0f172a;
-    color: #e2e8f0;
+    border: 1px solid rgba(125, 211, 252, 0.62);
+    background: #11203a;
+    color: #f2f8ff;
     font-size: 0.84rem;
 }
 
@@ -81,9 +81,33 @@
 
 .content {
     display: block;
-    background: #13171f;
+    background:
+        linear-gradient(rgba(8, 12, 20, 0.68), rgba(8, 12, 20, 0.72)),
+        url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=80"),
+        radial-gradient(1200px 700px at 15% -10%, rgba(56, 189, 248, 0.1), transparent 58%),
+        radial-gradient(900px 520px at 88% 5%, rgba(139, 92, 246, 0.1), transparent 62%),
+        #0b0f17;
+    background-size: cover, cover, auto, auto, auto;
+    background-position: center top, center top, 0 0, 0 0, 0 0;
+    background-attachment: scroll, scroll, scroll, scroll, scroll;
+    position: relative;
+    isolation: isolate;
     min-height: calc(100vh - 90px);
     padding: 20px;
+}
+
+.content::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+        radial-gradient(2px 2px at 12% 18%, rgba(255, 255, 255, 0.35), transparent 60%),
+        radial-gradient(1.5px 1.5px at 38% 26%, rgba(148, 163, 184, 0.3), transparent 65%),
+        radial-gradient(2px 2px at 72% 20%, rgba(255, 255, 255, 0.32), transparent 60%),
+        radial-gradient(1.5px 1.5px at 85% 66%, rgba(125, 211, 252, 0.28), transparent 65%),
+        radial-gradient(2px 2px at 28% 76%, rgba(255, 255, 255, 0.3), transparent 60%);
 }
 
 .watcher-banner {
@@ -99,6 +123,55 @@
 
 .watcher-banner strong {
     color: #fca5a5;
+}
+
+.match-summary-card {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid #2e3644;
+    border-radius: 10px;
+    background: rgba(23, 28, 37, 0.88);
+}
+
+.match-summary-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.match-summary-title {
+    margin: 0;
+    font-size: 1rem;
+    color: #e5edf9;
+}
+
+.match-summary-meta {
+    color: #9fb3cc;
+    font-size: 0.84rem;
+}
+
+.match-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.match-summary-team {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #334055;
+    background: rgba(17, 32, 58, 0.65);
+    color: #dbe7f7;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.match-summary-team-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #f0f7ff;
 }
 
 .graphs {
@@ -170,21 +243,21 @@
     padding: 6px 14px;
     font-size: 0.84rem;
     border-radius: 999px;
-    border: 1px solid #3a4454;
-    background: #1b2431;
-    color: #d6deea;
+    border: 1px solid #60a5fa;
+    background: #213452;
+    color: #eaf2ff;
     cursor: pointer;
     transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease;
 }
 
 .graph-team-swap-btn:hover {
-    border-color: #5a6a82;
-    background: #273448;
+    border-color: #93c5fd;
+    background: #2f4566;
 }
 
 .graph-team-swap-btn.is-swapped {
-    border-color: #60a5fa;
-    background: rgba(37, 99, 235, 0.24);
+    border-color: #bae6fd;
+    background: rgba(37, 99, 235, 0.4);
     color: #eff6ff;
 }
 
@@ -199,7 +272,7 @@
     background: #171c25;
     border: 1px solid #2e3644;
     border-radius: 10px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -484,9 +557,9 @@
 
 .battle-player-focus-row .graph-player-focus .graph-player-focus-select {
     min-width: 220px;
-    background: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #11203a;
+    color: #f5f9ff;
+    border: 1px solid rgba(125, 211, 252, 0.64);
     border-radius: 6px;
     padding: 4px 8px;
     font-size: 0.84rem;
@@ -495,6 +568,37 @@
 .battle-insight-row {
     width: 100%;
     min-width: 0;
+}
+
+.battle-peak-ranges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin: 0 0 8px;
+    padding-left: var(--timeline-plot-gutter-left);
+    padding-right: var(--timeline-plot-gutter-right);
+    box-sizing: border-box;
+}
+
+.battle-peak-label {
+    font-size: 0.82rem;
+    color: #9fb3cc;
+}
+
+.battle-peak-btn {
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(250, 204, 21, 0.6);
+    background: rgba(250, 204, 21, 0.12);
+    color: #fef3c7;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.battle-peak-btn:hover {
+    background: rgba(250, 204, 21, 0.2);
+    border-color: rgba(250, 204, 21, 0.85);
 }
 
 .battle-insight-chart-head {
@@ -563,6 +667,7 @@
     width: 100% !important;
     height: 100% !important;
     cursor: crosshair;
+    touch-action: none;
 }
 
 .battle-chart-brush-preview {
@@ -585,7 +690,7 @@
     background: #171c25;
     border: 1px solid #2e3644;
     border-radius: 10px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -870,15 +975,15 @@
     padding: 6px 12px;
     font-size: 0.8rem;
     border-radius: 8px;
-    border: 1px solid #3a4454;
-    background: #1d2430;
-    color: #dbe3ef;
+    border: 1px solid #60a5fa;
+    background: #213452;
+    color: #ebf4ff;
     cursor: pointer;
 }
 
 .timeline-reset-btn:hover {
-    background: #263142;
-    border-color: #5a6a82;
+    background: #2f4566;
+    border-color: #93c5fd;
 }
 
 .timeline-reset-btn:focus-visible {
@@ -979,7 +1084,7 @@
     background: #171c25;
     border: 1px solid #2e3644;
     border-radius: 10px;
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
     max-width: 100%;
 }
 
@@ -1317,9 +1422,9 @@ label {
 }
 
 .match-picker select {
-  background: #1d2430;
-  color: #e9eef8;
-  border: 1px solid #3a4454;
+  background: #11203a;
+  color: #f3f8ff;
+  border: 1px solid #60a5fa;
   border-radius: 8px;
   padding: 8px 10px;
   min-width: min(92vw, 520px);
@@ -1341,17 +1446,17 @@ label {
   opacity: 1 !important;
   padding: 10px 16px;
   border-radius: 8px;
-  background: #1d2430 !important;
-  color: #dbe3ef !important;
-  border: 1px solid #3a4454 !important;
+  background: #213452 !important;
+  color: #eef5ff !important;
+  border: 1px solid #7dd3fc !important;
   cursor: pointer;
 }
 
 .metric-btn:hover {
-  background: #263142 !important;
+  background: #2f4566 !important;
 }
 
 .metric-btn.active {
-  border-color: #60a5fa !important;
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.55);
+  border-color: #e0f2fe !important;
+  box-shadow: 0 0 0 1px rgba(224, 242, 254, 0.8), 0 0 20px rgba(56, 189, 248, 0.35);
 }

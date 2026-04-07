@@ -45,6 +45,18 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		return s
 	})
 
+	r.register("getMatchSummaryJSON", func(this js.Value, args []js.Value) any {
+		level, ok := r.levelFromArgs(args, 1)
+		if !ok {
+			return "null"
+		}
+		s, err := r.marshalMatchSummaryJSON(ctx, level)
+		if err != nil {
+			return "null"
+		}
+		return s
+	})
+
 	r.register("getDamageChartsJSON", func(this js.Value, args []js.Value) any {
 		level, ok := r.levelFromArgs(args, 1)
 		if !ok {

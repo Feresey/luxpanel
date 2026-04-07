@@ -48,10 +48,79 @@ const battleSyncOverlayPlugin = {
     },
 };
 
+const battlePeakBandsPlugin = {
+    id: 'battlePeakBands',
+    beforeDatasetsDraw(chart) {
+        const bands = Array.isArray(chart.$peakRanges) ? chart.$peakRanges : [];
+        if (!bands.length) {
+            return;
+        }
+        const xScale = chart.scales && chart.scales.x;
+        const area = chart.chartArea;
+        if (!xScale || !area) {
+            return;
+        }
+        const { ctx } = chart;
+        const hoverIdx = chart.$peakHoverIndex;
+        ctx.save();
+        for (let i = 0; i < bands.length; i++) {
+            const b = bands[i];
+            const x0 = xScale.getPixelForValue(b.from);
+            const x1 = xScale.getPixelForValue(b.to);
+            const left = Math.max(area.left, Math.min(x0, x1));
+            const right = Math.min(area.right, Math.max(x0, x1));
+            if (right <= left) {
+                continue;
+            }
+            const isHover = typeof hoverIdx === 'number' && hoverIdx === i;
+            ctx.fillStyle = isHover ? 'rgba(250, 204, 21, 0.24)' : 'rgba(250, 204, 21, 0.08)';
+            ctx.fillRect(left, area.top, right - left, area.bottom - area.top);
+            ctx.strokeStyle = isHover ? 'rgba(250, 204, 21, 0.75)' : 'rgba(250, 204, 21, 0.3)';
+            ctx.lineWidth = isHover ? 2 : 1;
+            ctx.strokeRect(left, area.top, right - left, area.bottom - area.top);
+        }
+        ctx.restore();
+    },
+};
+
 Chart.register(battleSyncOverlayPlugin);
+Chart.register(battlePeakBandsPlugin);
 
 let lifeChart = null;
 let intensityChart = null;
+/** Индекс подсвеченного пика: кнопка «Пики боя» или наведение на полосу на графике. */
+let peakHoverIndex = null;
+
+/** Курсор перешёл на другой график боя или на кнопки пиков — не гасить подсветку на pointerleave. */
+function isPeakHoverHandoffTarget(el) {
+    return !!(
+        el
+        && typeof el.closest === 'function'
+        && (el.closest('.battle-insight-canvas-wrap') || el.closest('#battle_peak_ranges'))
+    );
+}
+
+function setPeakHoverIndex(idx) {
+    const next = typeof idx === 'number' && idx >= 0 ? idx : null;
+    if (next === peakHoverIndex) {
+        return;
+    }
+    peakHoverIndex = next;
+    const apply = (ch) => {
+        if (!ch) {
+            return;
+        }
+        ch.$peakHoverIndex = peakHoverIndex;
+        try {
+            ch.update('none');
+        } catch (_) {
+            /* ignore */
+        }
+    };
+    apply(lifeChart);
+    apply(intensityChart);
+}
+
 let battleInsightLoadGen = 0;
 let chartPointerUnsubs = [];
 let cursorUnsub = null;
@@ -100,7 +169,11 @@ function updateBattleChartBrushPreview(chart, wrap, previewEl, a, b) {
     previewEl.style.height = `${height}px`;
 }
 
-function attachChartBrushAndCursor(chart, canvas, wrap) {
+/** Порог «клика» без перетаскивания (только по пикселям: при узком зуме малое смещение даёт большой dSec). */
+const PEAK_CLICK_MAX_PX = 14;
+
+function attachChartBrushAndCursor(chart, canvas, wrap, opts) {
+    const peakRanges = opts && Array.isArray(opts.peakRanges) ? opts.peakRanges : [];
     const previewEl = ensureBattleChartBrushPreview(wrap);
     let docMove = null;
     let docUp = null;
@@ -118,10 +191,27 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
         if (typeof v === 'number' && Number.isFinite(v)) {
             setTimelineCursorSec(v);
         }
+        const area = chart.chartArea;
+        if (peakRanges.length && area) {
+            const inPlotY = pos.y >= area.top - 1 && pos.y <= area.bottom + 1;
+            const idx = inPlotY ? findPeakIndexAtChartPixel(chart, peakRanges, pos.x) : -1;
+            setPeakHoverIndex(idx >= 0 ? idx : null);
+            if (canvas) {
+                canvas.style.cursor = idx >= 0 ? 'pointer' : '';
+            }
+        } else if (canvas) {
+            canvas.style.cursor = '';
+        }
     };
-    const onLeave = () => {
+    const onLeave = (ev) => {
         if (!battleChartBrushActive) {
             setTimelineCursorSec(null);
+            if (!isPeakHoverHandoffTarget(ev && ev.relatedTarget)) {
+                setPeakHoverIndex(null);
+            }
+            if (canvas) {
+                canvas.style.cursor = '';
+            }
         }
     };
     const onDown = (e) => {
@@ -139,11 +229,25 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
             return;
         }
         let lastSec = anchorSec;
+        let lastPointerPx = { x: pos0.x, y: pos0.y };
         battleChartBrushActive = true;
+        setPeakHoverIndex(null);
+        if (canvas) {
+            canvas.style.cursor = '';
+        }
         updateBattleChartBrushPreview(chart, wrap, previewEl, anchorSec, anchorSec);
+
+        try {
+            if (typeof e.pointerId === 'number' && canvas.setPointerCapture) {
+                canvas.setPointerCapture(e.pointerId);
+            }
+        } catch (_) {
+            /* ignore */
+        }
 
         docMove = (ev) => {
             const pos = getRelativePosition(ev, chart);
+            lastPointerPx = { x: pos.x, y: pos.y };
             const cur = xScale.getValueForPixel(pos.x);
             if (typeof cur === 'number' && Number.isFinite(cur)) {
                 lastSec = cur;
@@ -151,7 +255,14 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
             }
             updateBattleChartBrushPreview(chart, wrap, previewEl, anchorSec, lastSec);
         };
-        docUp = () => {
+        docUp = (upEv) => {
+            try {
+                if (upEv && typeof upEv.pointerId === 'number' && canvas.releasePointerCapture) {
+                    canvas.releasePointerCapture(upEv.pointerId);
+                }
+            } catch (_) {
+                /* ignore */
+            }
             document.removeEventListener('pointermove', docMove);
             document.removeEventListener('pointerup', docUp);
             document.removeEventListener('pointercancel', docUp);
@@ -159,6 +270,22 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
             docUp = null;
             previewEl.style.display = 'none';
             battleChartBrushActive = false;
+            // Расстояние по последнему pointermove: pointerup на document часто даёт неверные координаты для Chart.js.
+            const distPx = Math.hypot(lastPointerPx.x - pos0.x, lastPointerPx.y - pos0.y);
+            const secFloat = secFromChartXPixel(chart, pos0.x);
+            // Клик по полосе пика: короткий жест; hit по пикселям и по времени без округления.
+            if (peakRanges.length && distPx < PEAK_CLICK_MAX_PX) {
+                const hit =
+                    findPeakAtChartPixel(chart, peakRanges, pos0.x)
+                    || (Number.isFinite(secFloat) ? findPeakAtTime(peakRanges, secFloat) : null)
+                    || findPeakAtTime(peakRanges, anchorSec);
+                if (hit) {
+                    commitZoomFromBrush(hit.from, hit.to);
+                    setTimelineCursorSec(typeof hit.t === 'number' ? hit.t : (hit.from + hit.to) / 2);
+                    gaEvent('lux_battle_peak_pick', { source: 'chart' });
+                    return;
+                }
+            }
             commitZoomFromBrush(anchorSec, lastSec);
         };
         document.addEventListener('pointermove', docMove);
@@ -168,11 +295,11 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
 
     canvas.addEventListener('pointermove', onMove);
     canvas.addEventListener('pointerleave', onLeave);
-    canvas.addEventListener('pointerdown', onDown);
+    canvas.addEventListener('pointerdown', onDown, true);
     return () => {
         canvas.removeEventListener('pointermove', onMove);
         canvas.removeEventListener('pointerleave', onLeave);
-        canvas.removeEventListener('pointerdown', onDown);
+        canvas.removeEventListener('pointerdown', onDown, true);
         if (docMove) {
             document.removeEventListener('pointermove', docMove);
         }
@@ -181,6 +308,9 @@ function attachChartBrushAndCursor(chart, canvas, wrap) {
             document.removeEventListener('pointercancel', docUp);
         }
         battleChartBrushActive = false;
+        if (canvas) {
+            canvas.style.cursor = '';
+        }
     };
 }
 
@@ -253,6 +383,233 @@ function xDomainSec(tArr) {
         return { min: undefined, max: undefined };
     }
     return { min: Math.min(...tArr), max: Math.max(...tArr) };
+}
+
+function medianOf(arr) {
+    if (!arr.length) {
+        return 0;
+    }
+    const s = arr.slice().sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    if (s.length % 2 === 1) {
+        return s[m];
+    }
+    return (s[m - 1] + s[m]) / 2;
+}
+
+function movingAverage(vals, radius) {
+    const n = vals.length;
+    if (n === 0) {
+        return [];
+    }
+    const out = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+        let sum = 0;
+        let cnt = 0;
+        const lo = Math.max(0, i - radius);
+        const hi = Math.min(n - 1, i + radius);
+        for (let j = lo; j <= hi; j++) {
+            sum += vals[j];
+            cnt++;
+        }
+        out[i] = cnt > 0 ? sum / cnt : vals[i];
+    }
+    return out;
+}
+
+function computePeakRanges(tArr, allyArr, enemyArr) {
+    const n = Math.min(tArr.length, allyArr.length, enemyArr.length);
+    if (n < 6) {
+        return [];
+    }
+    const t = [];
+    const y = [];
+    for (let i = 0; i < n; i++) {
+        t.push(Number(tArr[i]) || 0);
+        // Активность файта = суммарный урон обеих сторон (союзники + противники).
+        y.push((Number(allyArr[i]) || 0) + (Number(enemyArr[i]) || 0));
+    }
+    const ySm = movingAverage(y, 2);
+    const med = medianOf(ySm);
+    const absDev = ySm.map((v) => Math.abs(v - med));
+    const mad = Math.max(medianOf(absDev), 1e-6);
+    // Robust z-score (через MAD): устойчивее к выбросам, чем "обычный" stddev.
+    const z = ySm.map((v) => 0.6745 * (v - med) / mad);
+    const zHi = 1.05;
+    const zLo = 0.45;
+    const p70 = ySm.slice().sort((a, b) => a - b)[Math.max(0, Math.floor(ySm.length * 0.7) - 1)] || 0;
+    const fights = [];
+    let i = 0;
+    while (i < n) {
+        if (z[i] < zHi && ySm[i] < p70) {
+            i++;
+            continue;
+        }
+        let l = i;
+        let r = i;
+        while (l > 0 && (z[l - 1] >= zLo || ySm[l - 1] >= p70)) {
+            l--;
+        }
+        while (r + 1 < n && (z[r + 1] >= zLo || ySm[r + 1] >= p70)) {
+            r++;
+        }
+        let peakI = l;
+        for (let k = l + 1; k <= r; k++) {
+            if (ySm[k] > ySm[peakI]) {
+                peakI = k;
+            }
+        }
+        fights.push({
+            from: t[l],
+            to: t[r],
+            t: t[peakI],
+            value: ySm[peakI],
+        });
+        i = r + 1;
+    }
+    if (!fights.length) {
+        return [];
+    }
+    fights.sort((a, b) => a.from - b.from);
+    const merged = [];
+    for (let k = 0; k < fights.length; k++) {
+        const cur = fights[k];
+        const prev = merged[merged.length - 1];
+        if (!prev || cur.from - prev.to > 2.2) {
+            merged.push({ ...cur });
+            continue;
+        }
+        prev.to = Math.max(prev.to, cur.to);
+        if (cur.value > prev.value) {
+            prev.t = cur.t;
+            prev.value = cur.value;
+        }
+    }
+    // Оставляем самые выраженные файты, но длина окна теперь "длина боя", а не фикс.
+    merged.sort((a, b) => b.value - a.value);
+    const edgePadSec = 1.2;
+    const top = merged.slice(0, 10).map((p) => ({
+        ...p,
+        from: Math.max(t[0], p.from - edgePadSec),
+        to: Math.min(t[n - 1], p.to + edgePadSec),
+    }));
+    top.sort((a, b) => a.from - b.from);
+    return top;
+}
+
+/** Попадание по времени (сек от начала матча). */
+function findPeakAtTime(peaks, sec) {
+    if (!Array.isArray(peaks) || typeof sec !== 'number' || !Number.isFinite(sec)) {
+        return null;
+    }
+    const eps = 1e-2;
+    for (let i = 0; i < peaks.length; i++) {
+        const p = peaks[i];
+        if (
+            p
+            && typeof p.from === 'number'
+            && typeof p.to === 'number'
+            && sec >= p.from - eps
+            && sec <= p.to + eps
+        ) {
+            return p;
+        }
+    }
+    return null;
+}
+
+/**
+ * Время по X в координатах Chart.js без округления (getValueForPixel у linear scale округляет до int).
+ * Совпадает с формулой scale, см. LinearScale.getValueForPixel без Math.round.
+ */
+function secFromChartXPixel(chart, xPixel) {
+    const s = chart.scales && chart.scales.x;
+    if (!s || s.type !== 'linear') {
+        return NaN;
+    }
+    const d = s.getDecimalForPixel(xPixel);
+    const lo = s._startValue;
+    const range = s._valueRange;
+    if (typeof lo === 'number' && typeof range === 'number' && Number.isFinite(lo) && Number.isFinite(range)) {
+        return lo + d * range;
+    }
+    const { min, max } = s;
+    if (typeof min === 'number' && typeof max === 'number' && Number.isFinite(min) && Number.isFinite(max)) {
+        return min + d * (max - min);
+    }
+    return NaN;
+}
+
+/** Индекс пика под курсором по X (координаты Chart.js), или -1. */
+function findPeakIndexAtChartPixel(chart, peaks, xPixel) {
+    if (!chart || !Array.isArray(peaks) || !peaks.length) {
+        return -1;
+    }
+    const xScale = chart.scales && chart.scales.x;
+    const area = chart.chartArea;
+    if (!xScale || !area) {
+        return -1;
+    }
+    const pad = 3;
+    for (let i = 0; i < peaks.length; i++) {
+        const p = peaks[i];
+        if (!p || typeof p.from !== 'number' || typeof p.to !== 'number') {
+            continue;
+        }
+        const px0 = xScale.getPixelForValue(p.from);
+        const px1 = xScale.getPixelForValue(p.to);
+        const bandLeft = Math.min(px0, px1);
+        const bandRight = Math.max(px0, px1);
+        const left = Math.max(area.left, bandLeft - pad);
+        const right = Math.min(area.right, bandRight + pad);
+        if (left <= right && xPixel >= left && xPixel <= right) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/** Попадание по X в координатах Chart.js (как у полос battlePeakBands). */
+function findPeakAtChartPixel(chart, peaks, xPixel) {
+    const i = findPeakIndexAtChartPixel(chart, peaks, xPixel);
+    return i >= 0 ? peaks[i] : null;
+}
+
+function renderPeakRangesControls(peaks) {
+    const host = document.getElementById('battle_peak_ranges');
+    if (!host) {
+        return;
+    }
+    setPeakHoverIndex(null);
+    host.innerHTML = '';
+    if (!Array.isArray(peaks) || !peaks.length) {
+        host.hidden = true;
+        return;
+    }
+    host.hidden = false;
+    const title = document.createElement('span');
+    title.className = 'battle-peak-label';
+    title.textContent = 'Пики боя:';
+    host.appendChild(title);
+    peaks.forEach((p, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'battle-peak-btn';
+        b.textContent = `${i + 1}) ${formatAxisClock(p.from)}-${formatAxisClock(p.to)}`;
+        b.addEventListener('click', () => {
+            commitZoomFromBrush(p.from, p.to);
+            setTimelineCursorSec(p.t);
+        });
+        b.addEventListener('pointerenter', () => {
+            setPeakHoverIndex(i);
+        });
+        b.addEventListener('pointerleave', (ev) => {
+            if (!isPeakHoverHandoffTarget(ev.relatedTarget)) {
+                setPeakHoverIndex(null);
+            }
+        });
+        host.appendChild(b);
+    });
 }
 
 const axisStyle = {
@@ -522,6 +879,7 @@ function readSwapStateForMatch(levelIndex) {
 }
 
 function destroyCharts() {
+    setPeakHoverIndex(null);
     chartPointerUnsubs.forEach((fn) => {
         try {
             fn();
@@ -638,6 +996,12 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const intEnemySeries = allyIsBaseAlly ? intEnemies : intAllies;
                 const battleSeriesPrepMs = performance.now() - tSeries0;
 
+                const peaks =
+                    intT.length >= 6
+                        ? computePeakRanges(intT, intAllySeries, intEnemySeries)
+                        : [];
+                renderPeakRangesControls(peaks);
+
                 const tChart0 = performance.now();
                 if (lifeT.length > 0) {
                     const lifeDatasets = [
@@ -749,7 +1113,10 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             },
                         },
                     });
-                    chartPointerUnsubs.push(attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap));
+                    lifeChart.$peakRanges = peaks;
+                    chartPointerUnsubs.push(
+                        attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap, { peakRanges: peaks }),
+                    );
                 }
 
                 if (intT.length > 0) {
@@ -832,7 +1199,10 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             },
                         },
                     });
-                    chartPointerUnsubs.push(attachChartBrushAndCursor(intensityChart, intCanvas, intWrap));
+                    intensityChart.$peakRanges = peaks;
+                    chartPointerUnsubs.push(
+                        attachChartBrushAndCursor(intensityChart, intCanvas, intWrap, { peakRanges: peaks }),
+                    );
                 }
 
                 const battleChartRenderMs = performance.now() - tChart0;
