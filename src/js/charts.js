@@ -256,6 +256,16 @@ function matrixCellAt(mat, c, r) {
     return row[r];
 }
 
+function renderPlayerLabelWithNewbieBonus(name, newbieBonusMax) {
+    const bonus = Number(newbieBonusMax && newbieBonusMax[name]) || 0;
+    const safeName = escapeHtml(name);
+    if (bonus <= 0) {
+        return safeName;
+    }
+    const hint = `Бонус новичка (Normalizer): максимум за матч = x${bonus}`;
+    return `${safeName} <span class="newbie-bonus-badge" title="${escapeHtml(hint)}">NB x${bonus}</span>`;
+}
+
 function currentFocusedPlayerName() {
     const el = document.getElementById('graph_player_focus_select');
     return el ? String(el.value || '').trim() : '';
@@ -344,6 +354,10 @@ function renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, g
 function renderMatrixTable(panel, mode, opts = {}) {
     const colPlayers = Array.isArray(panel.col_players) ? panel.col_players : [];
     const rowPlayers = Array.isArray(panel.row_players) ? panel.row_players : [];
+    const newbieBonusMax =
+        panel && panel.newbie_bonus_max && typeof panel.newbie_bonus_max === 'object'
+            ? panel.newbie_bonus_max
+            : {};
     const mat = Array.isArray(panel.matrix) ? panel.matrix : [];
     // Транспонированная таблица: заголовки столбцов = бывшие строки, строки = бывшие столбцы.
     let headerCols = rowPlayers.slice();
@@ -402,13 +416,13 @@ function renderMatrixTable(panel, mode, opts = {}) {
     let html = '<table class="pair-matrix-table"><thead><tr>';
     html += `<th class="corner">${escapeHtml(corner)}</th>`;
     for (let c = 0; c < headerCols.length; c++) {
-        html += `<th title="${escapeHtml(headerCols[c])}">${escapeHtml(headerCols[c])}</th>`;
+        html += `<th title="${escapeHtml(headerCols[c])}">${renderPlayerLabelWithNewbieBonus(headerCols[c], newbieBonusMax)}</th>`;
     }
     html += '<th class="matrix-total-head" title="Сумма по строке (источник)">Total</th>';
     html += '</tr></thead><tbody>';
     for (let r = 0; r < bodyRows.length; r++) {
         html += '<tr>';
-        html += `<th class="row-head" title="${escapeHtml(bodyRows[r])}">${escapeHtml(bodyRows[r])}</th>`;
+        html += `<th class="row-head" title="${escapeHtml(bodyRows[r])}">${renderPlayerLabelWithNewbieBonus(bodyRows[r], newbieBonusMax)}</th>`;
         for (let c = 0; c < headerCols.length; c++) {
             const srcIdx = rowIdxByName.get(String(bodyRows[r]));
             const dstIdx = colIdxByName.get(String(headerCols[c]));

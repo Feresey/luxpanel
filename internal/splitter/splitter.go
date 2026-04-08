@@ -241,6 +241,7 @@ type CombatLogLevel struct {
 	Kill     []*combat.Kill
 	Spawn    []*combat.Spawn
 	Reward   []*combat.Reward
+	Spell    []*combat.Spell
 	Finished combat.Finished
 }
 
@@ -386,6 +387,8 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 			currLevel.Spawn = append(currLevel.Spawn, line)
 		case *combat.Reward:
 			currLevel.Reward = append(currLevel.Reward, line)
+		case *combat.Spell:
+			currLevel.Spell = append(currLevel.Spell, line)
 		case *combat.Finished:
 			currLevel.Finished = *line
 		}

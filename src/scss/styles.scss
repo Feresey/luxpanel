@@ -450,6 +450,20 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     text-overflow: ellipsis;
 }
 
+.newbie-bonus-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.45);
+    background: rgba(30, 64, 175, 0.26);
+    color: #bfdbfe;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    vertical-align: middle;
+}
+
 .pair-matrix-table td {
     background: #141414;
 }

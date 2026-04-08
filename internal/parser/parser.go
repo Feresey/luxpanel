@@ -61,6 +61,7 @@ func NewCombatLogParser() func(string) (combat.LogLine, error) {
 		case matchPrefix(line, 23, "Reward"):
 		case matchPrefix(line, 23, "======= Start"):
 		case matchPrefix(line, 23, "Spawn"):
+		case matchPrefix(line, 23, "Spell"):
 		default:
 			return nil, nil
 		}

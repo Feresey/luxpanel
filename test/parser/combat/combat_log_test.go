@@ -28,6 +28,10 @@ var (
 	rewardRaw string
 	//go:embed testdata/apply_aura.txt
 	applyAuraRaw string
+	//go:embed testdata/spawn.txt
+	spawnRaw string
+	//go:embed testdata/spell.txt
+	spellRaw string
 )
 
 type testData[Out any] struct {
@@ -436,7 +440,67 @@ func TestCombatSpawn(t *testing.T) {
 	}
 
 	parse := newParser()
-	runTests(t, tests, finishedRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+	runTests(t, tests, spawnRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
+		return parse(raw)
+	})
+}
+
+func TestCombatSpell(t *testing.T) {
+	tests := []testData[combat.LogLine]{
+		{
+			name:  "ok empty",
+			input: `19:45:53.430  CMBT   | Spell 'PlasmaBlade' by Therm0Nuclear(Weapon_PlasmaBlade_T5_Mk3) targets(0):`,
+			want: &combat.Spell{
+				Time:       combat.Time{Time: "19:45:53.430"},
+				Normalizer: 0,
+				GodGift:    false,
+				Targets:    nil,
+			},
+		},
+		{
+			name:  "ok",
+			input: `19:45:53.888  CMBT   | Spell 'SOps_AntiHuge' by Turret_CruiserAlien_T5R(Turret_CruiserAlien_T5R) targets(1): georgeatg`,
+			want: &combat.Spell{
+				Time:       combat.Time{Time: "19:45:53.888"},
+				Normalizer: 0,
+				GodGift:    false,
+				Targets:    []string{"georgeatg"},
+			},
+		},
+		{
+			name:  "ok godgift",
+			input: `18:41:01.501  CMBT   | Spell 'GodGift' by post333 targets(1): n/a(post333)`,
+			want: &combat.Spell{
+				Time:       combat.Time{Time: "18:41:01.501"},
+				Normalizer: 0,
+				GodGift:    true,
+				Targets:    []string{"post333"},
+			},
+		},
+		{
+			name:  "ok godgift",
+			input: `17:41:34.743  CMBT   | Spell 'TestKPMNormalizer_4' by igopechek targets(1): n/a(igopechek)`,
+			want: &combat.Spell{
+				Time:       combat.Time{Time: "17:41:34.743"},
+				Normalizer: 4,
+				GodGift:    false,
+				Targets:    []string{"igopechek"},
+			},
+		},
+		{
+			name:      "cutted",
+			input:     `21:42:48.769  CMBT   | Spawn SpaceShip for player7 (RockerBonker, #125546). 'Ship_R`,
+			wantError: true,
+		},
+		{
+			name:      "empty",
+			input:     "",
+			wantError: false,
+		},
+	}
+
+	parse := newParser()
+	runTests(t, tests, spellRaw, func(t *testing.T, raw string) (combat.LogLine, error) {
 		return parse(raw)
 	})
 }

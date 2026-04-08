@@ -84,8 +84,56 @@ const battlePeakBandsPlugin = {
     },
 };
 
+const battleGodGiftMarkerPlugin = {
+    id: 'battleGodGiftMarker',
+    afterDraw(chart) {
+        const marker = chart && chart.$godGiftMarker;
+        if (!marker || typeof marker.sec !== 'number' || !Number.isFinite(marker.sec)) {
+            return;
+        }
+        const xScale = chart.scales && chart.scales.x;
+        const area = chart.chartArea;
+        if (!xScale || !area) {
+            return;
+        }
+        const x = xScale.getPixelForValue(marker.sec);
+        if (!Number.isFinite(x) || x < area.left-1 || x > area.right+1) {
+            return;
+        }
+        const { ctx } = chart;
+        const label = String(marker.label || 'GodGift').trim() || 'GodGift';
+        const bandW = 8;
+        ctx.save();
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.16)';
+        ctx.fillRect(x - bandW / 2, area.top, bandW, area.bottom - area.top);
+        ctx.strokeStyle = 'rgba(196, 181, 253, 0.92)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, area.top);
+        ctx.lineTo(x, area.bottom);
+        ctx.stroke();
+
+        ctx.font = '600 11px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        const padX = 6;
+        const padY = 3;
+        const txtW = ctx.measureText(label).width;
+        const boxW = txtW + padX * 2;
+        const boxH = 18;
+        const boxX = Math.min(Math.max(x + 6, area.left), area.right - boxW);
+        const boxY = area.top + 4;
+        ctx.fillStyle = 'rgba(76, 29, 149, 0.85)';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        ctx.fillStyle = 'rgba(245, 243, 255, 0.98)';
+        ctx.fillText(label, boxX + padX, boxY + padY);
+        ctx.restore();
+    },
+};
+
 Chart.register(battleSyncOverlayPlugin);
 Chart.register(battlePeakBandsPlugin);
+Chart.register(battleGodGiftMarkerPlugin);
 
 let lifeChart = null;
 let intensityChart = null;
@@ -708,22 +756,6 @@ function fetchBattleInsightJSON(levelIndex) {
     return fn(levelIndex, tr, focused || '');
 }
 
-function seriesHead(points, max = 5) {
-    if (!Array.isArray(points)) {
-        return [];
-    }
-    return points.slice(0, max).map((p) => ({
-        t: p && p.t,
-        allies: p && p.allies,
-        enemies: p && p.enemies,
-        ally: p && p.ally,
-        enemy: p && p.enemy,
-        player: p && p.player,
-        player_out: p && p.player_out,
-        player_in: p && p.player_in,
-    }));
-}
-
 function fetchTimelineMarkers(levelIndex, focusedPlayer) {
     const fp = String(focusedPlayer || '').trim();
     if (!fp) {
@@ -943,11 +975,6 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const tbw0 = performance.now();
                 const raw = fetchBattleInsightJSON(idx);
                 const battleWasmMs = performance.now() - tbw0;
-                console.debug('[battle] raw payload', {
-                    match_index: idx,
-                    raw_len: typeof raw === 'string' ? raw.length : 0,
-                    wasm_ms: Math.round(battleWasmMs),
-                });
                 destroyCharts();
                 if (!raw || raw === 'null') {
                     return;
@@ -966,6 +993,8 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const allyLabel = data.ally_team_label || 'Союзники';
                 const enemyLabel = data.enemy_team_label || 'Противники';
                 const focusedPlayer = String(data.focused_player || '').trim();
+                const godGiftSec = Number(data.godgift_sec);
+                const godGiftLabel = String(data.godgift_label || 'GodGift').trim() || 'GodGift';
                 const timelineData = fetchTimelineMarkers(idx, '');
                 const baseAllyTeamID = Number(timelineData.allyTeamID) || Number(data.ally_team_id) || 0;
                 const baseEnemyTeamID = Number(timelineData.enemyTeamID) || Number(data.enemy_team_id) || 0;
@@ -973,21 +1002,6 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 // Для подсказок на линии жизни нужны все события, а не только фильтр выбранного игрока.
                 const timelineMarkers = timelineData.markers;
                 const focusedEventTimes = relatedEventTimes(timelineMarkers, focusedPlayer);
-                console.debug('[battle] parsed series', {
-                    match_index: idx,
-                    focused_player: focusedPlayer,
-                    ally_label: allyLabel,
-                    enemy_label: enemyLabel,
-                    ally_team_id: selectedTeams.ally,
-                    enemy_team_id: selectedTeams.enemy,
-                    life_points: life.length,
-                    intensity_points: intensity.length,
-                    life_head: seriesHead(life),
-                    intensity_head: seriesHead(intensity),
-                    timeline_markers: timelineMarkers.length,
-                    focused_events: focusedEventTimes.length,
-                    json_ms: Math.round(battleJsonMs),
-                });
 
                 const lifeT = life.map((p) => p.t);
                 const lifeAllies = life.map((p) => p.allies);
@@ -1126,6 +1140,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                         },
                     });
                     lifeChart.$peakRanges = peaks;
+                    lifeChart.$godGiftMarker = Number.isFinite(godGiftSec) ? { sec: godGiftSec, label: godGiftLabel } : null;
                     chartPointerUnsubs.push(
                         attachChartBrushAndCursor(lifeChart, lifeCanvas, lifeWrap, { peakRanges: peaks }),
                     );
@@ -1212,6 +1227,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                         },
                     });
                     intensityChart.$peakRanges = peaks;
+                    intensityChart.$godGiftMarker = Number.isFinite(godGiftSec) ? { sec: godGiftSec, label: godGiftLabel } : null;
                     chartPointerUnsubs.push(
                         attachChartBrushAndCursor(intensityChart, intCanvas, intWrap, { peakRanges: peaks }),
                     );
@@ -1219,14 +1235,6 @@ export function setupBattleInsightCharts(getMatchIndex) {
 
                 const battleChartRenderMs = performance.now() - tChart0;
                 const prepTotal = battleWasmMs + battleJsonMs + battleSeriesPrepMs;
-                console.debug('[battle] rendered', {
-                    match_index: idx,
-                    focused_player: focusedPlayer,
-                    life_points: lifeT.length,
-                    intensity_points: intT.length,
-                    data_prep_ms: Math.round(prepTotal),
-                    render_ms: Math.round(battleChartRenderMs),
-                });
                 gaEvent('lux_battle_charts_timing', {
                     swapped: allyIsBaseAlly ? '0' : '1',
                     battle_wasm_ms: Math.round(battleWasmMs),

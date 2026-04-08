@@ -6,6 +6,8 @@ import (
 	"github.com/Feresey/luxpanel/internal/parser/common"
 )
 
+type strArr = []string
+
 type Time struct{ Time string }
 
 func (Time) combatLine()         {}
@@ -219,6 +221,21 @@ type Spawn struct {
 }
 
 func (l *Spawn) GetTime(logTime time.Time) time.Time {
+	if l == nil {
+		return time.Time{}
+	}
+	return common.ParseTime(logTime, l.Time.Time)
+}
+
+type Spell struct {
+	Time
+
+	Normalizer int
+	GodGift    bool
+	Targets    []string
+}
+
+func (l *Spell) GetTime(logTime time.Time) time.Time {
 	if l == nil {
 		return time.Time{}
 	}

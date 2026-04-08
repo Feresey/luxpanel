@@ -18,9 +18,9 @@ type lifePoint struct {
 }
 
 type intensityPoint struct {
-	TimeSec  float64 `json:"t"`
-	AllyDPS  float64 `json:"ally"`  // средний урон/с по плавающему окну 10 с (9 с + текущая)
-	EnemyDPS float64 `json:"enemy"`
+	TimeSec   float64 `json:"t"`
+	AllyDPS   float64 `json:"ally"` // средний урон/с по плавающему окну 10 с (9 с + текущая)
+	EnemyDPS  float64 `json:"enemy"`
 	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон/с выбранного игрока (то же окно)
 	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон/с (то же окно)
 }
@@ -31,6 +31,8 @@ type battleInsightResult struct {
 	EnemyTeamID    int              `json:"enemy_team_id,omitempty"`
 	AllyTeamLabel  string           `json:"ally_team_label"`
 	EnemyTeamLabel string           `json:"enemy_team_label"`
+	GodGiftSec     float64          `json:"godgift_sec,omitempty"`
+	GodGiftLabel   string           `json:"godgift_label,omitempty"`
 	FocusedPlayer  string           `json:"focused_player,omitempty"`
 	Life           []lifePoint      `json:"life"`
 	Intensity      []intensityPoint `json:"intensity"`
@@ -113,28 +115,8 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 				t = t0
 			}
 			if tid == allyID {
-				r.lg.For(ctx).Debugw(
-					"life_event_source_line",
-					"line_type", "spawn",
-					"time", sp.Time.Time,
-					"time_sec", t.Sub(t0).Seconds(),
-					"kind", "ally_spawn",
-					"player", name,
-					"ship", strings.TrimSpace(sp.Ship),
-					"team_id", tid,
-				)
 				events = append(events, lifeEvent{t: t, kind: 0, name: name})
 			} else if tid == enemyID {
-				r.lg.For(ctx).Debugw(
-					"life_event_source_line",
-					"line_type", "spawn",
-					"time", sp.Time.Time,
-					"time_sec", t.Sub(t0).Seconds(),
-					"kind", "enemy_spawn",
-					"player", name,
-					"ship", strings.TrimSpace(sp.Ship),
-					"team_id", tid,
-				)
 				events = append(events, lifeEvent{t: t, kind: 1, name: name})
 			}
 		}
@@ -159,30 +141,10 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			allyDeath := victim != "" && len(nameTeam) > 0 && victimTeam == allyID
 
 			if allyDeath {
-				r.lg.For(ctx).Debugw(
-					"life_event_source_line",
-					"line_type", "kill",
-					"time", k.Time.Time,
-					"time_sec", t.Sub(t0).Seconds(),
-					"kind", "ally_death",
-					"killer", killer,
-					"victim", victim,
-					"victim_team_id", victimTeam,
-				)
 				events = append(events, lifeEvent{t: t, kind: 2, name: victim})
 				continue
 			}
 			if killer != "" && victim != "" {
-				r.lg.For(ctx).Debugw(
-					"life_event_source_line",
-					"line_type", "kill",
-					"time", k.Time.Time,
-					"time_sec", t.Sub(t0).Seconds(),
-					"kind", "enemy_death",
-					"killer", killer,
-					"victim", victim,
-					"victim_team_id", victimTeam,
-				)
 				events = append(events, lifeEvent{t: t, kind: 3, name: victim})
 			}
 		}
@@ -322,6 +284,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	})
 
 	intensityOut := sampleIntensity(t0, dmgList, playerOutList, playerInList, lo, hi)
+	godGiftSec, godGiftLabel, hasGodGift := detectGodGiftMoment(level, t0, nameTeam, allyID, enemyID)
 
 	res := battleInsightResult{
 		EndSec:         span,
@@ -332,6 +295,15 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		FocusedPlayer:  focusedPlayer,
 		Life:           lifeOut,
 		Intensity:      intensityOut,
+	}
+	if hasGodGift {
+		res.GodGiftSec = godGiftSec
+		res.GodGiftLabel = godGiftLabel
+		r.lg.For(ctx).Infow(
+			"godgift_detected",
+			"time_sec", godGiftSec,
+			"label", godGiftLabel,
+		)
 	}
 	b, err := json.Marshal(res)
 	if err != nil {
@@ -352,6 +324,37 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		"out_len", len(s),
 	)
 	return s, nil
+}
+
+func detectGodGiftMoment(level *splitter.Level, t0 time.Time, nameTeam map[string]int, allyID, enemyID int) (float64, string, bool) {
+	if level == nil || level.CombatLog == nil || len(level.CombatLog.Spell) == 0 {
+		return 0, "", false
+	}
+	for _, sp := range level.CombatLog.Spell {
+		if sp == nil || !sp.GodGift {
+			continue
+		}
+		t := sp.GetTime(t0)
+		if t.Before(t0) {
+			t = t0
+		}
+		sec := t.Sub(t0).Seconds()
+		for _, tgt := range sp.Targets {
+			target := strings.TrimSpace(tgt)
+			tid := 0
+			if target != "" {
+				tid = nameTeam[strings.ToLower(target)]
+			}
+			if tid == allyID {
+				return sec, "GodGift (союзники)", true
+			}
+			if tid == enemyID {
+				return sec, "GodGift (противники)", true
+			}
+		}
+		continue
+	}
+	return 0, "", false
 }
 
 func clipLifeSeries(full []lifePoint, lo, hi float64) []lifePoint {

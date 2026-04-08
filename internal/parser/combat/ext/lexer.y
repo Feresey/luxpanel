@@ -47,10 +47,12 @@ func (y *YaccParserImpl) New() *YaccParserImpl {
 %union {
 	any;
 	string;
+	strArr;
 	int;
 	float32;
 	bool;
 	ParticipationModifiers;
+	Spell;
 }
 
 // MAIN TOKENS
@@ -116,6 +118,16 @@ func (y *YaccParserImpl) New() *YaccParserImpl {
 
 %type <any> spawn
 
+// Spell
+
+%left SPELL_PREFIX
+%left SPELL_NORMALIZER
+%left SPELL_GODGIFT
+
+%type <any> spell
+%type <Spell> spell_type
+%type <strArr> spell_targets
+
 // Start
 %left START
 
@@ -172,6 +184,9 @@ action:
 		$$ = $1
 	} |
 	spawn {
+		$$ = $1
+	} |
+	spell {
 		$$ = $1
 	}
 
@@ -339,6 +354,24 @@ spawn: SPAWN_PREFIX STRING INT STRING {
 	}
 }
 
+// Spell casted
+
+// 19:45:51.379  CMBT   | Spell 'TurretThermo_T5_Mk3' by georgeatg(Module_TurretThermo_T5_Mk3) targets(1): Turret_CruiserAlien_T5R
+// 19:45:55.009  CMBT   | Spell 'Spell_AG_DamageDec_Autogen_6859' by Therm0Nuclear(Weapon_PlasmaBlade_T5_Mk3) targets(0):
+spell: SPELL_PREFIX spell_type spell_targets {
+	$$ = &Spell{
+		Normalizer: $2.Normalizer,
+		GodGift: $2.GodGift,
+		Targets: $3,
+	}
+} | SPELL_PREFIX spell_type {
+	$$ = &Spell{}
+}
+
+spell_type: SPELL_NORMALIZER INT { $$.Normalizer = $2 } |
+	SPELL_GODGIFT { $$.GodGift = true } | {}
+
+spell_targets: spell_targets STRING { $$ = append($$, $2)} | {}
 
 // Finished
 

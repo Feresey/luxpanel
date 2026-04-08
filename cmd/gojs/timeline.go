@@ -15,20 +15,20 @@ import (
 )
 
 type timelineMarker struct {
-	Kind       string  `json:"kind"`
-	TimeSec    float64 `json:"time_sec"`
-	TeamID     int     `json:"team_id,omitempty"`
-	KillerTeamID int   `json:"killer_team_id,omitempty"`
-	VictimTeamID int   `json:"victim_team_id,omitempty"`
-	Label      string  `json:"label,omitempty"`
-	Player     string  `json:"player,omitempty"`
-	Killer     string  `json:"killer,omitempty"`
-	Victim     string  `json:"victim,omitempty"`
-	KillerShip string   `json:"killer_ship,omitempty"`
-	VictimShip string   `json:"victim_ship,omitempty"`
-	PlayerShip string   `json:"player_ship,omitempty"`
-	Weapon     string   `json:"weapon,omitempty"`
-	Assists    []string `json:"assists,omitempty"`
+	Kind         string   `json:"kind"`
+	TimeSec      float64  `json:"time_sec"`
+	TeamID       int      `json:"team_id,omitempty"`
+	KillerTeamID int      `json:"killer_team_id,omitempty"`
+	VictimTeamID int      `json:"victim_team_id,omitempty"`
+	Label        string   `json:"label,omitempty"`
+	Player       string   `json:"player,omitempty"`
+	Killer       string   `json:"killer,omitempty"`
+	Victim       string   `json:"victim,omitempty"`
+	KillerShip   string   `json:"killer_ship,omitempty"`
+	VictimShip   string   `json:"victim_ship,omitempty"`
+	PlayerShip   string   `json:"player_ship,omitempty"`
+	Weapon       string   `json:"weapon,omitempty"`
+	Assists      []string `json:"assists,omitempty"`
 }
 
 type timelineResult struct {
@@ -97,16 +97,6 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 				t = t0
 			}
 			sec := t.Sub(t0).Seconds()
-			r.lg.For(ctx).Debugw(
-				"timeline_event_source_line",
-				"line_type", "spawn",
-				"time", sp.Time.Time,
-				"time_sec", sec,
-				"kind", kind,
-				"player", name,
-				"ship", strings.TrimSpace(sp.Ship),
-				"team_id", tid,
-			)
 			markers = append(markers, timelineMarker{
 				Kind:       kind,
 				TimeSec:    sec,
@@ -154,66 +144,38 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 				if killer != "" {
 					lbl = killer + " → " + victim
 				}
-				r.lg.For(ctx).Debugw(
-					"timeline_event_source_line",
-					"line_type", "kill",
-					"time", k.Time.Time,
-					"time_sec", sec,
-					"kind", "death",
-					"killer", killer,
-					"victim", victim,
-					"killer_ship", killerShip,
-					"victim_ship", victimShip,
-					"weapon", weapon,
-					"assists", assists,
-					"victim_team_id", victimTeam,
-				)
 				markers = append(markers, timelineMarker{
-					Kind:       "death",
-					TimeSec:    sec,
-					TeamID:     victimTeam,
+					Kind:         "death",
+					TimeSec:      sec,
+					TeamID:       victimTeam,
 					KillerTeamID: killerTeam,
 					VictimTeamID: victimTeam,
-					Player:     victim,
-					Killer:     killer,
-					Victim:     victim,
-					KillerShip: killerShip,
-					VictimShip: victimShip,
-					PlayerShip: victimShip,
-					Weapon:     weapon,
-					Assists:    assists,
-					Label:      lbl,
+					Player:       victim,
+					Killer:       killer,
+					Victim:       victim,
+					KillerShip:   killerShip,
+					VictimShip:   victimShip,
+					PlayerShip:   victimShip,
+					Weapon:       weapon,
+					Assists:      assists,
+					Label:        lbl,
 				})
 				continue
 			}
 			if killer != "" {
-				r.lg.For(ctx).Debugw(
-					"timeline_event_source_line",
-					"line_type", "kill",
-					"time", k.Time.Time,
-					"time_sec", sec,
-					"kind", "kill",
-					"killer", killer,
-					"victim", victim,
-					"killer_ship", killerShip,
-					"victim_ship", victimShip,
-					"weapon", weapon,
-					"assists", assists,
-					"victim_team_id", victimTeam,
-				)
 				markers = append(markers, timelineMarker{
-					Kind:       "kill",
-					TimeSec:    sec,
-					TeamID:     killerTeam,
+					Kind:         "kill",
+					TimeSec:      sec,
+					TeamID:       killerTeam,
 					KillerTeamID: killerTeam,
 					VictimTeamID: victimTeam,
-					Killer:     killer,
-					Victim:     victim,
-					KillerShip: killerShip,
-					VictimShip: victimShip,
-					Weapon:     weapon,
-					Assists:    assists,
-					Label:      killer + " → " + victim,
+					Killer:       killer,
+					Victim:       victim,
+					KillerShip:   killerShip,
+					VictimShip:   victimShip,
+					Weapon:       weapon,
+					Assists:      assists,
+					Label:        killer + " → " + victim,
 				})
 			}
 		}

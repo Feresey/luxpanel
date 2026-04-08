@@ -9,7 +9,7 @@ const debugTokenizer = false
 
 func init() {
 	YaccErrorVerbose = true
-	YaccDebug = 0
+	YaccDebug = 1
 }
 
 type Token interface {
