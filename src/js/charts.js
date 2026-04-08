@@ -266,6 +266,42 @@ function renderPlayerLabelWithNewbieBonus(name, newbieBonusMax) {
     return `${safeName} <span class="newbie-bonus-badge" title="${escapeHtml(hint)}">NB x${bonus}</span>`;
 }
 
+function isSimpleUiModeActive() {
+    return typeof document !== 'undefined'
+        && !!document.body
+        && document.body.classList.contains('simple-ui-mode');
+}
+
+function renderSimplePanelTable(panel, mode, newbieBonusMax) {
+    const colPlayers = Array.isArray(panel.col_players) ? panel.col_players : [];
+    const mat = Array.isArray(panel.matrix) ? panel.matrix : [];
+    const sums = colPlayers.map((name, colIdx) => {
+        let total = 0;
+        for (let r = 0; r < mat.length; r++) {
+            const row = Array.isArray(mat[r]) ? mat[r] : [];
+            const v = Number(row[colIdx]) || 0;
+            total += v;
+        }
+        return { name, total };
+    });
+    sums.sort((a, b) => b.total - a.total || String(a.name).localeCompare(String(b.name)));
+    const label = mode === 'heal' ? 'Лечение' : mode === 'kill' ? 'Киллы' : 'Урон';
+    let html = '<table class="simple-team-table"><thead><tr>';
+    html += '<th>Игрок</th>';
+    html += `<th>${escapeHtml(label)}</th>`;
+    html += '</tr></thead><tbody>';
+    sums.forEach((x) => {
+        const v = mode === 'kill' ? String(Math.round(x.total || 0)) : formatWholeNumber(x.total);
+        html += '<tr>';
+        html += `<th class="row-head">${renderPlayerLabelWithNewbieBonus(x.name, newbieBonusMax)}</th>`;
+        html += `<td>${escapeHtml(v)}</td>`;
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<p class="simple-team-foot">Простой режим: вклад игроков без матрицы связей.</p>';
+    return html;
+}
+
 function currentFocusedPlayerName() {
     const el = document.getElementById('graph_player_focus_select');
     return el ? String(el.value || '').trim() : '';
@@ -358,6 +394,9 @@ function renderMatrixTable(panel, mode, opts = {}) {
         panel && panel.newbie_bonus_max && typeof panel.newbie_bonus_max === 'object'
             ? panel.newbie_bonus_max
             : {};
+    if (isSimpleUiModeActive()) {
+        return renderSimplePanelTable(panel, mode, newbieBonusMax);
+    }
     const mat = Array.isArray(panel.matrix) ? panel.matrix : [];
     // Транспонированная таблица: заголовки столбцов = бывшие строки, строки = бывшие столбцы.
     let headerCols = rowPlayers.slice();

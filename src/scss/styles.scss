@@ -109,6 +109,24 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     width: 100%;
 }
 
+.simple-ui-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(125, 211, 252, 0.4);
+    background: rgba(15, 23, 42, 0.45);
+    color: #dbeafe;
+    font-size: 0.82rem;
+}
+
+.simple-ui-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #38bdf8;
+}
+
 .buttons button {
     display: inline-block;
 }
@@ -448,6 +466,45 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.simple-team-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    color: #e5e5e5;
+}
+
+.simple-team-table th,
+.simple-team-table td {
+    padding: 6px 8px;
+    border: 1px solid #2a2a2a;
+    white-space: nowrap;
+}
+
+.simple-team-table th {
+    background: #171717;
+    text-align: left;
+}
+
+.simple-team-table td {
+    text-align: right;
+    background: #141414;
+}
+
+.simple-team-foot {
+    margin: 8px 0 0;
+    font-size: 0.78rem;
+    color: #a1a1aa;
+}
+
+body.simple-ui-mode .match-timeline-section,
+body.simple-ui-mode .damage-table-section {
+    display: none;
+}
+
+body.simple-ui-mode .graph-matrix-hint {
+    display: none !important;
 }
 
 .newbie-bonus-badge {

@@ -48,8 +48,10 @@ const pickLogs = document.getElementById('pick_logs');
 const matchSelect = document.getElementById('match_select');
 const playerFocusSelect = document.getElementById('graph_player_focus_select');
 const warriorNickSelect = document.getElementById('warrior_nick_select');
+const simpleUiModeCb = document.getElementById('simple_ui_mode_cb');
 const swapCookieName = 'lux_team_swap_by_match';
 const warriorCookieName = 'lux_warrior_nick';
+const simpleUiCookieName = 'lux_simple_ui_mode';
 const timelineResetTopBtn = document.getElementById('timeline_reset_top_btn');
 
 let currentMetric = 'damage';
@@ -203,6 +205,25 @@ function getWarriorNick() {
 
 function setWarriorNick(v) {
     writeCookieValue(warriorCookieName, String(v || '').trim(), 60 * 60 * 24 * 365 * 5);
+}
+
+function isSimpleUiMode() {
+    return readCookieValue(simpleUiCookieName) === '1';
+}
+
+function applySimpleUiMode(enabled) {
+    const on = Boolean(enabled);
+    if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.toggle('simple-ui-mode', on);
+    }
+    if (simpleUiModeCb) {
+        simpleUiModeCb.checked = on;
+    }
+}
+
+function setSimpleUiMode(enabled) {
+    writeCookieValue(simpleUiCookieName, enabled ? '1' : '0', 60 * 60 * 24 * 365 * 5);
+    applySimpleUiMode(enabled);
 }
 
 function playerTeamsFromTimeline(matchIndex) {
@@ -461,12 +482,13 @@ function refreshAll() {
     loadPlayerFocusOptions();
     updateMatchSummary();
     updateWatcherBanner();
+    const simpleUi = isSimpleUiMode();
     deferAfterPaint(() => {
-        if (damagePanel && typeof damagePanel.refresh === 'function') {
+        if (!simpleUi && damagePanel && typeof damagePanel.refresh === 'function') {
             damagePanel.refresh();
         }
         deferAfterPaint(() => {
-            if (battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
+            if (!simpleUi && battleInsightCtl && typeof battleInsightCtl.refresh === 'function') {
                 battleInsightCtl.refresh();
             }
         });
@@ -514,6 +536,15 @@ function setupBattleInsightTooltips() {
     });
 }
 setupBattleInsightTooltips();
+
+applySimpleUiMode(isSimpleUiMode());
+if (simpleUiModeCb) {
+    simpleUiModeCb.addEventListener('change', () => {
+        setSimpleUiMode(!!simpleUiModeCb.checked);
+        gaEvent('lux_simple_ui_toggle', { enabled: simpleUiModeCb.checked ? '1' : '0' });
+        refreshAll();
+    });
+}
 
 if (warriorNickSelect) {
     warriorNickSelect.addEventListener('change', () => {
