@@ -7,11 +7,16 @@ import (
 	"fmt"
 	"runtime/pprof"
 	"slices"
+	"strconv"
 	"strings"
 	"syscall/js"
 
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
+
+func wasmCacheKey(parts ...string) string {
+	return strings.Join(parts, "\x1e")
+}
 
 func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	r.register("parseFiles", func(this js.Value, args []js.Value) any {
@@ -38,10 +43,33 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getLevelsMetaJSON", func(this js.Value, args []js.Value) any {
+		const k = "levelsMeta"
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
 		s, err := r.marshalLevelsMetaJSON(ctx, r.Data.Levels)
 		if err != nil {
 			return "[]"
 		}
+		r.wasmCacheSet(k, s)
+		return s
+	})
+
+	r.register("getTeamPanelsRosterJSON", func(this js.Value, args []js.Value) any {
+		level, ok := r.levelFromArgs(args, 1)
+		if !ok {
+			return "null"
+		}
+		idx := args[0].Int()
+		k := wasmCacheKey("roster", strconv.Itoa(idx))
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
+		s, err := r.marshalTeamPanelsRosterJSON(ctx, level)
+		if err != nil {
+			return "null"
+		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -50,10 +78,16 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
+		k := wasmCacheKey("summary", strconv.Itoa(idx))
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
 		s, err := r.marshalMatchSummaryJSON(ctx, level)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -62,14 +96,20 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		timeRangeJSON := ""
 		if len(args) >= 2 && args[1].Type() == js.TypeString {
 			timeRangeJSON = args[1].String()
+		}
+		k := wasmCacheKey("charts", strconv.Itoa(idx), "damage", timeRangeJSON)
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
 		}
 		s, err := r.marshalChartsJSON(ctx, level, "damage", timeRangeJSON)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -78,6 +118,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		mode := "damage"
 		if args[1].Type() == js.TypeString {
 			mode = args[1].String()
@@ -86,10 +127,15 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if len(args) >= 3 && args[2].Type() == js.TypeString {
 			timeRangeJSON = args[2].String()
 		}
+		k := wasmCacheKey("charts", strconv.Itoa(idx), mode, timeRangeJSON)
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
 		s, err := r.marshalChartsJSON(ctx, level, mode, timeRangeJSON)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -98,6 +144,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		mode := "damage"
 		if args[1].Type() == js.TypeString {
 			mode = args[1].String()
@@ -110,10 +157,15 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if len(args) >= 4 && args[3].Type() == js.TypeString {
 			optsJSON = args[3].String()
 		}
+		k := wasmCacheKey("matrices", strconv.Itoa(idx), mode, timeRangeJSON, optsJSON)
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
 		s, err := r.marshalChartMatricesJSON(ctx, level, mode, timeRangeJSON, optsJSON)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -122,14 +174,20 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		focusPlayer := ""
 		if len(args) >= 2 && args[1].Type() == js.TypeString {
 			focusPlayer = args[1].String()
+		}
+		k := wasmCacheKey("timeline", strconv.Itoa(idx), focusPlayer)
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
 		}
 		s, err := r.marshalTimelineJSON(ctx, level, focusPlayer)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -138,6 +196,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		timeRangeJSON := ""
 		if len(args) >= 2 && args[1].Type() == js.TypeString {
 			timeRangeJSON = args[1].String()
@@ -146,10 +205,15 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if len(args) >= 3 && args[2].Type() == js.TypeString {
 			focusPlayer = args[2].String()
 		}
+		k := wasmCacheKey("battle", strconv.Itoa(idx), timeRangeJSON, focusPlayer)
+		if s, ok := r.wasmCacheGet(k); ok {
+			return s
+		}
 		s, err := r.marshalBattleInsightJSON(ctx, level, timeRangeJSON, focusPlayer)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 
@@ -174,9 +238,18 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if !ok {
 			return "null"
 		}
+		idx := args[0].Int()
 		initiator := ""
 		if len(args) >= 2 && args[1].Type() == js.TypeString {
 			initiator = args[1].String()
+		}
+		timeRangeJSON := ""
+		if len(args) >= 3 && args[2].Type() == js.TypeString {
+			timeRangeJSON = args[2].String()
+		}
+		k := wasmCacheKey("dfmeta", strconv.Itoa(idx), initiator, timeRangeJSON)
+		if s, hit := r.wasmCacheGet(k); hit {
+			return s
 		}
 
 		humans, bots := humanAndBotPlayerNames(level)
@@ -184,14 +257,11 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		b := mapKeysSorted(bots)
 		r.lg.For(ctx).Infow("damage filter players", "humans_count", len(h), "bots_count", len(b), "humans", h, "bots", b, "initiator", initiator)
 
-		timeRangeJSON := ""
-		if len(args) >= 3 && args[2].Type() == js.TypeString {
-			timeRangeJSON = args[2].String()
-		}
 		s, err := r.marshalDamageFilterMetaJSON(ctx, level, initiator, timeRangeJSON)
 		if err != nil {
 			return "null"
 		}
+		r.wasmCacheSet(k, s)
 		return s
 	})
 

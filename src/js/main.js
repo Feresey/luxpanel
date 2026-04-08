@@ -11,6 +11,12 @@ import { setupBattleInsightCharts } from './battle_insight_charts.js'
 import { deferAfterPaint } from './chart_preloader.js'
 import { byteSizeBucket, gaEvent } from './analytics.js'
 import { clearFocusedPlayers, getFocusedPlayer, setFocusedPlayer } from './player_focus.js'
+import {
+    getLevelsMetaParsedCached,
+    getPlayerTeamsFromTimelineCached,
+    invalidateClientWasmCaches,
+    primeTimelineEmptyFocus,
+} from './client_wasm_cache.js'
 
 import './wasm_exec.js'
 
@@ -200,37 +206,38 @@ function setWarriorNick(v) {
 }
 
 function playerTeamsFromTimeline(matchIndex) {
-    const fn = globalThis.getTimelineJSON;
+    return getPlayerTeamsFromTimelineCached(matchIndex);
+}
+
+function warriorSwapFromRoster(matchIndex, nick) {
+    const fn = globalThis.getTeamPanelsRosterJSON;
     if (typeof fn !== 'function') {
-        return { allyTeamID: 0, enemyTeamID: 0, byPlayer: new Map() };
+        return null;
     }
     try {
-        const raw = fn(matchIndex, '');
-        const data = JSON.parse(raw || '{}');
-        const markers = Array.isArray(data && data.markers) ? data.markers : [];
-        const byPlayer = new Map();
-        markers.forEach((m) => {
-            const t = Number(m && m.team_id) || 0;
-            const kt = Number(m && m.killer_team_id) || 0;
-            const vt = Number(m && m.victim_team_id) || 0;
-            const p = String((m && m.player) || '').trim();
-            const k = String((m && m.killer) || '').trim();
-            const v = String((m && m.victim) || '').trim();
-            if (p && t) byPlayer.set(p, t);
-            if (k && kt) byPlayer.set(k, kt);
-            if (v && vt) byPlayer.set(v, vt);
-        });
-        return {
-            allyTeamID: Number(data && data.ally_team_id) || 0,
-            enemyTeamID: Number(data && data.enemy_team_id) || 0,
-            byPlayer,
-        };
+        const raw = fn(matchIndex);
+        const parsed = JSON.parse(raw || '{}');
+        const canon = String(nick || '').trim().toLowerCase();
+        const inNames = (arr) => (Array.isArray(arr) ? arr : []).some(
+            (n) => String(n || '').trim().toLowerCase() === canon,
+        );
+        if (inNames(parsed.left)) {
+            return false;
+        }
+        if (inNames(parsed.right)) {
+            return true;
+        }
     } catch (_) {
-        return { allyTeamID: 0, enemyTeamID: 0, byPlayer: new Map() };
+        return null;
     }
+    return null;
 }
 
 function warriorSwapFromCharts(matchIndex, nick) {
+    const fromRoster = warriorSwapFromRoster(matchIndex, nick);
+    if (fromRoster !== null) {
+        return fromRoster;
+    }
     const fn = globalThis.getChartsJSON;
     if (typeof fn !== 'function') {
         return null;
@@ -271,8 +278,7 @@ function applyWarriorAllianceForMatch(matchIndex) {
     if (!nick) {
         return false;
     }
-    // Для верхних графиков опираемся на тот же источник (getChartsJSON), чтобы
-    // дефолтный swap гарантированно отражался в левой/правой панели.
+    // Сначала roster панелей графиков (легкий JSON), иначе тот же источник, что и графики (damage).
     const byCharts = warriorSwapFromCharts(matchIndex, nick);
     if (byCharts !== null) {
         return syncSwapButtonState(byCharts);
@@ -425,18 +431,7 @@ function updateWatcherBanner() {
     if (!el) {
         return;
     }
-    let meta = [];
-    if (typeof getLevelsMetaJSON === 'function') {
-        try {
-            const raw = getLevelsMetaJSON();
-            meta = JSON.parse(raw);
-            if (!Array.isArray(meta)) {
-                meta = [];
-            }
-        } catch (_) {
-            meta = [];
-        }
-    }
+    const meta = getLevelsMetaParsedCached();
     const m = meta[getSelectedMatchIndex()];
     if (!m || !m.watcher_active) {
         el.hidden = true;
@@ -454,6 +449,7 @@ function updateWatcherBanner() {
 
 function refreshAll() {
     const idx = getSelectedMatchIndex();
+    primeTimelineEmptyFocus(idx);
     // Сначала синхронизируем charts-state для текущего матча (в т.ч. swap-кнопку).
     refreshCharts();
     // Затем применяем дефолт от "Кто ты, воин?" уже к актуальному состоянию матча.
@@ -533,19 +529,7 @@ function renderMatchOptions() {
     if (!matchSelect) {
         return;
     }
-    let meta = [];
-    if (typeof getLevelsMetaJSON === 'function') {
-        try {
-            const raw = getLevelsMetaJSON();
-            meta = JSON.parse(raw);
-            if (!Array.isArray(meta)) {
-                meta = [];
-            }
-        } catch (e) {
-            console.warn('getLevelsMetaJSON', e);
-            meta = [];
-        }
-    }
+    const meta = getLevelsMetaParsedCached();
     let levels = meta.length;
     if (levels === 0 && typeof showLevels === 'function') {
         levels = Number(showLevels()) || 0;
@@ -645,6 +629,7 @@ function runParseAndRenderLogs(data) {
         });
         return;
     }
+    invalidateClientWasmCaches();
     const logParseMs = Math.round(performance.now() - tParse);
     const tMatch = performance.now();
     renderMatchOptions();

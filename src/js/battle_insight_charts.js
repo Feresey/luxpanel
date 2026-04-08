@@ -15,6 +15,7 @@ import {
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 import { gaEvent } from './analytics.js';
 import { getFocusedPlayer } from './player_focus.js';
+import { getTimelineEmptyFocusParsed } from './client_wasm_cache.js';
 
 Chart.register(...registerables);
 
@@ -724,12 +725,23 @@ function seriesHead(points, max = 5) {
 }
 
 function fetchTimelineMarkers(levelIndex, focusedPlayer) {
+    const fp = String(focusedPlayer || '').trim();
+    if (!fp) {
+        const data = getTimelineEmptyFocusParsed(levelIndex);
+        if (data && typeof data === 'object') {
+            return {
+                markers: Array.isArray(data.markers) ? data.markers : [],
+                allyTeamID: Number(data.ally_team_id) || 0,
+                enemyTeamID: Number(data.enemy_team_id) || 0,
+            };
+        }
+    }
     const fn = globalThis.getTimelineJSON;
     if (typeof fn !== 'function') {
         return { markers: [], allyTeamID: 0, enemyTeamID: 0 };
     }
     try {
-        const raw = fn(levelIndex, focusedPlayer || '');
+        const raw = fn(levelIndex, fp);
         const data = JSON.parse(raw || '{}');
         return {
             markers: Array.isArray(data && data.markers) ? data.markers : [],

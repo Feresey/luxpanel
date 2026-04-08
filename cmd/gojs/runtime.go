@@ -16,6 +16,11 @@ import (
 	"github.com/spiretechnology/go-memfs"
 )
 
+type stringCacheEntry struct {
+	gen uint64
+	s   string
+}
+
 type Runtime struct {
 	lg       logger.Factory
 	app      *fx.App
@@ -23,6 +28,9 @@ type Runtime struct {
 	Data     struct {
 		Levels []*splitter.Level
 	}
+	// Ответы WASM для одинаковых аргументов; сброс при LoadFiles (wasmCacheGen++).
+	wasmCacheGen  uint64
+	wasmJSONCache map[string]stringCacheEntry
 }
 
 func NewRuntime(ctx context.Context) *Runtime {
@@ -79,5 +87,28 @@ func (r *Runtime) LoadFiles(ctx context.Context, gameLog, combatLog string) erro
 		return fmt.Errorf("splitter.SplitLevels: %w", err)
 	}
 	r.Data.Levels = levels
+	r.bumpWasmCache()
 	return nil
+}
+
+func (r *Runtime) bumpWasmCache() {
+	r.wasmCacheGen++
+}
+
+func (r *Runtime) wasmCacheGet(key string) (string, bool) {
+	if r.wasmJSONCache == nil {
+		return "", false
+	}
+	e, ok := r.wasmJSONCache[key]
+	if !ok || e.gen != r.wasmCacheGen {
+		return "", false
+	}
+	return e.s, true
+}
+
+func (r *Runtime) wasmCacheSet(key, val string) {
+	if r.wasmJSONCache == nil {
+		r.wasmJSONCache = make(map[string]stringCacheEntry)
+	}
+	r.wasmJSONCache[key] = stringCacheEntry{gen: r.wasmCacheGen, s: val}
 }

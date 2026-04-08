@@ -5,6 +5,7 @@
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
 import { gaEvent } from './analytics.js';
 import { getFocusedPlayer } from './player_focus.js';
+import { getTimelineEmptyFocusParsed } from './client_wasm_cache.js';
 
 const MIN_VIEW_SPAN_SEC = 0.4;
 
@@ -955,34 +956,56 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                 teamsSwapped = readSwapStateForMatch(idx);
                 updateLegend();
                 const focusPlayer = String(getFocusedPlayer(idx) || '');
-                const tw0 = performance.now();
-                const raw = fn(idx, focusPlayer);
-                const timelineWasmMs = performance.now() - tw0;
-                console.debug('[timeline] raw payload', {
-                    match_index: idx,
-                    focused_player: focusPlayer,
-                    raw_len: typeof raw === 'string' ? raw.length : 0,
-                    wasm_ms: Math.round(timelineWasmMs),
-                });
-                if (!raw || raw === 'null') {
-                    timelineReady = false;
-                    matchDurationSec = 0;
-                    lastMarkers = [];
-                    setTimelineCursorSec(null);
-                    renderMarkers();
-                    setHint();
-                    return;
+                let data = null;
+                let timelineWasmMs = 0;
+                let timelineJsonMs = 0;
+                if (!focusPlayer) {
+                    const tw0 = performance.now();
+                    const cached = getTimelineEmptyFocusParsed(idx);
+                    timelineWasmMs = performance.now() - tw0;
+                    if (cached && typeof cached === 'object') {
+                        const tj0 = performance.now();
+                        data = cached;
+                        timelineJsonMs = performance.now() - tj0;
+                    }
                 }
-                let data;
-                const tj0 = performance.now();
-                try {
-                    data = JSON.parse(raw);
-                } catch (_) {
-                    timelineReady = false;
-                    setTimelineCursorSec(null);
-                    return;
+                if (!data) {
+                    const tw0 = performance.now();
+                    const raw = fn(idx, focusPlayer);
+                    timelineWasmMs = performance.now() - tw0;
+                    console.debug('[timeline] raw payload', {
+                        match_index: idx,
+                        focused_player: focusPlayer,
+                        raw_len: typeof raw === 'string' ? raw.length : 0,
+                        wasm_ms: Math.round(timelineWasmMs),
+                    });
+                    if (!raw || raw === 'null') {
+                        timelineReady = false;
+                        matchDurationSec = 0;
+                        lastMarkers = [];
+                        setTimelineCursorSec(null);
+                        renderMarkers();
+                        setHint();
+                        return;
+                    }
+                    const tj0 = performance.now();
+                    try {
+                        data = JSON.parse(raw);
+                    } catch (_) {
+                        timelineReady = false;
+                        setTimelineCursorSec(null);
+                        return;
+                    }
+                    timelineJsonMs = performance.now() - tj0;
+                } else {
+                    console.debug('[timeline] raw payload', {
+                        match_index: idx,
+                        focused_player: focusPlayer,
+                        raw_len: 0,
+                        wasm_ms: Math.round(timelineWasmMs),
+                        cached: true,
+                    });
                 }
-                const timelineJsonMs = performance.now() - tj0;
                 matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
                 matchStartUnixMs = typeof data.start_unix_ms === 'number' ? data.start_unix_ms : 0;
                 lastMarkers = Array.isArray(data.markers) ? data.markers : [];
