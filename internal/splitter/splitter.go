@@ -534,58 +534,20 @@ func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *
 		CombatLog: combatLevel,
 	}
 
-	// Start: earliest known non-zero marker among game/combat start-like events.
-	startCandidates := []time.Time{}
-	if gameLevel != nil && gameLevel.StartGameplay != nil {
-		if t := gameLevel.StartGameplay.GetTime(logTime); !t.IsZero() {
-			startCandidates = append(startCandidates, t)
-		}
+	if gameLevel != nil {
+		lvl.StartLevelTime = gameLevel.StartGameplay.GetTime(logTime)
 	}
 	if combatLevel != nil {
-		if t := combatLevel.Start.GetTime(logTime); !t.IsZero() {
-			startCandidates = append(startCandidates, t)
+		if lvl.StartLevelTime.After(combatLevel.Start.GetTime(logTime)) {
+			lvl.StartLevelTime = combatLevel.Start.GetTime(logTime)
 		}
-		if t := combatLevel.Connect.GetTime(logTime); !t.IsZero() {
-			startCandidates = append(startCandidates, t)
-		}
-		if t := earliestCombatEventTime(combatLevel, logTime); !t.IsZero() {
-			startCandidates = append(startCandidates, t)
+		if lvl.StartLevelTime.After(combatLevel.Connect.GetTime(logTime)) {
+			lvl.StartLevelTime = combatLevel.Connect.GetTime(logTime)
 		}
 	}
-	if len(startCandidates) > 0 {
-		lvl.StartLevelTime = startCandidates[0]
-		for i := 1; i < len(startCandidates); i++ {
-			if startCandidates[i].Before(lvl.StartLevelTime) {
-				lvl.StartLevelTime = startCandidates[i]
-			}
-		}
-	}
-
-	// End: latest known non-zero marker among finish and real combat activity.
-	endCandidates := []time.Time{}
-	if gameLevel != nil && gameLevel.FinishGameplay != nil {
-		if t := gameLevel.FinishGameplay.GetTime(logTime); !t.IsZero() {
-			endCandidates = append(endCandidates, t)
-		}
-	}
-	if combatLevel != nil {
-		if t := combatLevel.Finished.GetTime(logTime); !t.IsZero() {
-			endCandidates = append(endCandidates, t)
-		}
-		if t := latestCombatEventTime(combatLevel, logTime); !t.IsZero() {
-			endCandidates = append(endCandidates, t)
-		}
-	}
-	if len(endCandidates) > 0 {
-		lvl.EndLevelTime = endCandidates[0]
-		for i := 1; i < len(endCandidates); i++ {
-			if endCandidates[i].After(lvl.EndLevelTime) {
-				lvl.EndLevelTime = endCandidates[i]
-			}
-		}
-	}
-	if !lvl.StartLevelTime.IsZero() && !lvl.EndLevelTime.IsZero() && lvl.EndLevelTime.Before(lvl.StartLevelTime) {
-		lvl.EndLevelTime = lvl.StartLevelTime
+	lvl.EndLevelTime = gameLevel.FinishGameplay.GetTime(logTime)
+	if cmbt := combatLevel.Finished; lvl.EndLevelTime.Before(cmbt.GetTime(logTime)) {
+		lvl.EndLevelTime = cmbt.GetTime(logTime)
 	}
 
 	playerTeamsMap := make(map[int]map[int]Player)
