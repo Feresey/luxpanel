@@ -109,6 +109,25 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     width: 100%;
 }
 
+.logs-path-hint {
+    margin: 0 0 10px;
+    color: #a5b4c7;
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.logs-path-hint code {
+    color: #dbeafe;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 6px;
+    padding: 1px 6px;
+}
+
+.logs-path-hint-alt {
+    margin-left: 8px;
+}
+
 .simple-ui-toggle {
     display: inline-flex;
     align-items: center;
@@ -131,11 +150,44 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     display: inline-block;
 }
 
+.upload-button {
+    display: inline-flex;
+    align-items: center;
+}
+
+.upload-button label,
+#load_demo_logs_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    min-height: 42px;
+    padding: 6px 12px;
+    line-height: 1.2;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+.upload-button label {
+    border-radius: 8px;
+    border: 1px solid #3a4454;
+    background: #1d2430;
+    color: #dbe3ef;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.upload-button label:hover {
+    border-color: #5a6a82;
+    background: #263142;
+}
+
 .content {
     display: block;
     background:
         linear-gradient(rgba(8, 12, 20, 0.68), rgba(8, 12, 20, 0.72)),
-        url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1920&q=80"),
+        url("../assets/bg-space.svg"),
         radial-gradient(1200px 700px at 15% -10%, rgba(56, 189, 248, 0.1), transparent 58%),
         radial-gradient(900px 520px at 88% 5%, rgba(139, 92, 246, 0.1), transparent 62%),
         #0b0f17;
@@ -182,7 +234,7 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     padding: 12px 14px;
     border: 1px solid #2e3644;
     border-radius: 10px;
-    background: rgba(23, 28, 37, 0.88);
+    background: rgba(23, 28, 37, 0.62);
     box-shadow: var(--lux-shadow);
 }
 
@@ -215,7 +267,7 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     padding: 8px 10px;
     border-radius: 8px;
     border: 1px solid #334055;
-    background: rgba(17, 32, 58, 0.65);
+    background: rgba(17, 32, 58, 0.42);
     color: #dbe7f7;
     font-size: 0.88rem;
     line-height: 1.45;
@@ -225,6 +277,12 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     font-weight: 600;
     margin-bottom: 4px;
     color: #f0f7ff;
+}
+
+.match-summary-team-role {
+    color: #93c5fd;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
 }
 
 .graphs {
@@ -323,8 +381,8 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
 }
 
 .graph-box {
-    background: #171c25;
-    border: 1px solid #2e3644;
+    background: rgba(23, 28, 37, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.28);
     border-radius: 10px;
     box-shadow: var(--lux-shadow);
     padding: 12px;
@@ -377,8 +435,8 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     font-size: 0.72rem;
     line-height: 1.45;
     color: #cbd5e1;
-    background: rgba(15, 23, 42, 0.45);
-    border: 1px solid #2e2e36;
+    background: rgba(15, 23, 42, 0.32);
+    border: 1px solid rgba(148, 163, 184, 0.24);
     border-radius: 6px;
     max-width: 100%;
     box-sizing: border-box;
@@ -793,8 +851,8 @@ body.simple-ui-mode .graph-matrix-hint {
 
     margin-top: 28px;
     padding: 16px;
-    background: #171c25;
-    border: 1px solid #2e3644;
+    background: rgba(23, 28, 37, 0.56);
+    border: 1px solid rgba(148, 163, 184, 0.26);
     border-radius: 10px;
     box-shadow: var(--lux-shadow);
     width: 100%;
@@ -1187,8 +1245,8 @@ body.simple-ui-mode .graph-matrix-hint {
 .damage-table-section {
     margin-top: 28px;
     padding: 16px;
-    background: #171c25;
-    border: 1px solid #2e3644;
+    background: rgba(23, 28, 37, 0.56);
+    border: 1px solid rgba(148, 163, 184, 0.26);
     border-radius: 10px;
     box-shadow: var(--lux-shadow);
     max-width: 100%;
@@ -1504,21 +1562,11 @@ body.simple-ui-mode .graph-matrix-hint {
 }
 
 
-label {
-    background-color: indigo;
-    color: white;
-    padding: 0.5rem;
-    font-family: sans-serif;
-    border-radius: 0.3rem;
-    cursor: pointer;
-    margin-top: 1rem;
-}
-
 .match-picker {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .match-picker label {
@@ -1532,7 +1580,8 @@ label {
   color: #f3f8ff;
   border: 1px solid #60a5fa;
   border-radius: 8px;
-  padding: 8px 10px;
+  height: 42px;
+  padding: 6px 10px;
   min-width: min(92vw, 520px);
   max-width: 100%;
 }

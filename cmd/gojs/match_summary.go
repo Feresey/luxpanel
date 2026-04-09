@@ -4,9 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
+
+type matchSummaryTeam struct {
+	TeamID int     `json:"team_id"`
+	Name   string  `json:"name"`
+	Role   string  `json:"role"`
+	Damage float64 `json:"damage"`
+	Heal   float64 `json:"heal"`
+	Kills  int     `json:"kills"`
+}
 
 type matchSummaryResult struct {
 	MapName      string  `json:"map_name,omitempty"`
@@ -23,6 +33,7 @@ type matchSummaryResult struct {
 	HealRight    float64 `json:"heal_right"`
 	KillsLeft    int     `json:"kills_left"`
 	KillsRight   int     `json:"kills_right"`
+	Teams        []matchSummaryTeam `json:"teams,omitempty"`
 }
 
 func (r *Runtime) marshalMatchSummaryJSON(ctx context.Context, level *splitter.Level) (string, error) {
@@ -64,6 +75,26 @@ func (r *Runtime) marshalMatchSummaryJSON(ctx context.Context, level *splitter.L
 	for _, p := range rightPlayers {
 		nameToSide[p.Name] = 1
 	}
+	teamIDs := sortedNonEmptyTeamIDs(level)
+	allyID, _ := allyTeamIDForTimeline(level)
+	type teamAgg struct {
+		damage float64
+		heal   float64
+		kills  int
+	}
+	agg := make(map[int]*teamAgg, len(teamIDs))
+	for _, tid := range teamIDs {
+		agg[tid] = &teamAgg{}
+	}
+	nameToTeamID := make(map[string]int)
+	for _, tid := range teamIDs {
+		for _, p := range level.Teams[tid] {
+			n := strings.TrimSpace(p.Name)
+			if n != "" {
+				nameToTeamID[n] = tid
+			}
+		}
+	}
 
 	if level.CombatLog != nil {
 		t0 := level.StartLevelTime
@@ -88,6 +119,11 @@ func (r *Runtime) marshalMatchSummaryJSON(ctx context.Context, level *splitter.L
 			} else {
 				out.DamageRight += float64(dmg.DamageFull)
 			}
+			if tid, ok := nameToTeamID[dmg.Initiator.Name]; ok {
+				if a := agg[tid]; a != nil {
+					a.damage += float64(dmg.DamageFull)
+				}
+			}
 		}
 		for _, h := range level.CombatLog.Heal {
 			if h == nil || h.IsEmpty() {
@@ -102,6 +138,11 @@ func (r *Runtime) marshalMatchSummaryJSON(ctx context.Context, level *splitter.L
 				out.HealLeft += float64(h.Heal)
 			} else {
 				out.HealRight += float64(h.Heal)
+			}
+			if tid, ok := nameToTeamID[h.Initiator.Name]; ok {
+				if a := agg[tid]; a != nil {
+					a.heal += float64(h.Heal)
+				}
 			}
 		}
 		for _, k := range level.CombatLog.Kill {
@@ -118,7 +159,38 @@ func (r *Runtime) marshalMatchSummaryJSON(ctx context.Context, level *splitter.L
 			} else {
 				out.KillsRight++
 			}
+			if tid, ok := nameToTeamID[k.Killer.Name]; ok {
+				if a := agg[tid]; a != nil {
+					a.kills++
+				}
+			}
 		}
+	}
+	for _, tid := range teamIDs {
+		a := agg[tid]
+		if a == nil {
+			continue
+		}
+		role := "Враги"
+		if tid == allyID {
+			role = "Союзники"
+		} else if len(teamIDs) > 2 {
+			role = "Враги (Team " + strconv.Itoa(tid) + ")"
+		}
+		side := ""
+		if tid == 1 {
+			side = " · левый спавн"
+		} else if tid == 2 {
+			side = " · правый спавн"
+		}
+		out.Teams = append(out.Teams, matchSummaryTeam{
+			TeamID: tid,
+			Name:   "Team " + strconv.Itoa(tid),
+			Role:   role + side,
+			Damage: a.damage,
+			Heal:   a.heal,
+			Kills:  a.kills,
+		})
 	}
 
 	b, err := json.Marshal(out)

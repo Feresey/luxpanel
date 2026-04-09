@@ -31,55 +31,30 @@ func sortedNonEmptyTeamIDs(level *splitter.Level) []int {
 	return out
 }
 
-// chartTeamSides: левый график / Team 1 в UI = team id 1 (если есть ростер), правый = id 2.
-// Если одной из «слотовых» команд нет, вторая сторона — первая подходящая из оставшихся
-// непустых команд (тот же порядок, что и у графиков урона).
+// chartTeamSides: левый график всегда союзная команда (localClientTeamID из combat Start),
+// правый — первая непустая не-нулевая команда, отличная от союзной.
 func chartTeamSides(level *splitter.Level) (leftID, rightID int, pla, plb []splitter.Player, ok bool) {
 	if level == nil || len(level.Teams) == 0 {
 		return 0, 0, nil, nil, false
 	}
-	t1, ok1 := level.Teams[1]
-	t2, ok2 := level.Teams[2]
-	has1 := ok1 && len(t1) > 0
-	has2 := ok2 && len(t2) > 0
-	if has1 && has2 {
-		return 1, 2, t1, t2, true
-	}
-	nonEmpty := sortedNonEmptyTeamIDs(level)
-	if len(nonEmpty) < 2 {
+	allyID, okAlly := allyTeamIDForTimeline(level)
+	if !okAlly || allyID == 0 {
 		return 0, 0, nil, nil, false
 	}
-	if has1 && !has2 {
-		for _, id := range nonEmpty {
-			if id == 1 {
-				continue
-			}
-			plb = level.Teams[id]
-			if len(plb) > 0 {
-				return 1, id, t1, plb, true
-			}
+	pla = level.Teams[allyID]
+	if len(pla) == 0 {
+		return 0, 0, nil, nil, false
+	}
+	for _, id := range sortedNonEmptyTeamIDs(level) {
+		if id == 0 || id == allyID {
+			continue
 		}
-		return 0, 0, nil, nil, false
-	}
-	if has2 && !has1 {
-		for _, id := range nonEmpty {
-			if id == 2 {
-				continue
-			}
-			pla = level.Teams[id]
-			if len(pla) > 0 {
-				return id, 2, pla, t2, true
-			}
+		plb = level.Teams[id]
+		if len(plb) > 0 {
+			return allyID, id, pla, plb, true
 		}
-		return 0, 0, nil, nil, false
 	}
-	a, b := nonEmpty[0], nonEmpty[1]
-	pla = level.Teams[a]
-	plb = level.Teams[b]
-	if len(pla) == 0 || len(plb) == 0 {
-		return 0, 0, nil, nil, false
-	}
-	return a, b, pla, plb, true
+	return 0, 0, nil, nil, false
 }
 
 func chartTeams(level *splitter.Level) (pla, plb []splitter.Player, ok bool) {

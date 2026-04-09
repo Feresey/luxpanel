@@ -20,6 +20,9 @@ import {
 
 import './wasm_exec.js'
 
+const demoGameLogURL = new URL('../assets/2026.04.03 22.23.53.889/game.log', import.meta.url);
+const demoCombatLogURL = new URL('../assets/2026.04.03 22.23.53.889/combat.log', import.meta.url);
+
 if (WebAssembly) {
     const wasmT0 = performance.now();
     const go = new Go();
@@ -45,6 +48,7 @@ if (WebAssembly) {
 }
 
 const pickLogs = document.getElementById('pick_logs');
+const loadDemoLogsBtn = document.getElementById('load_demo_logs_btn');
 const matchSelect = document.getElementById('match_select');
 const playerFocusSelect = document.getElementById('graph_player_focus_select');
 const warriorNickSelect = document.getElementById('warrior_nick_select');
@@ -77,6 +81,7 @@ function formatSummaryDuration(sec) {
 
 function updateMatchSummary() {
     const card = document.getElementById('match_summary_card');
+    const grid = document.getElementById('match_summary_grid');
     if (!card) {
         return;
     }
@@ -103,17 +108,80 @@ function updateMatchSummary() {
     const meta = [mode, map, formatSummaryDuration(data.duration_sec)].filter(Boolean).join(' · ');
     const setText = (id, v) => {
         const el = document.getElementById(id);
-        if (el) el.textContent = v;
+        if (el) {
+            el.textContent = v;
+        }
+    };
+    const setTeamPanelTitles = (left, right) => {
+        const titles = document.querySelectorAll('[data-team-panel] .graph-box-title');
+        if (!titles || titles.length < 2) {
+            return;
+        }
+        titles[0].textContent = String(left || 'Team 1');
+        titles[1].textContent = String(right || 'Team 2');
+    };
+    const shortRole = (s) => {
+        const v = String(s || '').toLowerCase();
+        if (v.includes('союз')) return 'Союзники';
+        if (v.includes('враг')) return 'Враги';
+        return '';
+    };
+    const shortSpawn = (s) => {
+        const v = String(s || '').toLowerCase();
+        if (v.includes('левый спавн')) return 'левый спавн';
+        if (v.includes('правый спавн')) return 'правый спавн';
+        return '';
+    };
+    const panelTitle = (team, fallback) => {
+        if (!team || typeof team !== 'object') {
+            return fallback;
+        }
+        const name = String(team.name || fallback || '').trim();
+        const role = shortRole(team.role);
+        const spawn = shortSpawn(team.role);
+        const parts = [name, role, spawn].filter(Boolean);
+        return parts.join(' · ') || fallback;
     };
     setText('match_summary_meta', meta);
-    setText('match_summary_left_name', String(data.team_left_name || 'Team 1'));
-    setText('match_summary_right_name', String(data.team_right_name || 'Team 2'));
-    setText('match_summary_left_damage', intFmt.format(Math.round(Number(data.damage_left) || 0)));
-    setText('match_summary_right_damage', intFmt.format(Math.round(Number(data.damage_right) || 0)));
-    setText('match_summary_left_heal', intFmt.format(Math.round(Number(data.heal_left) || 0)));
-    setText('match_summary_right_heal', intFmt.format(Math.round(Number(data.heal_right) || 0)));
-    setText('match_summary_left_kills', String(Math.round(Number(data.kills_left) || 0)));
-    setText('match_summary_right_kills', String(Math.round(Number(data.kills_right) || 0)));
+    const teams = Array.isArray(data.teams) ? data.teams : [];
+    if (grid) {
+        const safe = (s) => String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        const rows = teams.length ? teams : [
+            {
+                name: String(data.team_left_name || 'Team 1'),
+                role: 'Союзники',
+                damage: Number(data.damage_left) || 0,
+                heal: Number(data.heal_left) || 0,
+                kills: Number(data.kills_left) || 0,
+            },
+            {
+                name: String(data.team_right_name || 'Team 2'),
+                role: 'Враги',
+                damage: Number(data.damage_right) || 0,
+                heal: Number(data.heal_right) || 0,
+                kills: Number(data.kills_right) || 0,
+            },
+        ];
+        grid.innerHTML = rows.map((t) => `
+            <div class="match-summary-team">
+                <div class="match-summary-team-name">${safe(t.name || 'Team')}</div>
+                <div>Урон: <b>${intFmt.format(Math.round(Number(t.damage) || 0))}</b></div>
+                <div>Лечение: <b>${intFmt.format(Math.round(Number(t.heal) || 0))}</b></div>
+                <div>Киллы: <b>${String(Math.round(Number(t.kills) || 0))}</b></div>
+            </div>
+        `).join('');
+        if (teams.length) {
+            const ally = teams.find((t) => String(t.role || '').toLowerCase().includes('союз')) || teams[0];
+            const enemy = teams.find((t) => t !== ally) || teams[1] || null;
+            setTeamPanelTitles(panelTitle(ally, 'Team 1'), panelTitle(enemy, 'Team 2'));
+        } else {
+            setTeamPanelTitles(String(data.team_left_name || 'Team 1'), String(data.team_right_name || 'Team 2'));
+        }
+    }
     card.hidden = false;
 }
 
@@ -664,17 +732,54 @@ function runParseAndRenderLogs(data) {
     });
 }
 
-pickLogs.addEventListener('click', function () {
-    // Позволяет выбрать тот же самый файл/папку и снова получить событие change.
-    this.value = '';
-});
-
-pickLogs.addEventListener('change', function () {
+function prepareForNewLogs() {
     clearTeamSwapCookieState();
     clearFocusedPlayers();
     if (playerFocusSelect) {
         playerFocusSelect.innerHTML = '<option value="">Игрок не выбран</option>';
     }
+}
+
+async function loadDemoLogs() {
+    try {
+        const [gameRes, combatRes] = await Promise.all([fetch(demoGameLogURL), fetch(demoCombatLogURL)]);
+        if (!gameRes.ok || !combatRes.ok) {
+            gaEvent('lux_parse_error', {
+                reason: 'demo_logs_not_found',
+                game_status: String(gameRes.status || 0),
+                combat_status: String(combatRes.status || 0),
+            });
+            return;
+        }
+        const [rawGame, rawCombat] = await Promise.all([gameRes.text(), combatRes.text()]);
+        if (!rawGame || !rawCombat) {
+            gaEvent('lux_parse_error', { reason: 'demo_logs_empty' });
+            return;
+        }
+        prepareForNewLogs();
+        runParseAndRenderLogs({ rawGame, rawCombat });
+        gaEvent('lux_demo_logs_loaded', { source: '2026.04.03 22.23.53.889' });
+    } catch (err) {
+        gaEvent('lux_parse_error', {
+            reason: 'demo_logs_fetch_failed',
+            message: String(err && err.message ? err.message : err).slice(0, 120),
+        });
+    }
+}
+
+
+pickLogs.addEventListener('click', function () {
+    // Позволяет выбрать тот же самый файл/папку и снова получить событие change.
+    this.value = '';
+});
+
+if (loadDemoLogsBtn) {
+    loadDemoLogsBtn.addEventListener('click', () => {
+        loadDemoLogs();
+    });
+}
+pickLogs.addEventListener('change', function () {
+    prepareForNewLogs();
     const data = {
         rawGame: '',
         rawCombat: '',

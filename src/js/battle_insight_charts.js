@@ -1023,15 +1023,21 @@ export function setupBattleInsightCharts(getMatchIndex) {
 
                 const tChart0 = performance.now();
                 if (lifeT.length > 0) {
+                    // Союзники всегда зелёные, остальные команды — из палитры без зелёного.
                     const palette = [
-                        'rgba(52, 211, 153, 0.95)',
                         'rgba(248, 113, 113, 0.95)',
                         'rgba(56, 189, 248, 0.95)',
                         'rgba(251, 146, 60, 0.95)',
                         'rgba(167, 139, 250, 0.95)',
+                        'rgba(244, 114, 182, 0.95)',
                     ];
-                    const lifeDatasets = lifeTeams.map((ts, i) => {
-                        const c = ts && ts.ally ? 'rgba(52, 211, 153, 0.95)' : palette[i % palette.length];
+                    let enemyColorIdx = 0;
+                    const lifeDatasets = lifeTeams.map((ts) => {
+                        let c = 'rgba(52, 211, 153, 0.95)'; // only ally
+                        if (!(ts && ts.ally)) {
+                            c = palette[enemyColorIdx % palette.length];
+                            enemyColorIdx++;
+                        }
                         const pts = Array.isArray(ts && ts.points) ? ts.points : [];
                         return {
                             label: String((ts && ts.label) || `Team ${Number(ts && ts.team_id) || i + 1}`),

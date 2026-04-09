@@ -21,6 +21,9 @@
                 <input type="file" id="pick_logs" hidden multiple webkitdirectory />
                 <label for="pick_logs" multiple webkitdirectory>Pick logs</label>
             </div>
+            <button type="button" id="load_demo_logs_btn" class="graph-view-btn" title="Загрузить встроенный набор логов">
+                Load demo logs
+            </button>
             <div class="match-picker">
                 <label for="match_select">Match</label>
                 <select id="match_select" disabled>
@@ -40,26 +43,17 @@
         <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
     </div>
     <div class="content">
+        <p class="logs-path-hint">
+            Где искать логи: <code>User/Documents/My Games/StarConflict/logs</code>
+            <span class="logs-path-hint-alt">(обычно: <code>C:/Users/&lt;имя&gt;/Documents/My Games/StarConflict/logs</code>)</span>
+        </p>
         <div id="watcher_banner" class="watcher-banner" role="status" hidden></div>
         <section id="match_summary_card" class="match-summary-card" aria-label="Сводка матча" hidden>
             <div class="match-summary-head">
                 <h3 class="match-summary-title">Сводка матча</h3>
                 <span id="match_summary_meta" class="match-summary-meta"></span>
             </div>
-            <div class="match-summary-grid">
-                <div class="match-summary-team">
-                    <div id="match_summary_left_name" class="match-summary-team-name">Team 1</div>
-                    <div>Урон: <b id="match_summary_left_damage">0</b></div>
-                    <div>Лечение: <b id="match_summary_left_heal">0</b></div>
-                    <div>Киллы: <b id="match_summary_left_kills">0</b></div>
-                </div>
-                <div class="match-summary-team">
-                    <div id="match_summary_right_name" class="match-summary-team-name">Team 2</div>
-                    <div>Урон: <b id="match_summary_right_damage">0</b></div>
-                    <div>Лечение: <b id="match_summary_right_heal">0</b></div>
-                    <div>Киллы: <b id="match_summary_right_kills">0</b></div>
-                </div>
-            </div>
+            <div class="match-summary-grid" id="match_summary_grid"></div>
         </section>
         <div class="graphs graphs-view-table" id="graphs_root">
             <div class="graph-view-toolbar" role="group" aria-label="Вид графиков">
