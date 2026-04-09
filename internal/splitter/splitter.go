@@ -206,7 +206,8 @@ func (s *Splitter) scanGameRanges(ctx context.Context, r fs.File) (time.Time, []
 	return logTime, ranges, nil
 }
 
-// scanCombatRanges records line ranges that match GetCombatLogLevels (master did not split on a second Start).
+// scanCombatRanges records line ranges that match GetCombatLogLevels (grammar behavior):
+// a second Start begins a new segment.
 func (s *Splitter) scanCombatRanges(ctx context.Context, r fs.File) (time.Time, []LineRange, error) {
 	var (
 		ranges       []LineRange
@@ -252,6 +253,10 @@ func (s *Splitter) scanCombatRanges(ctx context.Context, r fs.File) (time.Time, 
 			hasConnect = true
 			curSessionID = v.SessionID
 		case *combat.Start:
+			if hasStart {
+				pushSeg(line.Num - 1)
+				levelStart = line.Num
+			}
 			hasStart = true
 		case *combat.Finished:
 			hasFinished = true
@@ -869,7 +874,11 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 			}
 			currLevel.Connect = *line
 		case *combat.Start:
-			// Master did not start a new combat level on a second Start; later Start replaces the first.
+			// Grammar behavior: split level on a second Start.
+			if !currLevel.Start.IsEmpty() {
+				res = append(res, currLevel)
+				currLevel = newLevel()
+			}
 			currLevel.Start = *line
 		case *combat.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)
