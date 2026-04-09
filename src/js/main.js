@@ -15,7 +15,6 @@ import {
     getLevelsMetaParsedCached,
     getPlayerTeamsFromTimelineCached,
     invalidateClientWasmCaches,
-    primeTimelineEmptyFocus,
 } from './client_wasm_cache.js'
 
 import './wasm_exec.js'
@@ -538,7 +537,6 @@ function updateWatcherBanner() {
 
 function refreshAll() {
     const idx = getSelectedMatchIndex();
-    primeTimelineEmptyFocus(idx);
     // Графики без ручного swap/warrior-переопределения: союзники определяются по localClientTeamID.
     refreshCharts();
     loadPlayerFocusOptions();
@@ -617,10 +615,7 @@ function renderMatchOptions() {
         return;
     }
     const meta = getLevelsMetaParsedCached();
-    let levels = meta.length;
-    if (levels === 0 && typeof showLevels === 'function') {
-        levels = Number(showLevels()) || 0;
-    }
+    const levels = meta.length;
     matchSelect.innerHTML = "";
     if (levels <= 0) {
         const opt = document.createElement('option');

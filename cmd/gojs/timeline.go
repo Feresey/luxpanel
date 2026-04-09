@@ -230,10 +230,12 @@ func (r *Runtime) marshalTimelineJSON(ctx context.Context, level *splitter.Level
 	res := timelineResult{
 		StartSec:    0,
 		EndSec:      span,
-		StartUnixMs: t0.UnixMilli(),
 		AllyTeamID:  allyTeamID,
 		EnemyTeamID: enemyTeamID,
 		Markers:     markers,
+	}
+	if !t0.IsZero() {
+		res.StartUnixMs = t0.UnixMilli()
 	}
 	b, err := json.Marshal(res)
 	if err != nil {

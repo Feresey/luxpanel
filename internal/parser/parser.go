@@ -162,7 +162,6 @@ func parseLogFileStream[T any](
 		return logTime, fmt.Errorf("getLogTime: %w", err)
 	}
 
-	// time parse offset
 	for counter := 3; ; counter++ {
 		rawLineBytes, isPrefix, err := rd.ReadLine()
 		rawLine := string(rawLineBytes)
@@ -188,11 +187,11 @@ func parseLogFileStream[T any](
 			}
 		}
 
-		line, err := parseLine(rawLine)
+		line, perr := parseLine(rawLine)
 		next.Data = line
 		next.Raw = rawLine
-		if err != nil {
-			next.Err = fmt.Errorf("gramma.Parse: %w", err)
+		if perr != nil {
+			next.Err = fmt.Errorf("gramma.Parse: %w", perr)
 		}
 
 		if sinkErr := sink(next); sinkErr != nil {

@@ -15,26 +15,6 @@ export function invalidateClientWasmCaches() {
 }
 
 /**
- * Один вызов getTimelineJSON(idx, '') на refresh; дальше — из кеша.
- */
-export function primeTimelineEmptyFocus(matchIndex) {
-    const idx = Number(matchIndex) || 0;
-    const fn = globalThis.getTimelineJSON;
-    if (typeof fn !== 'function') {
-        timelineEmptyByIdx.set(idx, null);
-        return;
-    }
-    const raw = fn(idx, '');
-    let data = null;
-    try {
-        data = JSON.parse(raw || '{}');
-    } catch (_) {
-        data = null;
-    }
-    timelineEmptyByIdx.set(idx, data);
-}
-
-/**
  * Данные таймлайна с пустым фокусом (маркеры, ally/enemy id).
  */
 export function getTimelineEmptyFocusParsed(matchIndex) {

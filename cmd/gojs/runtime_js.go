@@ -36,12 +36,6 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		return nil
 	})
 
-	r.register("showLevels", func(this js.Value, args []js.Value) any {
-		n := len(r.Data.Levels)
-		r.lg.For(ctx).Debugw("showLevels", "levels", n)
-		return n
-	})
-
 	r.register("getLevelsMetaJSON", func(this js.Value, args []js.Value) any {
 		const k = "levelsMeta"
 		if s, ok := r.wasmCacheGet(k); ok {
@@ -311,6 +305,7 @@ func (r *Runtime) register(name string, fn func(this js.Value, args []js.Value) 
 }
 
 func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs int) (*splitter.Level, bool) {
+	_ = ctx
 	if len(args) < minArgs {
 		return nil, false
 	}
@@ -318,9 +313,8 @@ func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs in
 	if idx < 0 || idx >= len(r.Data.Levels) {
 		return nil, false
 	}
-	lvl, err := r.ensureLevelParsed(ctx, idx)
-	if err != nil {
-		r.lg.For(ctx).Errorw("ensureLevelParsed failed", "idx", idx, "err", err)
+	lvl := r.Data.Levels[idx]
+	if lvl == nil {
 		return nil, false
 	}
 	return lvl, true

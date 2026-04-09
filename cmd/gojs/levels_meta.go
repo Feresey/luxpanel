@@ -35,19 +35,7 @@ func (r *Runtime) marshalLevelsMetaJSON(ctx context.Context, levels []*splitter.
 	for i, lvl := range levels {
 		m := levelMeta{Index: i}
 		if lvl == nil {
-			if i < len(r.metaHints) {
-				h := r.metaHints[i]
-				if !h.StartTime.IsZero() {
-					m.StartTime = h.StartTime.Format("2006-01-02 15:04")
-				}
-				m.GameMode = h.GameMode
-				m.MapName = h.MapName
-				m.SessionID = h.SessionID
-				m.GameTimeSec = h.GameTimeSec
-				m.Label = formatLevelLabel(m)
-			} else {
-				m.Label = fmt.Sprintf("Match %d", i+1)
-			}
+			m.Label = fmt.Sprintf("Match %d", i+1)
 			out = append(out, m)
 			continue
 		}

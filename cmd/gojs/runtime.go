@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
@@ -26,10 +25,6 @@ type Runtime struct {
 	lg       logger.Factory
 	app      *fx.App
 	splitter *splitter.Splitter
-	logTime  time.Time
-	logFS    memfs.FS
-	ranges   []splitter.MatchRange
-	metaHints []splitter.MatchMeta
 	Data     struct {
 		Levels []*splitter.Level
 	}
@@ -88,39 +83,13 @@ func (r *Runtime) LoadFiles(ctx context.Context, gameLog, combatLog string) erro
 		"game.log":   memfs.File(gameLog),
 		"combat.log": memfs.File(combatLog),
 	}
-	logTime, ranges, err := r.splitter.ScanMatchRanges(ctx, fs)
+	levels, err := r.splitter.SplitLevels(ctx, fs)
 	if err != nil {
-		return fmt.Errorf("splitter.ScanMatchRanges: %w", err)
+		return fmt.Errorf("splitter.SplitLevels: %w", err)
 	}
-	r.logFS = fs
-	r.logTime = logTime
-	r.ranges = ranges
-	metaHints, err := r.splitter.BuildMatchMetaByRanges(ctx, fs, logTime, ranges)
-	if err != nil {
-		return fmt.Errorf("splitter.BuildMatchMetaByRanges: %w", err)
-	}
-	r.metaHints = metaHints
-	r.Data.Levels = make([]*splitter.Level, len(r.ranges))
+	r.Data.Levels = levels
 	r.bumpWasmCache()
 	return nil
-}
-
-func (r *Runtime) ensureLevelParsed(ctx context.Context, idx int) (*splitter.Level, error) {
-	if idx < 0 || idx >= len(r.Data.Levels) {
-		return nil, fmt.Errorf("level index out of range: %d", idx)
-	}
-	if r.Data.Levels[idx] != nil {
-		return r.Data.Levels[idx], nil
-	}
-	if len(r.ranges) == 0 {
-		return nil, fmt.Errorf("no match ranges")
-	}
-	lvl, err := r.splitter.ParseLevelByRange(ctx, r.logFS, r.logTime, r.ranges[idx])
-	if err != nil {
-		return nil, fmt.Errorf("splitter.ParseLevelByRange[%d]: %w", idx, err)
-	}
-	r.Data.Levels[idx] = lvl
-	return lvl, nil
 }
 
 func (r *Runtime) bumpWasmCache() {

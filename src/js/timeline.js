@@ -1007,7 +1007,12 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                     });
                 }
                 matchDurationSec = typeof data.end_sec === 'number' ? data.end_sec : 0;
-                matchStartUnixMs = typeof data.start_unix_ms === 'number' ? data.start_unix_ms : 0;
+                {
+                    const rawMs = typeof data.start_unix_ms === 'number' ? data.start_unix_ms : 0;
+                    // Go time.Time{} → UnixMilli() даёт отрицательное число; в UI это ломает часы и ось.
+                    matchStartUnixMs =
+                        Number.isFinite(rawMs) && rawMs > 0 ? Math.round(rawMs) : 0;
+                }
                 lastMarkers = Array.isArray(data.markers) ? data.markers : [];
                 const counts = markerKindCounts(lastMarkers);
                 console.debug('[timeline] parsed markers', {
