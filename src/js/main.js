@@ -471,14 +471,8 @@ function updateWatcherBanner() {
 function refreshAll() {
     const idx = getSelectedMatchIndex();
     primeTimelineEmptyFocus(idx);
-    // Сначала синхронизируем charts-state для текущего матча (в т.ч. swap-кнопку).
+    // Графики без ручного swap/warrior-переопределения: союзники определяются по localClientTeamID.
     refreshCharts();
-    // Затем применяем дефолт от "Кто ты, воин?" уже к актуальному состоянию матча.
-    const autoSwapChanged = applyWarriorAllianceForMatch(idx);
-    if (autoSwapChanged) {
-        refreshCharts();
-    }
-    loadWarriorOptions();
     loadPlayerFocusOptions();
     updateMatchSummary();
     updateWatcherBanner();
@@ -547,13 +541,7 @@ if (simpleUiModeCb) {
 }
 
 if (warriorNickSelect) {
-    warriorNickSelect.addEventListener('change', () => {
-        setWarriorNick(warriorNickSelect.value || '');
-        applyWarriorAllianceForMatch(getSelectedMatchIndex());
-        loadWarriorOptions();
-        loadPlayerFocusOptions();
-        refreshAll();
-    });
+    warriorNickSelect.closest('.warrior-picker')?.setAttribute('hidden', 'hidden');
 }
 
 function renderMatchOptions() {

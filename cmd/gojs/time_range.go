@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"time"
 
@@ -12,11 +13,23 @@ func levelSpanSeconds(level *splitter.Level) float64 {
 	if level == nil {
 		return 0
 	}
+	if level.StartLevelTime.IsZero() || level.EndLevelTime.IsZero() {
+		return 0
+	}
 	d := level.EndLevelTime.Sub(level.StartLevelTime)
 	if d < 0 {
 		return 0
 	}
-	return float64(d) / float64(time.Second)
+	span := float64(d) / float64(time.Second)
+	if math.IsNaN(span) || math.IsInf(span, 0) || span < 0 {
+		return 0
+	}
+	// Защита от кривых таймстемпов: матч обычно минуты, но точно не сутки.
+	const hardMaxMatchSpanSec = 12 * 60 * 60
+	if span > hardMaxMatchSpanSec {
+		return hardMaxMatchSpanSec
+	}
+	return span
 }
 
 // timeInRangeFromStart reports whether t lies in [t0+lo, t0+hi] inclusive (lo, hi are seconds from t0).
@@ -48,6 +61,12 @@ func clampTimeRange(level *splitter.Level, jsonStr string) (lo, hi float64) {
 	if tr.TimeToSec != nil {
 		hi = *tr.TimeToSec
 	}
+	if math.IsNaN(lo) || math.IsInf(lo, 0) {
+		lo = 0
+	}
+	if math.IsNaN(hi) || math.IsInf(hi, 0) {
+		hi = span
+	}
 	if lo < 0 {
 		lo = 0
 	}
@@ -68,6 +87,12 @@ func applyTimeBoundsToReq(level *splitter.Level, from, to *float64) (lo, hi floa
 	}
 	if to != nil {
 		hi = *to
+	}
+	if math.IsNaN(lo) || math.IsInf(lo, 0) {
+		lo = 0
+	}
+	if math.IsNaN(hi) || math.IsInf(hi, 0) {
+		hi = span
 	}
 	if lo < 0 {
 		lo = 0

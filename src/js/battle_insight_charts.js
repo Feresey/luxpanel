@@ -996,16 +996,13 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const godGiftSec = Number(data.godgift_sec);
                 const godGiftLabel = String(data.godgift_label || 'GodGift').trim() || 'GodGift';
                 const timelineData = fetchTimelineMarkers(idx, '');
-                const baseAllyTeamID = Number(timelineData.allyTeamID) || Number(data.ally_team_id) || 0;
-                const baseEnemyTeamID = Number(timelineData.enemyTeamID) || Number(data.enemy_team_id) || 0;
-                const selectedTeams = selectedTeamIDs(idx, baseAllyTeamID, baseEnemyTeamID);
+                const baseAllyTeamID = Number(data.ally_team_id) || Number(timelineData.allyTeamID) || 0;
                 // Для подсказок на линии жизни нужны все события, а не только фильтр выбранного игрока.
                 const timelineMarkers = timelineData.markers;
                 const focusedEventTimes = relatedEventTimes(timelineMarkers, focusedPlayer);
 
+                const lifeTeams = Array.isArray(data.life_teams) ? data.life_teams : [];
                 const lifeT = life.map((p) => p.t);
-                const lifeAllies = life.map((p) => p.allies);
-                const lifeEnemies = life.map((p) => p.enemies);
                 const lifeFocused = life.map((p) => (p && p.player ? 1 : 0));
                 const lifeX = xDomainSec(lifeT);
                 const intT = intensity.map((p) => p.t);
@@ -1014,12 +1011,8 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const intFocusedOut = intensity.map((p) => p.player_out || 0);
                 const intFocusedIn = intensity.map((p) => p.player_in || 0);
                 const intX = xDomainSec(intT);
-                const allyIsBaseAlly = !selectedTeams.ally || selectedTeams.ally === baseAllyTeamID;
-                // Жестко маппим по выбранным teamID: союзники всегда "ally" (зеленый), противники всегда "enemy" (красный).
-                const lifeAllySeries = allyIsBaseAlly ? lifeAllies : lifeEnemies;
-                const lifeEnemySeries = allyIsBaseAlly ? lifeEnemies : lifeAllies;
-                const intAllySeries = allyIsBaseAlly ? intAllies : intEnemies;
-                const intEnemySeries = allyIsBaseAlly ? intEnemies : intAllies;
+                const intAllySeries = intAllies;
+                const intEnemySeries = intEnemies;
                 const battleSeriesPrepMs = performance.now() - tSeries0;
 
                 const peaks =
@@ -1030,32 +1023,29 @@ export function setupBattleInsightCharts(getMatchIndex) {
 
                 const tChart0 = performance.now();
                 if (lifeT.length > 0) {
-                    const lifeDatasets = [
-                        {
-                            label: `${allyLabel} (живых)`,
-                            data: lifeAllySeries.map((y, i) => ({ x: lifeT[i], y })),
-                            borderColor: 'rgba(52, 211, 153, 0.95)',
-                            backgroundColor: 'rgba(52, 211, 153, 0.12)',
-                            stepped: 'before',
-                            fill: false,
-                            tension: 0,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                        },
-                        {
-                            label: `${enemyLabel} (живых)`,
-                            data: lifeEnemySeries.map((y, i) => ({ x: lifeT[i], y })),
-                            borderColor: 'rgba(248, 113, 113, 0.95)',
-                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                            stepped: 'before',
-                            fill: false,
-                            tension: 0,
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            pointHoverRadius: 4,
-                        },
+                    const palette = [
+                        'rgba(52, 211, 153, 0.95)',
+                        'rgba(248, 113, 113, 0.95)',
+                        'rgba(56, 189, 248, 0.95)',
+                        'rgba(251, 146, 60, 0.95)',
+                        'rgba(167, 139, 250, 0.95)',
                     ];
+                    const lifeDatasets = lifeTeams.map((ts, i) => {
+                        const c = ts && ts.ally ? 'rgba(52, 211, 153, 0.95)' : palette[i % palette.length];
+                        const pts = Array.isArray(ts && ts.points) ? ts.points : [];
+                        return {
+                            label: String((ts && ts.label) || `Team ${Number(ts && ts.team_id) || i + 1}`),
+                            data: pts.map((p) => ({ x: p && p.t, y: p && p.v })),
+                            borderColor: c,
+                            backgroundColor: c.replace('0.95', '0.12'),
+                            stepped: 'before',
+                            fill: false,
+                            tension: 0,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                        };
+                    });
                     if (focusedPlayer) {
                         lifeDatasets.push({
                             label: `${focusedPlayer} (жив/мертв)`,
@@ -1093,6 +1083,10 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             parsing: false,
                             plugins: {
                                 ...commonLineOptions.plugins,
+                                legend: {
+                                    display: true,
+                                    labels: { color: '#cbd5e1', boxWidth: 14, usePointStyle: false },
+                                },
                                 tooltip: {
                                     ...commonLineOptions.plugins.tooltip,
                                     callbacks: {
@@ -1108,8 +1102,8 @@ export function setupBattleInsightCharts(getMatchIndex) {
                                             const lines = markerLinesForSec(
                                                 timelineMarkers,
                                                 x,
-                                                selectedTeams.ally,
-                                                selectedTeams.enemy,
+                                                baseAllyTeamID,
+                                                0,
                                                 focusedPlayer,
                                             );
                                             return lines.length ? ['События:'].concat(lines) : [];
@@ -1236,7 +1230,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const battleChartRenderMs = performance.now() - tChart0;
                 const prepTotal = battleWasmMs + battleJsonMs + battleSeriesPrepMs;
                 gaEvent('lux_battle_charts_timing', {
-                    swapped: allyIsBaseAlly ? '0' : '1',
+                    swapped: '0',
                     battle_wasm_ms: Math.round(battleWasmMs),
                     battle_json_ms: Math.round(battleJsonMs),
                     battle_series_prep_ms: Math.round(battleSeriesPrepMs),

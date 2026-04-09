@@ -536,7 +536,7 @@ function hideMatrixHints() {
 function pairPanelsForView(panels) {
     const p0 = panels[0] || {};
     const p1 = panels[1] || {};
-    return teamsSwapped ? [p1, p0] : [p0, p1];
+    return [p0, p1];
 }
 
 function updateTeamPanelTitles() {
@@ -544,49 +544,21 @@ function updateTeamPanelTitles() {
     if (titles.length < 2) {
         return;
     }
-    if (teamsSwapped) {
-        titles[0].textContent = 'Team 2';
-        titles[1].textContent = 'Team 1';
-    } else {
-        titles[0].textContent = 'Team 1';
-        titles[1].textContent = 'Team 2';
-    }
+    titles[0].textContent = 'Team 1';
+    titles[1].textContent = 'Team 2';
 }
 
 function clearTeamSwapCookieState() {
-    swapByMatch = {};
-    if (typeof document !== 'undefined') {
-        document.cookie = `${swapCookieName}=; path=/; max-age=0; samesite=lax`;
-    }
     teamsSwapped = false;
     currentLevelIndex = 0;
-    syncSwapButtonUi();
     updateTeamPanelTitles();
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
-            detail: { matchIndex: currentLevelIndex, swapped: false },
-        }));
-    }
 }
 
 function applyTeamSwapState(levelIndex, swapped) {
-    const idx = Number(levelIndex) || 0;
-    const next = Boolean(swapped);
-    currentLevelIndex = idx;
-    if (teamsSwapped === next && swapStateForMatch(idx) === next) {
-        syncSwapButtonUi();
-        updateTeamPanelTitles();
-        return false;
-    }
-    teamsSwapped = next;
-    setSwapStateForMatch(idx, teamsSwapped);
-    syncSwapButtonUi();
+    void levelIndex;
+    void swapped;
+    teamsSwapped = false;
     updateTeamPanelTitles();
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
-            detail: { matchIndex: currentLevelIndex, swapped: teamsSwapped },
-        }));
-    }
     return true;
 }
 
@@ -735,28 +707,10 @@ function setupGraphViewToolbar(onViewChange) {
     }
 
     swapBtnEl = document.getElementById('graph_swap_teams_btn');
-    syncSwapButtonUi();
-    updateTeamPanelTitles();
     if (swapBtnEl) {
-        swapBtnEl.addEventListener('click', () => {
-            teamsSwapped = !teamsSwapped;
-            setSwapStateForMatch(currentLevelIndex, teamsSwapped);
-            syncSwapButtonUi();
-            updateTeamPanelTitles();
-            gaEvent('lux_team_swap_toggle', {
-                swapped: teamsSwapped ? '1' : '0',
-                match_index: currentLevelIndex,
-            });
-            if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('lux-team-swap-changed', {
-                    detail: { matchIndex: currentLevelIndex, swapped: teamsSwapped },
-                }));
-            }
-            if (graphToolbarRefresh) {
-                graphToolbarRefresh();
-            }
-        });
+        swapBtnEl.hidden = true;
     }
+    updateTeamPanelTitles();
 }
 
 function makePiePlaceholder() {

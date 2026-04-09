@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,10 +19,22 @@ type lifePoint struct {
 	Player  int     `json:"player,omitempty"` // 0/1: жив ли выбранный игрок в момент времени
 }
 
+type lifeTeamPoint struct {
+	TimeSec float64 `json:"t"`
+	Alive   int     `json:"v"`
+}
+
+type lifeTeamSeries struct {
+	TeamID int             `json:"team_id"`
+	Label  string          `json:"label"`
+	Ally   bool            `json:"ally,omitempty"`
+	Points []lifeTeamPoint `json:"points"`
+}
+
 type intensityPoint struct {
-	TimeSec   float64 `json:"t"`
-	AllyDPS   float64 `json:"ally"` // средний урон/с по плавающему окну 10 с (9 с + текущая)
-	EnemyDPS  float64 `json:"enemy"`
+	TimeSec  float64 `json:"t"`
+	AllyDPS  float64 `json:"ally"`  // средний урон/с по плавающему окну 10 с (9 с + текущая)
+	EnemyDPS float64 `json:"enemy"`
 	PlayerOut float64 `json:"player_out,omitempty"` // исходящий урон/с выбранного игрока (то же окно)
 	PlayerIn  float64 `json:"player_in,omitempty"`  // входящий урон/с (то же окно)
 }
@@ -34,6 +48,7 @@ type battleInsightResult struct {
 	GodGiftSec     float64          `json:"godgift_sec,omitempty"`
 	GodGiftLabel   string           `json:"godgift_label,omitempty"`
 	FocusedPlayer  string           `json:"focused_player,omitempty"`
+	LifeTeams      []lifeTeamSeries `json:"life_teams,omitempty"`
 	Life           []lifePoint      `json:"life"`
 	Intensity      []intensityPoint `json:"intensity"`
 }
@@ -41,11 +56,13 @@ type battleInsightResult struct {
 // Одна точка на секунду; окно — последние 9 с + текущая секунда (10 с суммарно), плавающее.
 const intensitySampleStepSec = 1.0
 const intensityWindowSec = 10.0
+const maxIntensitySamples = 12000
 
 type lifeEvent struct {
-	t    time.Time
-	kind int // 0 spawn ally, 1 spawn enemy, 2 ally death, 3 enemy death
-	name string
+	t      time.Time
+	kind   int // 0 spawn, 1 death
+	name   string
+	teamID int
 }
 
 func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.Level, timeRangeJSON string, focusedPlayer string) (string, error) {
@@ -62,7 +79,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	focusKey := strings.ToLower(focusedPlayer)
 	hasFocus := focusKey != ""
 
-	allyID, enemyID, ok := resolveAllyEnemyTeamIDs(level)
+	allyID, ok := allyTeamIDForTimeline(level)
 	if !ok {
 		res := battleInsightResult{EndSec: span, AllyTeamLabel: "Союзники", EnemyTeamLabel: "Противники"}
 		b, err := json.Marshal(res)
@@ -70,6 +87,13 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			return "", err
 		}
 		return string(b), nil
+	}
+	enemyID := 0
+	for tid := range level.Teams {
+		if tid != 0 && tid != allyID {
+			enemyID = tid
+			break
+		}
 	}
 
 	t0 := level.StartLevelTime
@@ -95,6 +119,13 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		}
 	}
 
+	teamIDs := make([]int, 0, len(level.Teams))
+	for tid := range level.Teams {
+		if tid != 0 {
+			teamIDs = append(teamIDs, tid)
+		}
+	}
+	sort.Ints(teamIDs)
 	var events []lifeEvent
 
 	if level.CombatLog != nil {
@@ -114,11 +145,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if t.Before(t0) {
 				t = t0
 			}
-			if tid == allyID {
-				events = append(events, lifeEvent{t: t, kind: 0, name: name})
-			} else if tid == enemyID {
-				events = append(events, lifeEvent{t: t, kind: 1, name: name})
-			}
+			events = append(events, lifeEvent{t: t, kind: 0, name: name, teamID: tid})
 		}
 
 		for _, k := range level.CombatLog.Kill {
@@ -138,26 +165,15 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if !inRoster {
 				continue
 			}
-			allyDeath := victim != "" && len(nameTeam) > 0 && victimTeam == allyID
-
-			if allyDeath {
-				events = append(events, lifeEvent{t: t, kind: 2, name: victim})
-				continue
-			}
-			if killer != "" && victim != "" {
-				events = append(events, lifeEvent{t: t, kind: 3, name: victim})
+			if killer != "" && victim != "" && victimTeam != 0 {
+				events = append(events, lifeEvent{t: t, kind: 1, name: victim, teamID: victimTeam})
 			}
 		}
 	}
 
 	// При одинаковом времени сначала применяем смерти, потом спавны.
 	// Иначе на метке "смерть" линия может визуально идти вверх из-за спавнов в ту же секунду.
-	lifeEventOrder := map[int]int{
-		2: 0, // ally death
-		3: 1, // enemy death
-		0: 2, // ally spawn
-		1: 3, // enemy spawn
-	}
+	lifeEventOrder := map[int]int{1: 0, 0: 1}
 	sort.Slice(events, func(i, j int) bool {
 		if !events[i].t.Equal(events[j].t) {
 			return events[i].t.Before(events[j].t)
@@ -170,30 +186,26 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		return events[i].name < events[j].name
 	})
 
-	allyRoster := level.Teams[allyID]
-	enemyRoster := level.Teams[enemyID]
-
-	countAlly := func(m map[string]bool) int {
+	teamAlive := make(map[int]map[string]bool, len(teamIDs))
+	for _, tid := range teamIDs {
+		teamAlive[tid] = make(map[string]bool)
+	}
+	countTeam := func(tid int) int {
+		roster := level.Teams[tid]
+		alive := teamAlive[tid]
 		n := 0
-		for _, p := range allyRoster {
-			if m[strings.TrimSpace(p.Name)] {
+		for _, p := range roster {
+			if alive[strings.TrimSpace(p.Name)] {
 				n++
 			}
 		}
 		return n
 	}
-	countEnemy := func(m map[string]bool) int {
-		n := 0
-		for _, p := range enemyRoster {
-			if m[strings.TrimSpace(p.Name)] {
-				n++
-			}
-		}
-		return n
+	teamSeriesFull := make(map[int][]lifeTeamPoint, len(teamIDs))
+	for _, tid := range teamIDs {
+		teamSeriesFull[tid] = []lifeTeamPoint{{TimeSec: 0, Alive: 0}}
 	}
 
-	allyAlive := make(map[string]bool)
-	enemyAlive := make(map[string]bool)
 	playerAlive := false
 	if hasFocus {
 		// Если первый найденный эвент игрока — смерть, значит до него игрок был жив,
@@ -202,7 +214,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			if strings.ToLower(strings.TrimSpace(ev.name)) != focusKey {
 				continue
 			}
-			if ev.kind == 2 || ev.kind == 3 {
+			if ev.kind == 1 {
 				playerAlive = true
 			}
 			break
@@ -215,21 +227,25 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	for _, ev := range events {
 		switch ev.kind {
 		case 0:
-			allyAlive[ev.name] = true
+			teamAlive[ev.teamID][ev.name] = true
 		case 1:
-			enemyAlive[ev.name] = true
-		case 2:
-			allyAlive[ev.name] = false
-		case 3:
-			enemyAlive[ev.name] = false
+			teamAlive[ev.teamID][ev.name] = false
 		}
 		if hasFocus && strings.ToLower(strings.TrimSpace(ev.name)) == focusKey {
-			playerAlive = ev.kind == 0 || ev.kind == 1
+			playerAlive = ev.kind == 0
 		}
+		allyCount := countTeam(allyID)
+		enemyCount := 0
+		for _, tid := range teamIDs {
+			if tid != allyID {
+				enemyCount += countTeam(tid)
+			}
+		}
+		sec := ev.t.Sub(t0).Seconds()
 		fullLife = append(fullLife, lifePoint{
-			TimeSec: ev.t.Sub(t0).Seconds(),
-			Allies:  countAlly(allyAlive),
-			Enemies: countEnemy(enemyAlive),
+			TimeSec: sec,
+			Allies:  allyCount,
+			Enemies: enemyCount,
 			Player: func() int {
 				if playerAlive {
 					return 1
@@ -237,9 +253,26 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 				return 0
 			}(),
 		})
+		for _, tid := range teamIDs {
+			teamSeriesFull[tid] = append(teamSeriesFull[tid], lifeTeamPoint{TimeSec: sec, Alive: countTeam(tid)})
+		}
 	}
 
 	lifeOut := clipLifeSeries(fullLife, lo, hi)
+	lifeTeams := make([]lifeTeamSeries, 0, len(teamIDs))
+	for _, tid := range teamIDs {
+		label := "Противники"
+		if tid == allyID {
+			label = "Союзники"
+		}
+		label = label + " · Team " + strconv.Itoa(tid)
+		lifeTeams = append(lifeTeams, lifeTeamSeries{
+			TeamID: tid,
+			Label:  label,
+			Ally:   tid == allyID,
+			Points: clipLifeTeamSeries(teamSeriesFull[tid], lo, hi),
+		})
+	}
 
 	// Интенсивность: плавающее окно 10 с (9 с + текущая), средний урон/с по окну
 	var dmgList []dmgEv
@@ -265,7 +298,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 			var teamMark int
 			if st == allyID {
 				teamMark = 0
-			} else if st == enemyID {
+			} else if st != 0 {
 				teamMark = 1
 			} else {
 				continue
@@ -284,7 +317,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 	})
 
 	intensityOut := sampleIntensity(t0, dmgList, playerOutList, playerInList, lo, hi)
-	godGiftSec, godGiftLabel, hasGodGift := detectGodGiftMoment(level, t0, nameTeam, allyID, enemyID)
+	godGiftSec, godGiftLabel, hasGodGift := detectGodGiftMoment(level, t0, nameTeam, allyID)
 
 	res := battleInsightResult{
 		EndSec:         span,
@@ -293,6 +326,7 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		AllyTeamLabel:  "Союзники",
 		EnemyTeamLabel: "Противники",
 		FocusedPlayer:  focusedPlayer,
+		LifeTeams:      lifeTeams,
 		Life:           lifeOut,
 		Intensity:      intensityOut,
 	}
@@ -310,23 +344,10 @@ func (r *Runtime) marshalBattleInsightJSON(ctx context.Context, level *splitter.
 		r.lg.For(ctx).Errorw("marshalBattleInsightJSON", "err", err)
 		return "", err
 	}
-	s := string(b)
-	r.lg.For(ctx).Debugw(
-		"marshalBattleInsightJSON",
-		"focus", focusedPlayer,
-		"range_lo_sec", lo,
-		"range_hi_sec", hi,
-		"life_points", len(lifeOut),
-		"intensity_points", len(intensityOut),
-		"raw_damage_events", len(dmgList),
-		"player_out_events", len(playerOutList),
-		"player_in_events", len(playerInList),
-		"out_len", len(s),
-	)
-	return s, nil
+	return string(b), nil
 }
 
-func detectGodGiftMoment(level *splitter.Level, t0 time.Time, nameTeam map[string]int, allyID, enemyID int) (float64, string, bool) {
+func detectGodGiftMoment(level *splitter.Level, t0 time.Time, nameTeam map[string]int, allyID int) (float64, string, bool) {
 	if level == nil || level.CombatLog == nil || len(level.CombatLog.Spell) == 0 {
 		return 0, "", false
 	}
@@ -339,22 +360,56 @@ func detectGodGiftMoment(level *splitter.Level, t0 time.Time, nameTeam map[strin
 			t = t0
 		}
 		sec := t.Sub(t0).Seconds()
-		for _, tgt := range sp.Targets {
-			target := strings.TrimSpace(tgt)
-			tid := 0
-			if target != "" {
-				tid = nameTeam[strings.ToLower(target)]
+		targets := sp.Targets
+		for _, targetRaw := range targets {
+			target := strings.TrimSpace(targetRaw)
+			if target == "" {
+				continue
 			}
+			tid := nameTeam[strings.ToLower(target)]
 			if tid == allyID {
 				return sec, "GodGift (союзники)", true
 			}
-			if tid == enemyID {
+			if tid != 0 && tid != allyID {
 				return sec, "GodGift (противники)", true
 			}
 		}
 		continue
 	}
 	return 0, "", false
+}
+
+func clipLifeTeamSeries(full []lifeTeamPoint, lo, hi float64) []lifeTeamPoint {
+	if len(full) == 0 {
+		return nil
+	}
+	last := full[0]
+	for _, p := range full {
+		if p.TimeSec <= lo {
+			last = p
+		} else {
+			break
+		}
+	}
+	out := []lifeTeamPoint{{TimeSec: lo, Alive: last.Alive}}
+	for _, p := range full {
+		if p.TimeSec <= lo {
+			continue
+		}
+		if p.TimeSec > hi {
+			break
+		}
+		if len(out) > 0 && p.TimeSec == out[len(out)-1].TimeSec {
+			out[len(out)-1] = p
+			continue
+		}
+		out = append(out, p)
+	}
+	lastPt := out[len(out)-1]
+	if lastPt.TimeSec < hi-1e-9 {
+		out = append(out, lifeTeamPoint{TimeSec: hi, Alive: lastPt.Alive})
+	}
+	return out
 }
 
 func clipLifeSeries(full []lifePoint, lo, hi float64) []lifePoint {
@@ -408,13 +463,30 @@ func sampleIntensity(t0 time.Time, dmgList []dmgEv, playerOutList, playerInList 
 	if hi < lo {
 		lo, hi = hi, lo
 	}
+	if math.IsNaN(lo) || math.IsInf(lo, 0) || math.IsNaN(hi) || math.IsInf(hi, 0) {
+		return nil
+	}
 	if hi-lo < 1e-9 {
 		return nil
 	}
 	step := intensitySampleStepSec
+	span := hi - lo
+	if span/step > maxIntensitySamples {
+		step = math.Ceil(span / maxIntensitySamples)
+		if step < intensitySampleStepSec {
+			step = intensitySampleStepSec
+		}
+	}
 	winDur := time.Duration(float64(time.Second) * intensityWindowSec)
 
-	var out []intensityPoint
+	est := int(math.Ceil((hi-lo)/step)) + 1
+	if est < 0 {
+		est = 0
+	}
+	if est > maxIntensitySamples+1 {
+		est = maxIntensitySamples + 1
+	}
+	out := make([]intensityPoint, 0, est)
 	la, ra := 0, 0
 	sumAlly, sumEnemy := 0.0, 0.0
 	lPO, rPO := 0, 0

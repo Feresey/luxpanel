@@ -29,6 +29,16 @@ type Splitter struct {
 	parser *parser.Parser
 }
 
+type lineRange struct {
+	Start int
+	End   int
+}
+
+type matchRange struct {
+	Game   lineRange
+	Combat lineRange
+}
+
 func NewSplitter(lg logger.Factory, tr trace.TracerProvider, parser *parser.Parser) *Splitter {
 	return &Splitter{lg: lg, tr: tr.Tracer("splitter"), parser: parser}
 }
@@ -37,39 +47,22 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 	ctx, span := s.tr.Start(ctx, "SplitLevels")
 	defer span.End()
 
-	logTime, gameLog, combatLog, err := s.parseFiles(ctx, fs)
+	logTime, matches, err := s.scanMatchRanges(ctx, fs)
 	if err != nil {
-		return nil, fmt.Errorf("parseFiles: %w", err)
+		return nil, fmt.Errorf("scanMatchRanges: %w", err)
 	}
-
-	gameLevelsIt := s.GetGameLogLevels(ctx, gameLog)
-	combatLevels, _ := s.GetCombatLogLevels(ctx, logTime, combatLog)
-
-	gameLevels := slices.Collect(gameLevelsIt)
-
-	if len(gameLevels) != len(combatLevels) {
-		mx := max(len(gameLevels), len(combatLevels))
-		s.lg.For(ctx).Infow("levels count mismatch", "combat", len(combatLevels), "game", len(gameLevels))
-		for i := range mx {
-			if i < len(gameLevels) {
-				gm := gameLevels[i].Result
-				s.lg.For(ctx).Infow("game log time", "number", i, "start", gm.StartGameplay.Time, "end", gm.FinishGameplay.Time)
-			}
-			if i < len(combatLevels) {
-				cm := combatLevels[i]
-				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.Time, "end", cm.Finished.Time)
-			}
-		}
-		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
+	gameLevels, combatLevels, err := s.parseLevelsByRanges(ctx, fs, logTime, matches)
+	if err != nil {
+		return nil, fmt.Errorf("parseLevelsByRanges: %w", err)
 	}
 
 	levels := make([]*Level, 0, len(gameLevels))
-	mx := max(len(gameLevels), len(combatLevels))
+	mx := len(matches)
 	for i := range mx {
 		var gm *GameLogLevel
 		var cm *CombatLogLevel
 		if i < len(gameLevels) {
-			gm = gameLevels[i].Result
+			gm = gameLevels[i]
 		}
 		if i < len(combatLevels) {
 			cm = combatLevels[i]
@@ -86,38 +79,315 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 	return levels, nil
 }
 
-func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
-	logTime time.Time,
-	game []parser.LogLine[game.LogLine],
-	combat []parser.LogLine[combat.LogLine],
-	err error,
-) {
-	ctx, span := s.tr.Start(ctx, "parseFiles")
+func (s *Splitter) scanMatchRanges(ctx context.Context, fs fs.FS) (time.Time, []matchRange, error) {
+	ctx, span := s.tr.Start(ctx, "scanMatchRanges")
 	defer span.End()
 
 	combatLog, err := fs.Open("combat.log")
 	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
+		return time.Time{}, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
 	}
 	defer combatLog.Close()
 
 	gameLog, err := fs.Open("game.log")
 	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
+		return time.Time{}, nil, fmt.Errorf("fs.Open(game.log): %w", err)
+	}
+	defer gameLog.Close()
+	logTime, combatRanges, err := s.scanCombatRanges(ctx, combatLog)
+	if err != nil {
+		return time.Time{}, nil, fmt.Errorf("scanCombatRanges: %w", err)
+	}
+	logTime, gameRanges, err := s.scanGameRanges(ctx, gameLog)
+	if err != nil {
+		return time.Time{}, nil, fmt.Errorf("scanGameRanges: %w", err)
+	}
+	if len(gameRanges) != len(combatRanges) {
+		mx := max(len(gameRanges), len(combatRanges))
+		s.lg.For(ctx).Infow("levels count mismatch", "combat", len(combatRanges), "game", len(gameRanges))
+		for i := range mx {
+			if i < len(gameRanges) {
+				gm := gameRanges[i]
+				s.lg.For(ctx).Infow("game log range", "number", i, "start_line", gm.Start, "end_line", gm.End)
+			}
+			if i < len(combatRanges) {
+				cm := combatRanges[i]
+				s.lg.For(ctx).Infow("combat log range", "number", i, "start_line", cm.Start, "end_line", cm.End)
+			}
+		}
+		return time.Time{}, nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameRanges), len(combatRanges))
+	}
+	matches := make([]matchRange, 0, len(gameRanges))
+	for i := range len(gameRanges) {
+		m := matchRange{Game: gameRanges[i], Combat: combatRanges[i]}
+		s.lg.For(ctx).Infow(
+			"match_offsets_detected",
+			"match_index", i,
+			"game_start_line", m.Game.Start,
+			"game_end_line", m.Game.End,
+			"combat_start_line", m.Combat.Start,
+			"combat_end_line", m.Combat.End,
+		)
+		matches = append(matches, m)
+	}
+	return logTime, matches, nil
+}
+
+func (s *Splitter) scanGameRanges(ctx context.Context, r fs.File) (time.Time, []lineRange, error) {
+	var (
+		ranges    []lineRange
+		curStart  int
+		lastLine  int
+	)
+	logTime, err := s.parser.WalkGameLog(ctx, r, func(line parser.LogLine[game.LogLine]) error {
+		lastLine = line.Num
+		if line.Data == nil {
+			return nil
+		}
+		switch v := line.Data.(type) {
+		case *game.ClientConnected:
+			if curStart == 0 {
+				curStart = line.Num
+			} else if line.Num > curStart {
+				ranges = append(ranges, lineRange{Start: curStart, End: line.Num - 1})
+				curStart = line.Num
+			}
+		case *game.ClientConnectionClosed:
+			if v.Reason == ConnectionClosedReasonClientCouldNotConnect {
+				curStart = 0
+				return nil
+			}
+			if curStart == 0 {
+				curStart = line.Num
+			}
+			ranges = append(ranges, lineRange{Start: curStart, End: line.Num})
+			curStart = 0
+		}
+		return nil
+	})
+	if err != nil {
+		return time.Time{}, nil, err
+	}
+	if curStart != 0 && lastLine >= curStart {
+		ranges = append(ranges, lineRange{Start: curStart, End: lastLine})
+	}
+	return logTime, ranges, nil
+}
+
+func (s *Splitter) scanCombatRanges(ctx context.Context, r fs.File) (time.Time, []lineRange, error) {
+	var (
+		ranges        []lineRange
+		curStart      int
+		lastLine      int
+		curSessionID  int
+		hasConnect    bool
+		hasStart      bool
+		hasFinished   bool
+	)
+	pushIfNonEmpty := func(endLine int) {
+		if curStart == 0 || endLine < curStart {
+			return
+		}
+		if hasConnect || hasStart || hasFinished {
+			ranges = append(ranges, lineRange{Start: curStart, End: endLine})
+		}
+		curStart = 0
+		curSessionID = 0
+		hasConnect = false
+		hasStart = false
+		hasFinished = false
+	}
+	logTime, err := s.parser.WalkCombatLog(ctx, r, func(line parser.LogLine[combat.LogLine]) error {
+		lastLine = line.Num
+		if line.Data == nil {
+			return nil
+		}
+		if curStart == 0 {
+			curStart = line.Num
+		}
+		switch v := line.Data.(type) {
+		case *combat.ConnectToGameSession:
+			if hasConnect && curSessionID != v.SessionID {
+				pushIfNonEmpty(line.Num - 1)
+				curStart = line.Num
+			}
+			hasConnect = true
+			curSessionID = v.SessionID
+		case *combat.Start:
+			if hasStart {
+				pushIfNonEmpty(line.Num - 1)
+				curStart = line.Num
+			}
+			hasStart = true
+		case *combat.Finished:
+			hasFinished = true
+		}
+		return nil
+	})
+	if err != nil {
+		return time.Time{}, nil, err
+	}
+	pushIfNonEmpty(lastLine)
+	return logTime, ranges, nil
+}
+
+func levelIndexForLine(ranges []lineRange, idx int, lineNum int) int {
+	for idx < len(ranges) && lineNum > ranges[idx].End {
+		idx++
+	}
+	return idx
+}
+
+func (s *Splitter) parseLevelsByRanges(
+	ctx context.Context,
+	fsys fs.FS,
+	logTime time.Time,
+	matches []matchRange,
+) ([]*GameLogLevel, []*CombatLogLevel, error) {
+	ctx, span := s.tr.Start(ctx, "parseLevelsByRanges")
+	defer span.End()
+
+	gameLevels := make([]*GameLogLevel, len(matches))
+	for i := range gameLevels {
+		gameLevels[i] = new(GameLogLevel)
+	}
+	combatLevels := make([]*CombatLogLevel, len(matches))
+	for i := range combatLevels {
+		combatLevels[i] = &CombatLogLevel{logTime: logTime}
+	}
+	gameRanges := make([]lineRange, 0, len(matches))
+	combatRanges := make([]lineRange, 0, len(matches))
+	for _, m := range matches {
+		gameRanges = append(gameRanges, m.Game)
+		combatRanges = append(combatRanges, m.Combat)
+	}
+
+	gameLog, err := fsys.Open("game.log")
+	if err != nil {
+		return nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
 	}
 	defer gameLog.Close()
 
-	logTime, combatLogLines, err := s.parser.ParseCombatLog(ctx, combatLog)
+	gameIdx := 0
+	_, err = s.parser.WalkGameLogFull(ctx, gameLog, func(line parser.LogLine[game.LogLine]) error {
+		gameIdx = levelIndexForLine(gameRanges, gameIdx, line.Num)
+		if gameIdx >= len(gameRanges) {
+			return nil
+		}
+		rg := gameRanges[gameIdx]
+		if line.Num < rg.Start || line.Num > rg.End || line.Data == nil {
+			return nil
+		}
+		lvl := gameLevels[gameIdx]
+		switch v := line.Data.(type) {
+		case *game.ClientConnected:
+			if lvl.StartGameplay == nil {
+				lvl.StartGameplay = v
+			}
+		case *game.ClientAddPlayer:
+			lvl.AddPlayer = append(lvl.AddPlayer, v)
+		case *game.ClientConnectionClosed:
+			lvl.FinishGameplay = v
+		case *game.ClientPlayerLeave:
+			lvl.LeavePlayer = append(lvl.LeavePlayer, v)
+		}
+		return nil
+	})
 	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("parser.ParseCombatLog(game): %w", err)
+		return nil, nil, fmt.Errorf("WalkGameLog: %w", err)
 	}
 
-	logTime, gameLogLines, err := s.parser.ParseGameLog(ctx, gameLog)
+	combatLog, err := fsys.Open("combat.log")
 	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("parser.ParseGameLog(game): %w", err)
+		return nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
 	}
-
-	return logTime, gameLogLines, combatLogLines, nil
+	defer combatLog.Close()
+	combatIdx := 0
+	_, err = s.parser.WalkCombatLogFull(ctx, combatLog, func(line parser.LogLine[combat.LogLine]) error {
+		combatIdx = levelIndexForLine(combatRanges, combatIdx, line.Num)
+		if combatIdx >= len(combatRanges) {
+			return nil
+		}
+		rg := combatRanges[combatIdx]
+		if line.Num < rg.Start || line.Num > rg.End || line.Data == nil {
+			return nil
+		}
+		lvl := combatLevels[combatIdx]
+		switch v := line.Data.(type) {
+		case *combat.ConnectToGameSession:
+			lvl.Connect = *v
+		case *combat.Start:
+			lvl.Start = *v
+		case *combat.Damage:
+			lvl.Damage = append(lvl.Damage, v)
+		case *combat.Heal:
+			lvl.Heal = append(lvl.Heal, v)
+		case *combat.Kill:
+			lvl.Kill = append(lvl.Kill, v)
+		case *combat.Spawn:
+			lvl.Spawn = append(lvl.Spawn, v)
+		case *combat.Reward:
+			lvl.Reward = append(lvl.Reward, v)
+		case *combat.Spell:
+			lvl.Spell = append(lvl.Spell, v)
+		case *combat.Finished:
+			lvl.Finished = *v
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("WalkCombatLog: %w", err)
+	}
+	for i := range len(matches) {
+		gr := matches[i].Game
+		cr := matches[i].Combat
+		gl := gameLevels[i]
+		cl := combatLevels[i]
+		addPlayers := 0
+		hasGameStart := false
+		hasGameFinish := false
+		if gl != nil {
+			addPlayers = len(gl.AddPlayer)
+			hasGameStart = gl.StartGameplay != nil
+			hasGameFinish = gl.FinishGameplay != nil
+		}
+		damageN, healN, killN, spawnN, rewardN, spellN := 0, 0, 0, 0, 0, 0
+		hasCombatConnect := false
+		hasCombatStart := false
+		hasCombatFinish := false
+		if cl != nil {
+			damageN = len(cl.Damage)
+			healN = len(cl.Heal)
+			killN = len(cl.Kill)
+			spawnN = len(cl.Spawn)
+			rewardN = len(cl.Reward)
+			spellN = len(cl.Spell)
+			hasCombatConnect = !cl.Connect.IsEmpty()
+			hasCombatStart = !cl.Start.IsEmpty()
+			hasCombatFinish = !cl.Finished.IsEmpty()
+		}
+		s.lg.For(ctx).Infow(
+			"match_offsets_parse_summary",
+			"match_index", i,
+			"game_start_line", gr.Start,
+			"game_end_line", gr.End,
+			"combat_start_line", cr.Start,
+			"combat_end_line", cr.End,
+			"game_has_start", hasGameStart,
+			"game_has_finish", hasGameFinish,
+			"game_add_players", addPlayers,
+			"combat_has_connect", hasCombatConnect,
+			"combat_has_start", hasCombatStart,
+			"combat_has_finish", hasCombatFinish,
+			"combat_damage", damageN,
+			"combat_heal", healN,
+			"combat_kill", killN,
+			"combat_spawn", spawnN,
+			"combat_reward", rewardN,
+			"combat_spell", spellN,
+		)
+	}
+	return gameLevels, combatLevels, nil
 }
 
 func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
@@ -129,20 +399,58 @@ func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *
 		CombatLog: combatLevel,
 	}
 
-	if gameLevel != nil {
-		lvl.StartLevelTime = gameLevel.StartGameplay.GetTime(logTime)
+	// Start: earliest known non-zero marker among game/combat start-like events.
+	startCandidates := []time.Time{}
+	if gameLevel != nil && gameLevel.StartGameplay != nil {
+		if t := gameLevel.StartGameplay.GetTime(logTime); !t.IsZero() {
+			startCandidates = append(startCandidates, t)
+		}
 	}
 	if combatLevel != nil {
-		if lvl.StartLevelTime.After(combatLevel.Start.GetTime(logTime)) {
-			lvl.StartLevelTime = combatLevel.Start.GetTime(logTime)
+		if t := combatLevel.Start.GetTime(logTime); !t.IsZero() {
+			startCandidates = append(startCandidates, t)
 		}
-		if lvl.StartLevelTime.After(combatLevel.Connect.GetTime(logTime)) {
-			lvl.StartLevelTime = combatLevel.Connect.GetTime(logTime)
+		if t := combatLevel.Connect.GetTime(logTime); !t.IsZero() {
+			startCandidates = append(startCandidates, t)
+		}
+		if t := earliestCombatEventTime(combatLevel, logTime); !t.IsZero() {
+			startCandidates = append(startCandidates, t)
 		}
 	}
-	lvl.EndLevelTime = gameLevel.FinishGameplay.GetTime(logTime)
-	if cmbt := combatLevel.Finished; lvl.EndLevelTime.Before(cmbt.GetTime(logTime)) {
-		lvl.EndLevelTime = cmbt.GetTime(logTime)
+	if len(startCandidates) > 0 {
+		lvl.StartLevelTime = startCandidates[0]
+		for i := 1; i < len(startCandidates); i++ {
+			if startCandidates[i].Before(lvl.StartLevelTime) {
+				lvl.StartLevelTime = startCandidates[i]
+			}
+		}
+	}
+
+	// End: latest known non-zero marker among finish and real combat activity.
+	endCandidates := []time.Time{}
+	if gameLevel != nil && gameLevel.FinishGameplay != nil {
+		if t := gameLevel.FinishGameplay.GetTime(logTime); !t.IsZero() {
+			endCandidates = append(endCandidates, t)
+		}
+	}
+	if combatLevel != nil {
+		if t := combatLevel.Finished.GetTime(logTime); !t.IsZero() {
+			endCandidates = append(endCandidates, t)
+		}
+		if t := latestCombatEventTime(combatLevel, logTime); !t.IsZero() {
+			endCandidates = append(endCandidates, t)
+		}
+	}
+	if len(endCandidates) > 0 {
+		lvl.EndLevelTime = endCandidates[0]
+		for i := 1; i < len(endCandidates); i++ {
+			if endCandidates[i].After(lvl.EndLevelTime) {
+				lvl.EndLevelTime = endCandidates[i]
+			}
+		}
+	}
+	if !lvl.StartLevelTime.IsZero() && !lvl.EndLevelTime.IsZero() && lvl.EndLevelTime.Before(lvl.StartLevelTime) {
+		lvl.EndLevelTime = lvl.StartLevelTime
 	}
 
 	playerTeamsMap := make(map[int]map[int]Player)
@@ -193,6 +501,98 @@ func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *
 	return lvl, nil
 }
 
+func earliestCombatEventTime(level *CombatLogLevel, logTime time.Time) time.Time {
+	if level == nil {
+		return time.Time{}
+	}
+	best := time.Time{}
+	setMin := func(t time.Time) {
+		if t.IsZero() {
+			return
+		}
+		if best.IsZero() || t.Before(best) {
+			best = t
+		}
+	}
+	for _, x := range level.Damage {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Heal {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Kill {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Spawn {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Reward {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Spell {
+		if x != nil {
+			setMin(x.GetTime(logTime))
+		}
+	}
+	return best
+}
+
+func latestCombatEventTime(level *CombatLogLevel, logTime time.Time) time.Time {
+	if level == nil {
+		return time.Time{}
+	}
+	best := time.Time{}
+	setMax := func(t time.Time) {
+		if t.IsZero() {
+			return
+		}
+		if best.IsZero() || t.After(best) {
+			best = t
+		}
+	}
+	for _, x := range level.Damage {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Heal {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Kill {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Spawn {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Reward {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	for _, x := range level.Spell {
+		if x != nil {
+			setMax(x.GetTime(logTime))
+		}
+	}
+	return best
+}
+
 type Player struct {
 	PlayerID        int
 	SessionPlayerID int
@@ -226,7 +626,7 @@ type GameLogLevel struct {
 }
 
 func (g *GameLogLevel) IsEmpty() bool {
-	return len(g.Lines) == 0
+	return g == nil || (g.StartGameplay == nil && g.FinishGameplay == nil && len(g.AddPlayer) == 0 && len(g.LeavePlayer) == 0)
 }
 
 type CombatLogLevel struct {
@@ -263,7 +663,7 @@ func (g *CombatLogLevel) String() string {
 }
 
 func (g *CombatLogLevel) IsEmpty() bool {
-	return len(g.LogLines) == 0 || (g.Connect.IsEmpty() && g.Start.IsEmpty() && g.Finished.IsEmpty())
+	return g == nil || (g.Connect.IsEmpty() && g.Start.IsEmpty() && g.Finished.IsEmpty())
 }
 
 // LogAnchorTime is the calendar date from the combat log header; used with line clocks in GetTime.

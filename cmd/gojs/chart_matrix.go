@@ -13,11 +13,11 @@ import (
 // teamPairPanel: columns = col_players (allies for this panel), rows = row_players (enemies).
 // For heal, both dimensions are the same team (intra-team healer → recipient).
 type teamPairPanel struct {
-	ColPlayers     []string       `json:"col_players"`
-	RowPlayers     []string       `json:"row_players"`
+	ColPlayers []string    `json:"col_players"`
+	RowPlayers []string    `json:"row_players"`
 	NewbieBonusMax map[string]int `json:"newbie_bonus_max,omitempty"`
-	Matrix         [][]float64    `json:"matrix"`
-	Total          float64        `json:"total"`
+	Matrix     [][]float64 `json:"matrix"`
+	Total      float64     `json:"total"`
 }
 
 type chartMatricesResult struct {
@@ -126,8 +126,8 @@ func maxNewbieBonusByPlayer(level *splitter.Level, players []splitter.Player) ma
 		if sp == nil || sp.Normalizer <= 0 {
 			continue
 		}
-		for _, tg := range sp.Targets {
-			target := strings.TrimSpace(tg)
+		for _, targetRaw := range sp.Targets {
+			target := strings.TrimSpace(targetRaw)
 			if target == "" {
 				continue
 			}
@@ -215,18 +215,18 @@ func (r *Runtime) marshalDamageMatrices(ctx context.Context, level *splitter.Lev
 		}
 	}
 	p0 := teamPairPanel{
-		ColPlayers:     playerNameSlice(pla),
-		RowPlayers:     playerNameSlice(plb),
+		ColPlayers: playerNameSlice(pla),
+		RowPlayers: playerNameSlice(plb),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m0,
-		Total:          sumMatrix(m0),
+		Matrix:     m0,
+		Total:      sumMatrix(m0),
 	}
 	p1 := teamPairPanel{
-		ColPlayers:     playerNameSlice(plb),
-		RowPlayers:     playerNameSlice(pla),
+		ColPlayers: playerNameSlice(plb),
+		RowPlayers: playerNameSlice(pla),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m1,
-		Total:          sumMatrix(m1),
+		Matrix:     m1,
+		Total:      sumMatrix(m1),
 	}
 	res := chartMatricesResult{Metric: "damage", Panels: []teamPairPanel{p0, p1}}
 	b, err := json.Marshal(res)
@@ -304,18 +304,18 @@ func (r *Runtime) marshalKillMatrices(ctx context.Context, level *splitter.Level
 		}
 	}
 	p0 := teamPairPanel{
-		ColPlayers:     playerNameSlice(pla),
-		RowPlayers:     playerNameSlice(plb),
+		ColPlayers: playerNameSlice(pla),
+		RowPlayers: playerNameSlice(plb),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m0,
-		Total:          sumMatrix(m0),
+		Matrix:     m0,
+		Total:      sumMatrix(m0),
 	}
 	p1 := teamPairPanel{
-		ColPlayers:     playerNameSlice(plb),
-		RowPlayers:     playerNameSlice(pla),
+		ColPlayers: playerNameSlice(plb),
+		RowPlayers: playerNameSlice(pla),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m1,
-		Total:          sumMatrix(m1),
+		Matrix:     m1,
+		Total:      sumMatrix(m1),
 	}
 	res := chartMatricesResult{Metric: "kill", Panels: []teamPairPanel{p0, p1}}
 	b, err := json.Marshal(res)
@@ -394,18 +394,18 @@ func (r *Runtime) marshalHealMatrices(ctx context.Context, level *splitter.Level
 		}
 	}
 	p0 := teamPairPanel{
-		ColPlayers:     playerNameSlice(pla),
-		RowPlayers:     playerNameSlice(pla),
+		ColPlayers: playerNameSlice(pla),
+		RowPlayers: playerNameSlice(pla),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m0,
-		Total:          sumMatrix(m0),
+		Matrix:     m0,
+		Total:      sumMatrix(m0),
 	}
 	p1 := teamPairPanel{
-		ColPlayers:     playerNameSlice(plb),
-		RowPlayers:     playerNameSlice(plb),
+		ColPlayers: playerNameSlice(plb),
+		RowPlayers: playerNameSlice(plb),
 		NewbieBonusMax: newbieMax,
-		Matrix:         m1,
-		Total:          sumMatrix(m1),
+		Matrix:     m1,
+		Total:      sumMatrix(m1),
 	}
 	res := chartMatricesResult{Metric: "heal", Panels: []teamPairPanel{p0, p1}}
 	b, err := json.Marshal(res)

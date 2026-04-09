@@ -354,11 +354,7 @@ func allyTeamIDForTimeline(level *splitter.Level) (int, bool) {
 			return tid, true
 		}
 	}
-	left, _, ok := leftRightTeamIDs(level)
-	if !ok {
-		return 0, false
-	}
-	return left, true
+	return 0, false
 }
 
 // assistVictimFromReason: хвост "… assist to kill VictimNick" в Reward.Reason.

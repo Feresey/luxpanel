@@ -69,12 +69,59 @@ func NewCombatLogParser() func(string) (combat.LogLine, error) {
 	}
 }
 
+// NewWalkGameLogParser is a lightweight parser for the first pass (match boundaries only).
+func NewWalkGameLogParser() func(string) (game.LogLine, error) {
+	p := &common.Parser[game.Token, game.LogLine, game.YaccSymType, game.YaccLexer, game.YaccParser]{T: &game.Tokenizer{}, L: &game.Lexer{}, NewGramma: game.YaccNewParser}
+	return func(line string) (game.LogLine, error) {
+		switch {
+		case matchPrefix(line, 23, "client: connected to"):
+		case matchPrefix(line, 23, "client: connection closed"):
+		default:
+			return nil, nil
+		}
+		return p.Parse(line)
+	}
+}
+
+// NewWalkCombatLogParser is a lightweight parser for the first pass (match boundaries only).
+func NewWalkCombatLogParser() func(string) (combat.LogLine, error) {
+	p := &common.Parser[combat.Token, combat.LogLine, combat.YaccSymType, combat.YaccLexer, combat.YaccParser]{T: &combat.Tokenizer{}, L: &combat.Lexer{}, NewGramma: combat.YaccNewParser}
+	return func(line string) (combat.LogLine, error) {
+		switch {
+		case matchPrefix(line, 23, "======= Connect to game session"):
+		case matchPrefix(line, 23, "======= Start"):
+		case matchPrefix(line, 23, "Gameplay"):
+		default:
+			return nil, nil
+		}
+		return p.Parse(line)
+	}
+}
+
 func (p *Parser) ParseGameLog(ctx context.Context, r io.Reader) (time.Time, []LogLine[game.LogLine], error) {
 	return parseLogFile(ctx, r, p.lg, NewGameLogParser())
 }
 
 func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) (time.Time, []LogLine[combat.LogLine], error) {
 	return parseLogFile(ctx, r, p.lg, NewCombatLogParser())
+}
+
+func (p *Parser) WalkGameLog(ctx context.Context, r io.Reader, sink func(LogLine[game.LogLine]) error) (time.Time, error) {
+	return parseLogFileStream(ctx, r, p.lg, NewWalkGameLogParser(), sink)
+}
+
+func (p *Parser) WalkCombatLog(ctx context.Context, r io.Reader, sink func(LogLine[combat.LogLine]) error) (time.Time, error) {
+	return parseLogFileStream(ctx, r, p.lg, NewWalkCombatLogParser(), sink)
+}
+
+// WalkGameLogFull parses all supported game.log records.
+func (p *Parser) WalkGameLogFull(ctx context.Context, r io.Reader, sink func(LogLine[game.LogLine]) error) (time.Time, error) {
+	return parseLogFileStream(ctx, r, p.lg, NewGameLogParser(), sink)
+}
+
+// WalkCombatLogFull parses all supported combat.log records.
+func (p *Parser) WalkCombatLogFull(ctx context.Context, r io.Reader, sink func(LogLine[combat.LogLine]) error) (time.Time, error) {
+	return parseLogFileStream(ctx, r, p.lg, NewCombatLogParser(), sink)
 }
 
 type LogLine[T any] struct {
@@ -85,6 +132,24 @@ type LogLine[T any] struct {
 }
 
 func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, parseLine func(string) (T, error)) (logTime time.Time, res []LogLine[T], err error) {
+	errSink := func(next LogLine[T]) error {
+		res = append(res, next)
+		return nil
+	}
+	logTime, err = parseLogFileStream(ctx, r, lg, parseLine, errSink)
+	if err != nil {
+		return logTime, nil, err
+	}
+	return logTime, res, nil
+}
+
+func parseLogFileStream[T any](
+	ctx context.Context,
+	r io.Reader,
+	lg logger.Factory,
+	parseLine func(string) (T, error),
+	sink func(LogLine[T]) error,
+) (logTime time.Time, err error) {
 	startTime := time.Now()
 	lg.For(ctx).Debugw("start parse")
 	defer func() {
@@ -94,7 +159,7 @@ func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, pa
 	rd := bufio.NewReaderSize(r, 1<<20)
 	logTime, err = getLogTime(rd)
 	if err != nil {
-		return logTime, nil, fmt.Errorf("getLogTime: %w", err)
+		return logTime, fmt.Errorf("getLogTime: %w", err)
 	}
 
 	// time parse offset
@@ -104,29 +169,35 @@ func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, pa
 
 		next := LogLine[T]{
 			Num: counter,
-			Raw: rawLine,
 		}
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				return logTime, res, nil
+				return logTime, nil
 			}
 
 			next.Err = fmt.Errorf("read log: %w", err)
-			res = append(res, next)
+			if sinkErr := sink(next); sinkErr != nil {
+				return logTime, sinkErr
+			}
 			continue
 		}
 		if isPrefix {
 			next.Err = fmt.Errorf("very long line detected at %d: %s", counter, rawLine)
-			res = append(res, next)
+			if sinkErr := sink(next); sinkErr != nil {
+				return logTime, sinkErr
+			}
 		}
 
 		line, err := parseLine(rawLine)
 		next.Data = line
+		next.Raw = rawLine
 		if err != nil {
 			next.Err = fmt.Errorf("gramma.Parse: %w", err)
 		}
 
-		res = append(res, next)
+		if sinkErr := sink(next); sinkErr != nil {
+			return logTime, sinkErr
+		}
 	}
 }
 

@@ -144,6 +144,106 @@ func (s *Suite) TestParseCombatLog() {
 	// r.Equal(154005, len(res), "counts: %d: %+v", sum, counts)
 }
 
+func (s *Suite) TestWalkGameLogParsers() {
+	r := s.Require()
+	ctx := context.Background()
+
+	// Baseline: full parse
+	fullF, err := parserFS.Open("testdata/game.log")
+	r.NoError(err)
+	_, parsed, err := s.parser.ParseGameLog(ctx, fullF)
+	r.NoError(err)
+	var parsedCnt int
+	for _, line := range parsed {
+		if line.Data != nil {
+			parsedCnt++
+		}
+	}
+
+	// Full walk must match full parse.
+	walkFullF, err := parserFS.Open("testdata/game.log")
+	r.NoError(err)
+	var walkFullCnt int
+	_, err = s.parser.WalkGameLogFull(ctx, walkFullF, func(line parser.LogLine[game.LogLine]) error {
+		if line.Data != nil {
+			walkFullCnt++
+		}
+		return nil
+	})
+	r.NoError(err)
+	r.Equal(parsedCnt, walkFullCnt)
+
+	// Lightweight walk: only boundary-related events.
+	walkLiteF, err := parserFS.Open("testdata/game.log")
+	r.NoError(err)
+	var walkLiteCnt int
+	_, err = s.parser.WalkGameLog(ctx, walkLiteF, func(line parser.LogLine[game.LogLine]) error {
+		if line.Data == nil {
+			return nil
+		}
+		walkLiteCnt++
+		switch line.Data.(type) {
+		case *game.ClientConnected, *game.ClientConnectionClosed:
+			return nil
+		default:
+			return fmt.Errorf("unexpected lightweight game event type: %T", line.Data)
+		}
+	})
+	r.NoError(err)
+	r.Greater(walkLiteCnt, 0)
+	r.LessOrEqual(walkLiteCnt, walkFullCnt)
+}
+
+func (s *Suite) TestWalkCombatLogParsers() {
+	r := s.Require()
+	ctx := context.Background()
+
+	// Baseline: full parse
+	fullF, err := parserFS.Open("testdata/combat.log")
+	r.NoError(err)
+	_, parsed, err := s.parser.ParseCombatLog(ctx, fullF)
+	r.NoError(err)
+	var parsedCnt int
+	for _, line := range parsed {
+		if line.Data != nil {
+			parsedCnt++
+		}
+	}
+
+	// Full walk must match full parse.
+	walkFullF, err := parserFS.Open("testdata/combat.log")
+	r.NoError(err)
+	var walkFullCnt int
+	_, err = s.parser.WalkCombatLogFull(ctx, walkFullF, func(line parser.LogLine[combat.LogLine]) error {
+		if line.Data != nil {
+			walkFullCnt++
+		}
+		return nil
+	})
+	r.NoError(err)
+	r.Equal(parsedCnt, walkFullCnt)
+
+	// Lightweight walk: only boundary-related events.
+	walkLiteF, err := parserFS.Open("testdata/combat.log")
+	r.NoError(err)
+	var walkLiteCnt int
+	_, err = s.parser.WalkCombatLog(ctx, walkLiteF, func(line parser.LogLine[combat.LogLine]) error {
+		if line.Data == nil {
+			return nil
+		}
+		walkLiteCnt++
+		switch line.Data.(type) {
+		case *combat.ConnectToGameSession, *combat.Start, *combat.Finished:
+			return nil
+		default:
+			return fmt.Errorf("unexpected lightweight combat event type: %T", line.Data)
+		}
+	})
+	r.NoError(err)
+	r.Greater(walkLiteCnt, 0)
+	r.LessOrEqual(walkLiteCnt, walkFullCnt)
+}
+
 func countByKeys[K comparable](seq iter.Seq[K]) map[K]int {
 	m := make(map[K]int)
 	Count(m, seq)
