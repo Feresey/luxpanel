@@ -56,7 +56,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getTeamPanelsRosterJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -74,7 +74,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getMatchSummaryJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -92,7 +92,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getDamageChartsJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -114,7 +114,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getChartsJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 2)
+		level, ok := r.levelFromArgs(ctx, args, 2)
 		if !ok {
 			return "null"
 		}
@@ -140,7 +140,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getChartMatricesJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 2)
+		level, ok := r.levelFromArgs(ctx, args, 2)
 		if !ok {
 			return "null"
 		}
@@ -170,7 +170,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getTimelineJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -192,7 +192,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getBattleInsightJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -218,7 +218,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getCombatLogLinesJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "[]"
 		}
@@ -234,7 +234,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getDamageFilterMetaJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 1)
+		level, ok := r.levelFromArgs(ctx, args, 1)
 		if !ok {
 			return "null"
 		}
@@ -266,7 +266,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getDamageTableJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 2)
+		level, ok := r.levelFromArgs(ctx, args, 2)
 		if !ok {
 			return "null"
 		}
@@ -282,7 +282,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 	})
 
 	r.register("getDamageDefaultTableJSON", func(this js.Value, args []js.Value) any {
-		level, ok := r.levelFromArgs(args, 2)
+		level, ok := r.levelFromArgs(ctx, args, 2)
 		if !ok {
 			return "null"
 		}
@@ -310,7 +310,7 @@ func (r *Runtime) register(name string, fn func(this js.Value, args []js.Value) 
 	js.Global().Set(name, js.FuncOf(fn))
 }
 
-func (r *Runtime) levelFromArgs(args []js.Value, minArgs int) (*splitter.Level, bool) {
+func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs int) (*splitter.Level, bool) {
 	if len(args) < minArgs {
 		return nil, false
 	}
@@ -318,7 +318,12 @@ func (r *Runtime) levelFromArgs(args []js.Value, minArgs int) (*splitter.Level, 
 	if idx < 0 || idx >= len(r.Data.Levels) {
 		return nil, false
 	}
-	return r.Data.Levels[idx], true
+	lvl, err := r.ensureLevelParsed(ctx, idx)
+	if err != nil {
+		r.lg.For(ctx).Errorw("ensureLevelParsed failed", "idx", idx, "err", err)
+		return nil, false
+	}
+	return lvl, true
 }
 
 func mapKeysSorted(m map[string]struct{}) []string {

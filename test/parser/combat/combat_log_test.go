@@ -421,9 +421,9 @@ func TestCombatSpawn(t *testing.T) {
 			name:  "ok",
 			input: `21:42:48.769  CMBT   | Spawn SpaceShip for player7 (RockerBonker, #125546). 'Ship_Race5_H_OVERSEER_Rank15_13'`,
 			want: &combat.Spawn{
-				Time: combat.Time{Time: "19:47:09.448"},
-				ID:   125556,
-				Name: "RocketBonker",
+				Time: combat.Time{Time: "21:42:48.769"},
+				ID:   125546,
+				Name: "RockerBonker",
 				Ship: "Ship_Race5_H_OVERSEER_Rank15_13",
 			},
 		},
