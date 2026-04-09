@@ -183,6 +183,33 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     background: #263142;
 }
 
+/* Главное действие в шапке — не смешивать с вторичными кнопками (demo, метрики). */
+.upload-button label.pick-logs-btn {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 6px 18px;
+    border: 1px solid rgba(56, 189, 248, 0.65);
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.42) 0%, rgba(3, 105, 161, 0.28) 100%);
+    color: #f0f9ff;
+    box-shadow:
+        0 0 0 1px rgba(56, 189, 248, 0.12),
+        0 4px 16px rgba(2, 132, 199, 0.28);
+}
+
+.upload-button label.pick-logs-btn:hover {
+    border-color: rgba(125, 211, 252, 0.95);
+    background: linear-gradient(180deg, rgba(14, 165, 233, 0.55) 0%, rgba(3, 105, 161, 0.4) 100%);
+    color: #fff;
+    box-shadow:
+        0 0 0 1px rgba(125, 211, 252, 0.2),
+        0 6px 20px rgba(2, 132, 199, 0.38);
+}
+
+.upload-button label.pick-logs-btn:focus-visible {
+    outline: 2px solid var(--lux-accent);
+    outline-offset: 3px;
+}
+
 .content {
     display: block;
     background:
