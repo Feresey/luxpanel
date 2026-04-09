@@ -141,83 +141,113 @@ func (s *Splitter) ScanMatchRanges(ctx context.Context, fs fs.FS) (time.Time, []
 	return logTime, matches, nil
 }
 
+// scanGameRanges records line ranges that match GetGameLogLevels: same transitions,
+// non-overlapping segments (second ClientConnected starts a new segment at its line;
+// the previous segment ends at line-1 so parse-by-range can assign StartGameplay on the new line).
 func (s *Splitter) scanGameRanges(ctx context.Context, r fs.File) (time.Time, []LineRange, error) {
 	var (
-		ranges    []LineRange
-		curStart  int
-		lastLine  int
+		ranges           []LineRange
+		lastLine         int
+		levelStart       int
+		hasStartGameplay bool
+		hasFinish        bool
+		nAdd             int
+		nLeave           int
 	)
+	gameSegNonEmpty := func() bool {
+		return hasStartGameplay || hasFinish || nAdd > 0 || nLeave > 0
+	}
+	resetSeg := func() {
+		levelStart = 0
+		hasStartGameplay = false
+		hasFinish = false
+		nAdd = 0
+		nLeave = 0
+	}
 	logTime, err := s.parser.WalkGameLog(ctx, r, func(line parser.LogLine[game.LogLine]) error {
-		lastLine = line.Num
 		if line.Data == nil {
 			return nil
 		}
+		lastLine = line.Num
+		if levelStart == 0 {
+			levelStart = line.Num
+		}
 		switch v := line.Data.(type) {
 		case *game.ClientConnected:
-			if curStart == 0 {
-				curStart = line.Num
-			} else if line.Num > curStart {
-				ranges = append(ranges, LineRange{Start: curStart, End: line.Num - 1})
-				curStart = line.Num
+			if hasStartGameplay {
+				ranges = append(ranges, LineRange{Start: levelStart, End: line.Num - 1})
+				levelStart = line.Num
+				hasFinish = false
+				nAdd = 0
+				nLeave = 0
 			}
+			hasStartGameplay = true
+		case *game.ClientAddPlayer:
+			nAdd++
 		case *game.ClientConnectionClosed:
 			if v.Reason == ConnectionClosedReasonClientCouldNotConnect {
-				curStart = 0
+				resetSeg()
 				return nil
 			}
-			if curStart == 0 {
-				curStart = line.Num
-			}
-			ranges = append(ranges, LineRange{Start: curStart, End: line.Num})
-			curStart = 0
+			hasFinish = true
+			ranges = append(ranges, LineRange{Start: levelStart, End: line.Num})
+			resetSeg()
+		case *game.ClientPlayerLeave:
+			nLeave++
 		}
 		return nil
 	})
 	if err != nil {
 		return time.Time{}, nil, err
 	}
-	if curStart != 0 && lastLine >= curStart {
-		ranges = append(ranges, LineRange{Start: curStart, End: lastLine})
+	if levelStart != 0 && lastLine >= levelStart && gameSegNonEmpty() {
+		ranges = append(ranges, LineRange{Start: levelStart, End: lastLine})
 	}
 	return logTime, ranges, nil
 }
 
+// scanCombatRanges records line ranges that match GetCombatLogLevels (master did not split on a second Start).
 func (s *Splitter) scanCombatRanges(ctx context.Context, r fs.File) (time.Time, []LineRange, error) {
 	var (
-		ranges        []LineRange
-		curStart      int
-		lastLine      int
-		curSessionID  int
-		hasConnect    bool
-		hasStart      bool
-		hasFinished   bool
+		ranges       []LineRange
+		lastLine     int
+		levelStart   int
+		hasConnect   bool
+		curSessionID int
+		hasStart     bool
+		hasFinished  bool
 	)
-	pushIfNonEmpty := func(endLine int) {
-		if curStart == 0 || endLine < curStart {
-			return
-		}
-		if hasConnect || hasStart || hasFinished {
-			ranges = append(ranges, LineRange{Start: curStart, End: endLine})
-		}
-		curStart = 0
-		curSessionID = 0
+	combatSegNonEmpty := func() bool {
+		return hasConnect || hasStart || hasFinished
+	}
+	resetSeg := func() {
+		levelStart = 0
 		hasConnect = false
+		curSessionID = 0
 		hasStart = false
 		hasFinished = false
 	}
+	pushSeg := func(endLine int) {
+		if levelStart == 0 || endLine < levelStart || !combatSegNonEmpty() {
+			resetSeg()
+			return
+		}
+		ranges = append(ranges, LineRange{Start: levelStart, End: endLine})
+		resetSeg()
+	}
 	logTime, err := s.parser.WalkCombatLog(ctx, r, func(line parser.LogLine[combat.LogLine]) error {
-		lastLine = line.Num
 		if line.Data == nil {
 			return nil
 		}
-		if curStart == 0 {
-			curStart = line.Num
+		lastLine = line.Num
+		if levelStart == 0 {
+			levelStart = line.Num
 		}
 		switch v := line.Data.(type) {
 		case *combat.ConnectToGameSession:
 			if hasConnect && curSessionID != v.SessionID {
-				pushIfNonEmpty(line.Num - 1)
-				curStart = line.Num
+				pushSeg(line.Num - 1)
+				levelStart = line.Num
 			}
 			hasConnect = true
 			curSessionID = v.SessionID
@@ -231,7 +261,7 @@ func (s *Splitter) scanCombatRanges(ctx context.Context, r fs.File) (time.Time, 
 	if err != nil {
 		return time.Time{}, nil, err
 	}
-	pushIfNonEmpty(lastLine)
+	pushSeg(lastLine)
 	return logTime, ranges, nil
 }
 
@@ -877,10 +907,7 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 			}
 			currLevel.Connect = *line
 		case *combat.Start:
-			if !currLevel.Start.IsEmpty() {
-				res = append(res, currLevel)
-				currLevel = newLevel()
-			}
+			// Master did not start a new combat level on a second Start; later Start replaces the first.
 			currLevel.Start = *line
 		case *combat.Damage:
 			currLevel.Damage = append(currLevel.Damage, line)
