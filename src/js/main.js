@@ -664,6 +664,11 @@ function runParseAndRenderLogs(data) {
     });
 }
 
+pickLogs.addEventListener('click', function () {
+    // Позволяет выбрать тот же самый файл/папку и снова получить событие change.
+    this.value = '';
+});
+
 pickLogs.addEventListener('change', function () {
     clearTeamSwapCookieState();
     clearFocusedPlayers();
@@ -715,4 +720,6 @@ pickLogs.addEventListener('change', function () {
             reader.readAsBinaryString(file);
         }
     }
+    // На некоторых браузерах повторный выбор той же папки не триггерит change без явного сброса.
+    this.value = '';
 });
