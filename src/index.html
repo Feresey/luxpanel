@@ -30,15 +30,6 @@
                     <option value="0">Match 1</option>
                 </select>
             </div>
-            <div class="metric-buttons" role="group" aria-label="Metric">
-                <button type="button" class="metric-btn active" data-metric="damage">Damage</button>
-                <button type="button" class="metric-btn" data-metric="heal">Heal</button>
-                <button type="button" class="metric-btn" data-metric="kill">Kill</button>
-            </div>
-            <label class="simple-ui-toggle" title="Понятный режим с минимумом сложных таблиц">
-                <input type="checkbox" id="simple_ui_mode_cb" />
-                <span>Простой режим</span>
-            </label>
         </div>
         <a class="header-corner-link" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">Aimbot/WH</a>
     </div>
@@ -63,18 +54,27 @@
                         <option value="">Не выбрано</option>
                     </select>
                 </label>
-                <label class="warrior-picker toolbar-picker">
-                    <span class="graph-view-label">Тип урона:</span>
-                    <select id="graph_damage_type_select" class="graph-player-focus-select">
+                <div class="metric-buttons" role="group" aria-label="Метрика">
+                    <button type="button" class="metric-btn active" data-metric="damage">Damage</button>
+                    <button type="button" class="metric-btn" data-metric="heal">Heal</button>
+                    <button type="button" class="metric-btn" data-metric="kill">Kill</button>
+                </div>
+                <label class="graph-toolbar-option" title="Понятный режим с минимумом сложных таблиц">
+                    <input type="checkbox" id="simple_ui_mode_cb" />
+                    <span>Простой режим</span>
+                </label>
+                <label class="graph-toolbar-field">
+                    <span class="graph-toolbar-field-label">Тип урона</span>
+                    <select id="graph_damage_type_select" class="graph-toolbar-select" title="Фильтр по типу урона на матрицах">
                         <option value="all">Весь урон</option>
                         <option value="thermal">Термальный</option>
                         <option value="kinetic">Кинетический</option>
                         <option value="emp">EMP</option>
                     </select>
                 </label>
-                <label class="warrior-picker toolbar-picker">
+                <label class="graph-toolbar-option">
                     <input type="checkbox" id="graph_include_bots_cb" />
-                    <span class="graph-view-label">Учитывать ботов</span>
+                    <span>Учитывать ботов</span>
                 </label>
             </div>
             <div class="graph-team-swap-row">

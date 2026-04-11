@@ -102,8 +102,8 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 
 func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
 	logTime time.Time,
-	game []parser.LogLine[game.LogLine],
-	combat []parser.LogLine[combat.LogLine],
+	gameLines []parser.LogLine[game.LogLine],
+	combatLines []parser.LogLine[combat.LogLine],
 	err error,
 ) {
 	ctx, span := s.tr.Start(ctx, "parseFiles")
@@ -121,12 +121,18 @@ func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
 	}
 	defer gameLog.Close()
 
-	_, combatLines, err := s.parser.ParseCombatLog(ctx, combatLog)
+	_, err = s.parser.WalkCombatLogFull(ctx, combatLog, func(ll parser.LogLine[combat.LogLine]) error {
+		combatLines = append(combatLines, ll)
+		return nil
+	})
 	if err != nil {
 		return logTime, nil, nil, fmt.Errorf("parser.ParseCombatLog: %w", err)
 	}
 
-	logTime, gameLines, err := s.parser.ParseGameLog(ctx, gameLog)
+	logTime, err = s.parser.WalkGameLogFull(ctx, gameLog, func(ll parser.LogLine[game.LogLine]) error {
+		gameLines = append(gameLines, ll)
+		return nil
+	})
 	if err != nil {
 		return logTime, nil, nil, fmt.Errorf("parser.ParseGameLog: %w", err)
 	}
@@ -177,8 +183,13 @@ func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *
 	}
 	// Незавершённый матч: нет finish в game/combat — иначе EndLevelTime=0, span=0 и
 	// timeInRangeFromStart(..., lo=0, hi=0) отбрасывает весь урон/отхил/киллы.
-	if lt := latestCombatEventTime(combatLevel, logTime); !lt.IsZero() && lvl.EndLevelTime.Before(lt) {
-		lvl.EndLevelTime = lt
+	// Не подмешиваем latestCombatEventTime, если конец уже известен: после combat.Finished
+	// в тот же уровень ещё долго сыплются Spell/Heal/Damage до следующего Start — иначе
+	// таймлайн и графики растягиваются на минуты «пустого» хвоста с последним счётом живых.
+	if lvl.EndLevelTime.IsZero() {
+		if lt := latestCombatEventTime(combatLevel, logTime); !lt.IsZero() {
+			lvl.EndLevelTime = lt
+		}
 	}
 	if !lvl.StartLevelTime.IsZero() && (lvl.EndLevelTime.IsZero() || lvl.EndLevelTime.Before(lvl.StartLevelTime)) {
 		lvl.EndLevelTime = lvl.StartLevelTime

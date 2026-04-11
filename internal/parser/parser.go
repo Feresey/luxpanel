@@ -69,22 +69,8 @@ func NewCombatLogParser() func(string) (combat.LogLine, error) {
 	}
 }
 
-// NewWalkGameLogParser is a lightweight parser for the first pass (match boundaries only).
-func NewWalkGameLogParser() func(string) (game.LogLine, error) {
-	p := &common.Parser[game.Token, game.LogLine, game.YaccSymType, game.YaccLexer, game.YaccParser]{T: &game.Tokenizer{}, L: &game.Lexer{}, NewGramma: game.YaccNewParser}
-	return func(line string) (game.LogLine, error) {
-		switch {
-		case matchPrefix(line, 23, "client: connected to"):
-		case matchPrefix(line, 23, "client: connection closed"):
-		default:
-			return nil, nil
-		}
-		return p.Parse(line)
-	}
-}
-
-// NewWalkCombatLogParser is a lightweight parser for the first pass (match boundaries only).
-func NewWalkCombatLogParser() func(string) (combat.LogLine, error) {
+// NewLazyCombatLogParser is a lightweight parser for the first pass (match boundaries only).
+func NewLazyCombatLogParser() func(string) (combat.LogLine, error) {
 	p := &common.Parser[combat.Token, combat.LogLine, combat.YaccSymType, combat.YaccLexer, combat.YaccParser]{T: &combat.Tokenizer{}, L: &combat.Lexer{}, NewGramma: combat.YaccNewParser}
 	return func(line string) (combat.LogLine, error) {
 		switch {
@@ -106,12 +92,8 @@ func (p *Parser) ParseCombatLog(ctx context.Context, r io.Reader) (time.Time, []
 	return parseLogFile(ctx, r, p.lg, NewCombatLogParser())
 }
 
-func (p *Parser) WalkGameLog(ctx context.Context, r io.Reader, sink func(LogLine[game.LogLine]) error) (time.Time, error) {
-	return parseLogFileStream(ctx, r, p.lg, NewWalkGameLogParser(), sink)
-}
-
 func (p *Parser) WalkCombatLog(ctx context.Context, r io.Reader, sink func(LogLine[combat.LogLine]) error) (time.Time, error) {
-	return parseLogFileStream(ctx, r, p.lg, NewWalkCombatLogParser(), sink)
+	return parseLogFileStream(ctx, r, p.lg, NewLazyCombatLogParser(), sink)
 }
 
 // WalkGameLogFull parses all supported game.log records.

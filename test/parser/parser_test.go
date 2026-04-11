@@ -172,26 +172,6 @@ func (s *Suite) TestWalkGameLogParsers() {
 	})
 	r.NoError(err)
 	r.Equal(parsedCnt, walkFullCnt)
-
-	// Lightweight walk: only boundary-related events.
-	walkLiteF, err := parserFS.Open("testdata/game.log")
-	r.NoError(err)
-	var walkLiteCnt int
-	_, err = s.parser.WalkGameLog(ctx, walkLiteF, func(line parser.LogLine[game.LogLine]) error {
-		if line.Data == nil {
-			return nil
-		}
-		walkLiteCnt++
-		switch line.Data.(type) {
-		case *game.ClientConnected, *game.ClientConnectionClosed:
-			return nil
-		default:
-			return fmt.Errorf("unexpected lightweight game event type: %T", line.Data)
-		}
-	})
-	r.NoError(err)
-	r.Greater(walkLiteCnt, 0)
-	r.LessOrEqual(walkLiteCnt, walkFullCnt)
 }
 
 func (s *Suite) TestWalkCombatLogParsers() {
