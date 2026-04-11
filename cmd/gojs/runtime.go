@@ -12,8 +12,6 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/spiretechnology/go-memfs"
 )
 
 type stringCacheEntry struct {
@@ -26,8 +24,11 @@ type Runtime struct {
 	app      *fx.App
 	splitter *splitter.Splitter
 	Data     struct {
+		// Разреженный массив: индекс заполняется полным парсингом среза лога при первом обращении к матчу.
 		Levels []*splitter.Level
 	}
+	// Результат ленивого первого прохода (метаданные селектора и байтовые диапазоны).
+	discover *splitter.DiscoverResult
 	// Ответы WASM для одинаковых аргументов; сброс при LoadFiles (wasmCacheGen++).
 	wasmCacheGen  uint64
 	wasmJSONCache map[string]stringCacheEntry
@@ -79,21 +80,25 @@ func (r *Runtime) Stop(ctx context.Context) error {
 }
 
 func (r *Runtime) LoadFiles(ctx context.Context, gameLog, combatLog string) error {
-	fs := memfs.FS{
-		"game.log":   memfs.File(gameLog),
-		"combat.log": memfs.File(combatLog),
-	}
-	levels, err := r.splitter.SplitLevels(ctx, fs)
+	disc, err := r.splitter.DiscoverLevels(ctx, gameLog, combatLog)
 	if err != nil {
-		return fmt.Errorf("splitter.SplitLevels: %w", err)
+		return fmt.Errorf("splitter.DiscoverLevels: %w", err)
 	}
-	r.Data.Levels = levels
+	r.discover = disc
+	r.Data.Levels = make([]*splitter.Level, len(disc.Spans))
 	r.bumpWasmCache()
 	return nil
 }
 
 func (r *Runtime) bumpWasmCache() {
 	r.wasmCacheGen++
+}
+
+func (r *Runtime) discoverPreviewLevels() []*splitter.Level {
+	if r.discover == nil {
+		return nil
+	}
+	return r.discover.PreviewLevels
 }
 
 func (r *Runtime) wasmCacheGet(key string) (string, bool) {

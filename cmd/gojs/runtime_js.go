@@ -41,7 +41,7 @@ func (r *Runtime) RegisterJSBindings(ctx context.Context) {
 		if s, ok := r.wasmCacheGet(k); ok {
 			return s
 		}
-		s, err := r.marshalLevelsMetaJSON(ctx, r.Data.Levels)
+		s, err := r.marshalLevelsMetaJSON(ctx, r.discoverPreviewLevels())
 		if err != nil {
 			return "[]"
 		}
@@ -305,7 +305,6 @@ func (r *Runtime) register(name string, fn func(this js.Value, args []js.Value) 
 }
 
 func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs int) (*splitter.Level, bool) {
-	_ = ctx
 	if len(args) < minArgs {
 		return nil, false
 	}
@@ -313,10 +312,18 @@ func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs in
 	if idx < 0 || idx >= len(r.Data.Levels) {
 		return nil, false
 	}
-	lvl := r.Data.Levels[idx]
-	if lvl == nil {
+	if r.Data.Levels[idx] != nil {
+		return r.Data.Levels[idx], true
+	}
+	if r.discover == nil {
 		return nil, false
 	}
+	lvl, err := r.splitter.HydrateLevel(ctx, r.discover, idx)
+	if err != nil {
+		r.lg.For(ctx).Errorw("HydrateLevel failed", "idx", idx, "err", err)
+		return nil, false
+	}
+	r.Data.Levels[idx] = lvl
 	return lvl, true
 }
 

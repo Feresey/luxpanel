@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
-	"iter"
 	"os"
 	"slices"
 	"strings"
@@ -33,26 +33,92 @@ func NewSplitter(lg logger.Factory, tr trace.TracerProvider, parser *parser.Pars
 	return &Splitter{lg: lg, tr: tr.Tracer("splitter"), parser: parser}
 }
 
-func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) {
+// LevelSpan is a half-open byte range [Start, End) into the original game.log / combat.log strings.
+type LevelSpan struct {
+	GameStart, GameEnd     int
+	CombatStart, CombatEnd int
+}
+
+// DiscoverResult is the outcome of the lazy first pass: per-match byte spans and preview levels for UI meta.
+type DiscoverResult struct {
+	LogTime          time.Time
+	GameLog          string
+	CombatLog        string
+	GameHeaderEnd    int
+	CombatHeaderEnd  int
+	Spans            []LevelSpan
+	PreviewLevels    []*Level
+}
+
+func (s *Splitter) SplitLevels(ctx context.Context, fsys fs.FS) ([]*Level, error) {
 	ctx, span := s.tr.Start(ctx, "SplitLevels")
 	defer span.End()
 
-	logTime, gameLog, combatLog, err := s.parseFiles(ctx, fs)
+	gameBytes, err := fs.ReadFile(fsys, "game.log")
 	if err != nil {
-		return nil, fmt.Errorf("parseFiles: %w", err)
+		return nil, fmt.Errorf("fs.ReadFile(game.log): %w", err)
+	}
+	combatBytes, err := fs.ReadFile(fsys, "combat.log")
+	if err != nil {
+		return nil, fmt.Errorf("fs.ReadFile(combat.log): %w", err)
 	}
 
-	gameLevelsIt := s.GetGameLogLevels(ctx, gameLog)
-	combatLevels, _ := s.GetCombatLogLevels(ctx, logTime, combatLog)
+	disc, err := s.DiscoverLevels(ctx, string(gameBytes), string(combatBytes))
+	if err != nil {
+		return nil, err
+	}
 
-	gameLevels := slices.Collect(gameLevelsIt)
+	levels := make([]*Level, len(disc.Spans))
+	for i := range disc.Spans {
+		lvl, err := s.HydrateLevel(ctx, disc, i)
+		if err != nil {
+			return nil, fmt.Errorf("HydrateLevel %d: %w", i, err)
+		}
+		levels[i] = lvl
+	}
+	return levels, nil
+}
+
+// DiscoverLevels runs lazy parsers over full logs, pairs levels, records byte spans, and builds preview levels (roster meta only).
+func (s *Splitter) DiscoverLevels(ctx context.Context, gameLog, combatLog string) (*DiscoverResult, error) {
+	ctx, span := s.tr.Start(ctx, "DiscoverLevels")
+	defer span.End()
+
+	logTime, gameHeaderEnd, err := parser.ParseLogHeader(gameLog)
+	if err != nil {
+		return nil, fmt.Errorf("game.log header: %w", err)
+	}
+	_, combatHeaderEnd, err := parser.ParseLogHeader(combatLog)
+	if err != nil {
+		return nil, fmt.Errorf("combat.log header: %w", err)
+	}
+
+	var gameLines []parser.LogLine[game.LogLine]
+	if _, err := s.parser.WalkGameLogLazyString(ctx, gameLog, func(ll parser.LogLine[game.LogLine]) error {
+		gameLines = append(gameLines, ll)
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("WalkGameLogLazyString: %w", err)
+	}
+
+	var combatLines []parser.LogLine[combat.LogLine]
+	if _, err := s.parser.WalkCombatLogLazyString(ctx, combatLog, func(ll parser.LogLine[combat.LogLine]) error {
+		combatLines = append(combatLines, ll)
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("WalkCombatLogLazyString: %w", err)
+	}
+
+	gameLevels, gameSpans := s.collectGameLogLevels(ctx, gameLines)
+	combatLevels, combatSpans, combatErrs := s.collectCombatLogLevels(ctx, logTime, combatLines)
+	_ = combatErrs // same as before: non-fatal
 
 	if len(gameLevels) != len(combatLevels) {
 		mx := max(len(gameLevels), len(combatLevels))
 		s.lg.For(ctx).Infow("levels count mismatch", "combat", len(combatLevels), "game", len(gameLevels))
 		for i := range mx {
 			if i < len(gameLevels) {
-				gm := gameLevels[i].Result
+				gm := gameLevels[i]
 				var gs, ge time.Time
 				if gm != nil {
 					if gm.StartGameplay != nil {
@@ -76,68 +142,99 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
 	}
 
-	levels := make([]*Level, 0, len(gameLevels))
-	mx := max(len(gameLevels), len(combatLevels))
-	for i := range mx {
-		var gm *GameLogLevel
-		var cm *CombatLogLevel
-		if i < len(gameLevels) {
-			gm = gameLevels[i].Result
-		}
-		if i < len(combatLevels) {
-			cm = combatLevels[i]
-		}
-
-		lvl, err := s.makeLevel(ctx, logTime, gm, cm)
-		if err != nil {
-			return nil, fmt.Errorf("makeLevel: %w", err)
-		}
-		s.LogMatchParseStats(ctx, i, mx, logTime, lvl)
-		levels = append(levels, lvl)
+	if len(gameSpans) != len(gameLevels) || len(combatSpans) != len(combatLevels) {
+		return nil, fmt.Errorf("internal span mismatch")
 	}
 
-	s.lg.For(ctx).Debugw("got games", "count", len(levels))
-	return levels, nil
+	spans := make([]LevelSpan, len(gameLevels))
+	for i := range gameLevels {
+		spans[i] = LevelSpan{
+			GameStart:   gameSpans[i].Start,
+			GameEnd:     gameSpans[i].End,
+			CombatStart: combatSpans[i].Start,
+			CombatEnd:   combatSpans[i].End,
+		}
+	}
+
+	preview := make([]*Level, len(gameLevels))
+	for i := range gameLevels {
+		lvl, err := s.makeLevel(ctx, logTime, gameLevels[i], combatLevels[i])
+		if err != nil {
+			return nil, fmt.Errorf("makeLevel preview %d: %w", i, err)
+		}
+		s.LogMatchParseStats(ctx, i, len(gameLevels), logTime, lvl)
+		preview[i] = lvl
+	}
+
+	s.lg.For(ctx).Debugw("discovered games", "count", len(preview))
+	return &DiscoverResult{
+		LogTime:         logTime,
+		GameLog:         gameLog,
+		CombatLog:       combatLog,
+		GameHeaderEnd:   gameHeaderEnd,
+		CombatHeaderEnd: combatHeaderEnd,
+		Spans:           spans,
+		PreviewLevels:   preview,
+	}, nil
 }
 
-func (s *Splitter) parseFiles(ctx context.Context, fs fs.FS) (
-	logTime time.Time,
-	gameLines []parser.LogLine[game.LogLine],
-	combatLines []parser.LogLine[combat.LogLine],
-	err error,
-) {
-	ctx, span := s.tr.Start(ctx, "parseFiles")
+// lineSpan is a half-open byte range [Start, End) into one log file.
+type lineSpan struct {
+	Start, End int
+}
+
+// HydrateLevel runs full parsers only on the byte ranges for match idx.
+func (s *Splitter) HydrateLevel(ctx context.Context, disc *DiscoverResult, idx int) (*Level, error) {
+	if disc == nil || idx < 0 || idx >= len(disc.Spans) {
+		return nil, fmt.Errorf("invalid discover result or index")
+	}
+	ctx, span := s.tr.Start(ctx, "HydrateLevel")
 	defer span.End()
 
-	combatLog, err := fs.Open("combat.log")
-	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("fs.Open(combat.log): %w", err)
+	sp := disc.Spans[idx]
+	if sp.GameStart < 0 || sp.GameEnd < sp.GameStart || sp.GameEnd > len(disc.GameLog) {
+		return nil, fmt.Errorf("game span out of range")
 	}
-	defer combatLog.Close()
-
-	gameLog, err := fs.Open("game.log")
-	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("fs.Open(game.log): %w", err)
-	}
-	defer gameLog.Close()
-
-	_, err = s.parser.WalkCombatLogFull(ctx, combatLog, func(ll parser.LogLine[combat.LogLine]) error {
-		combatLines = append(combatLines, ll)
-		return nil
-	})
-	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("parser.ParseCombatLog: %w", err)
+	if sp.CombatStart < 0 || sp.CombatEnd < sp.CombatStart || sp.CombatEnd > len(disc.CombatLog) {
+		return nil, fmt.Errorf("combat span out of range")
 	}
 
-	logTime, err = s.parser.WalkGameLogFull(ctx, gameLog, func(ll parser.LogLine[game.LogLine]) error {
+	gameR := io.MultiReader(
+		strings.NewReader(disc.GameLog[:disc.GameHeaderEnd]),
+		strings.NewReader(disc.GameLog[sp.GameStart:sp.GameEnd]),
+	)
+	var gameLines []parser.LogLine[game.LogLine]
+	if _, err := s.parser.WalkGameLogFull(ctx, gameR, func(ll parser.LogLine[game.LogLine]) error {
 		gameLines = append(gameLines, ll)
 		return nil
-	})
-	if err != nil {
-		return logTime, nil, nil, fmt.Errorf("parser.ParseGameLog: %w", err)
+	}); err != nil {
+		return nil, fmt.Errorf("WalkGameLogFull: %w", err)
 	}
 
-	return logTime, gameLines, combatLines, nil
+	combatR := io.MultiReader(
+		strings.NewReader(disc.CombatLog[:disc.CombatHeaderEnd]),
+		strings.NewReader(disc.CombatLog[sp.CombatStart:sp.CombatEnd]),
+	)
+	var combatLines []parser.LogLine[combat.LogLine]
+	if _, err := s.parser.WalkCombatLogFull(ctx, combatR, func(ll parser.LogLine[combat.LogLine]) error {
+		combatLines = append(combatLines, ll)
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("WalkCombatLogFull: %w", err)
+	}
+
+	gLevels, _ := s.collectGameLogLevels(ctx, gameLines)
+	cLevels, _, _ := s.collectCombatLogLevels(ctx, disc.LogTime, combatLines)
+	if len(gLevels) != 1 || len(cLevels) != 1 {
+		return nil, fmt.Errorf("hydrated slice expected exactly one game and one combat level, got game=%d combat=%d", len(gLevels), len(cLevels))
+	}
+
+	lvl, err := s.makeLevel(ctx, disc.LogTime, gLevels[0], cLevels[0])
+	if err != nil {
+		return nil, fmt.Errorf("makeLevel: %w", err)
+	}
+	s.LogMatchParseStats(ctx, idx, len(disc.Spans), disc.LogTime, lvl)
+	return lvl, nil
 }
 
 func (s *Splitter) makeLevel(ctx context.Context, logTime time.Time, gameLevel *GameLogLevel, combatLevel *CombatLogLevel) (*Level, error) {
@@ -425,78 +522,38 @@ const (
 	ConnectionClosedReasonReturnSpaceStation    = "DR_CLIENT_RETURN_SPACE_STATION"
 )
 
-type Result[T any] struct {
-	Err    error
-	Result T
-}
-
-func (s *Splitter) GetGameLogLevels(ctx context.Context, lines []parser.LogLine[game.LogLine]) iter.Seq[*Result[*GameLogLevel]] {
-	ctx, span := s.tr.Start(ctx, "GetGameLogLevels")
+func (s *Splitter) collectGameLogLevels(ctx context.Context, lines []parser.LogLine[game.LogLine]) ([]*GameLogLevel, []lineSpan) {
+	ctx, span := s.tr.Start(ctx, "collectGameLogLevels")
 	defer span.End()
 
-	return func(yield func(*Result[*GameLogLevel]) bool) {
-		var errs []error
-		currLevel := new(GameLogLevel)
+	var errs []error
+	var out []*GameLogLevel
+	var outSpans []lineSpan
+	currLevel := new(GameLogLevel)
+	spanStart, spanEnd := -1, -1
 
-		pushLevel := func() bool {
-			next := yield(&Result[*GameLogLevel]{Err: errors.Join(errs...), Result: currLevel})
-			currLevel = new(GameLogLevel)
-			errs = nil
-			return next
+	touch := func(ll parser.LogLine[game.LogLine]) {
+		if ll.Data == nil {
+			return
 		}
-		for _, line := range lines {
-			var cutErr *common.LineIsNotFinishedError
-			if line.Err != nil && !errors.As(line.Err, &cutErr) {
-				errs = append(errs, line.Err)
-			}
-			if line.Data == nil {
-				continue
-			}
-
-			currLevel.Lines = append(currLevel.Lines, line.Data)
-			switch line := line.Data.(type) {
-			case *game.ClientConnected:
-				if currLevel.StartGameplay != nil {
-					s.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line,
-						"start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
-					if !pushLevel() {
-						return
-					}
-				}
-				currLevel.StartGameplay = line
-			case *game.ClientAddPlayer:
-				currLevel.AddPlayer = append(currLevel.AddPlayer, line)
-			case *game.ClientConnectionClosed:
-				currLevel.FinishGameplay = line
-				if line.Reason == ConnectionClosedReasonClientCouldNotConnect {
-					s.lg.For(ctx).Infow("detected could not connect log", "line", line)
-					currLevel = new(GameLogLevel)
-					continue
-				}
-				if !pushLevel() {
-					return
-				}
-			case *game.ClientPlayerLeave:
-				currLevel.LeavePlayer = append(currLevel.LeavePlayer, line)
-			}
+		if spanStart < 0 {
+			spanStart = ll.ByteOffset
 		}
-
-		if !currLevel.IsEmpty() {
-			pushLevel()
-		}
+		spanEnd = ll.ByteEnd
 	}
-}
 
-func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, lines []parser.LogLine[combat.LogLine]) (res []*CombatLogLevel, errs []error) {
-	ctx, span := s.tr.Start(ctx, "GetCombatLogLevels")
-	defer span.End()
-
-	newLevel := func() *CombatLogLevel {
-		l := new(CombatLogLevel)
-		l.logTime = logTime
-		return l
+	pushLevel := func() {
+		var sp lineSpan
+		if spanStart >= 0 {
+			sp = lineSpan{Start: spanStart, End: spanEnd}
+		}
+		out = append(out, currLevel)
+		outSpans = append(outSpans, sp)
+		currLevel = new(GameLogLevel)
+		errs = nil
+		spanStart, spanEnd = -1, -1
 	}
-	currLevel := newLevel()
+
 	for _, logLine := range lines {
 		var cutErr *common.LineIsNotFinishedError
 		if logLine.Err != nil && !errors.As(logLine.Err, &cutErr) {
@@ -505,49 +562,146 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 		if logLine.Data == nil {
 			continue
 		}
-		currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+
+		switch line := logLine.Data.(type) {
+		case *game.ClientConnected:
+			if currLevel.StartGameplay != nil {
+				s.lg.For(ctx).Warnw("start gameplay twice", "prev", currLevel.StartGameplay, "next", line,
+					"start", currLevel.StartGameplay, "end", currLevel.FinishGameplay)
+				pushLevel()
+			}
+			touch(logLine)
+			currLevel.Lines = append(currLevel.Lines, logLine.Data)
+			currLevel.StartGameplay = line
+		case *game.ClientAddPlayer:
+			touch(logLine)
+			currLevel.Lines = append(currLevel.Lines, logLine.Data)
+			currLevel.AddPlayer = append(currLevel.AddPlayer, line)
+		case *game.ClientConnectionClosed:
+			touch(logLine)
+			currLevel.Lines = append(currLevel.Lines, logLine.Data)
+			currLevel.FinishGameplay = line
+			if line.Reason == ConnectionClosedReasonClientCouldNotConnect {
+				s.lg.For(ctx).Infow("detected could not connect log", "line", line)
+				currLevel = new(GameLogLevel)
+				spanStart, spanEnd = -1, -1
+				continue
+			}
+			pushLevel()
+		case *game.ClientPlayerLeave:
+			touch(logLine)
+			currLevel.Lines = append(currLevel.Lines, logLine.Data)
+			currLevel.LeavePlayer = append(currLevel.LeavePlayer, line)
+		}
+	}
+
+	if !currLevel.IsEmpty() {
+		pushLevel()
+	}
+	return out, outSpans
+}
+
+func (s *Splitter) collectCombatLogLevels(ctx context.Context, logTime time.Time, lines []parser.LogLine[combat.LogLine]) (res []*CombatLogLevel, spans []lineSpan, errs []error) {
+	ctx, span := s.tr.Start(ctx, "collectCombatLogLevels")
+	defer span.End()
+
+	newLevel := func() *CombatLogLevel {
+		l := new(CombatLogLevel)
+		l.logTime = logTime
+		return l
+	}
+	currLevel := newLevel()
+	spanStart, spanEnd := -1, -1
+
+	touch := func(ll parser.LogLine[combat.LogLine]) {
+		if ll.Data == nil {
+			return
+		}
+		if spanStart < 0 {
+			spanStart = ll.ByteOffset
+		}
+		spanEnd = ll.ByteEnd
+	}
+
+	seal := func() {
+		var sp lineSpan
+		if spanStart >= 0 {
+			sp = lineSpan{Start: spanStart, End: spanEnd}
+		}
+		res = append(res, currLevel)
+		spans = append(spans, sp)
+		currLevel = newLevel()
+		spanStart, spanEnd = -1, -1
+	}
+
+	for _, logLine := range lines {
+		var cutErr *common.LineIsNotFinishedError
+		if logLine.Err != nil && !errors.As(logLine.Err, &cutErr) {
+			errs = append(errs, logLine.Err)
+		}
+		if logLine.Data == nil {
+			continue
+		}
 		switch line := logLine.Data.(type) {
 		case *combat.ConnectToGameSession:
 			if !currLevel.Connect.IsEmpty() && currLevel.Connect.SessionID != line.SessionID || !currLevel.Start.IsEmpty() {
-				res = append(res, currLevel)
-				currLevel = newLevel()
+				seal()
 			}
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
 			currLevel.Connect = *line
 		case *combat.Start:
 			if !currLevel.Start.IsEmpty() {
-				res = append(res, currLevel)
-				currLevel = newLevel()
+				seal()
 			}
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
 			currLevel.Start = *line
-		case *combat.Damage:
-			currLevel.Damage = append(currLevel.Damage, line)
-		case *combat.Heal:
-			currLevel.Heal = append(currLevel.Heal, line)
-		case *combat.Kill:
-			currLevel.Kill = append(currLevel.Kill, line)
-		case *combat.Spawn:
-			currLevel.Spawn = append(currLevel.Spawn, line)
-		case *combat.Reward:
-			currLevel.Reward = append(currLevel.Reward, line)
-		case *combat.Spell:
-			currLevel.Spell = append(currLevel.Spell, line)
 		case *combat.Finished:
-			fmt.Println(logLine.Raw)
 			s.lg.For(ctx).Debugw("finished", "line", line, "start", currLevel.Start, "connect", currLevel.Connect)
 			if !currLevel.Finished.IsEmpty() {
-				res = append(res, currLevel)
-				s.lg.For(ctx).Debugw("create new combat level by finish", "curr", currLevel)
-				currLevel = newLevel()
+				seal()
 			}
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
 			currLevel.Finished = *line
+		case *combat.Damage:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Damage = append(currLevel.Damage, line)
+		case *combat.Heal:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Heal = append(currLevel.Heal, line)
+		case *combat.Kill:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Kill = append(currLevel.Kill, line)
+		case *combat.Spawn:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Spawn = append(currLevel.Spawn, line)
+		case *combat.Reward:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Reward = append(currLevel.Reward, line)
+		case *combat.Spell:
+			touch(logLine)
+			currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+			currLevel.Spell = append(currLevel.Spell, line)
 		}
 	}
 
 	if !currLevel.IsEmpty() {
 		s.lg.For(ctx).Debugw("level", "level", currLevel.String())
+		var sp lineSpan
+		if spanStart >= 0 {
+			sp = lineSpan{Start: spanStart, End: spanEnd}
+		}
 		res = append(res, currLevel)
+		spans = append(spans, sp)
 	}
 
 	s.lg.For(ctx).Infow("got combat log levels", "count", len(res))
-	return res, errs
+	return res, spans, errs
 }

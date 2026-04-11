@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Feresey/luxpanel/internal/logger"
@@ -31,6 +32,11 @@ type Parser struct {
 
 func matchPrefix(line string, offset int, wantPrefix string) bool {
 	return len(line) >= offset+len(wantPrefix) && line[offset:offset+len(wantPrefix)] == wantPrefix
+}
+
+// NewLazyGameLogParser is the lightweight first pass for game.log (same prefixes as full parser).
+func NewLazyGameLogParser() func(string) (game.LogLine, error) {
+	return NewGameLogParser()
 }
 
 func NewGameLogParser() func(string) (game.LogLine, error) {
@@ -106,11 +112,23 @@ func (p *Parser) WalkCombatLogFull(ctx context.Context, r io.Reader, sink func(L
 	return parseLogFileStream(ctx, r, p.lg, NewCombatLogParser(), sink)
 }
 
+// WalkGameLogLazyString runs the lightweight game.log pass over a full file string with byte offsets.
+func (p *Parser) WalkGameLogLazyString(ctx context.Context, s string, sink func(LogLine[game.LogLine]) error) (time.Time, error) {
+	return ParseLogString(ctx, s, p.lg, NewLazyGameLogParser(), sink)
+}
+
+// WalkCombatLogLazyString runs the lightweight combat.log pass over a full file string with byte offsets.
+func (p *Parser) WalkCombatLogLazyString(ctx context.Context, s string, sink func(LogLine[combat.LogLine]) error) (time.Time, error) {
+	return ParseLogString(ctx, s, p.lg, NewLazyCombatLogParser(), sink)
+}
+
 type LogLine[T any] struct {
-	Num  int
-	Raw  string
-	Data T
-	Err  error
+	Num        int
+	ByteOffset int // start of this line in the source string; 0 if unknown (e.g. streamed Reader)
+	ByteEnd    int // byte after line terminator in the source; 0 if unknown
+	Raw        string
+	Data       T
+	Err        error
 }
 
 func parseLogFile[T any](ctx context.Context, r io.Reader, lg logger.Factory, parseLine func(string) (T, error)) (logTime time.Time, res []LogLine[T], err error) {
@@ -212,4 +230,109 @@ func getLogTime(rd *bufio.Reader) (time.Time, error) {
 	}
 
 	return res, nil
+}
+
+// ParseLogHeader parses the standard two-line SC log preamble and returns the calendar date and
+// the byte offset in s where line 3 (first body line) begins.
+func ParseLogHeader(s string) (logTime time.Time, bodyOffset int, err error) {
+	if len(s) == 0 {
+		return time.Time{}, 0, fmt.Errorf("empty log")
+	}
+	i := 0
+	// line 1
+	j := strings.IndexByte(s[i:], '\n')
+	if j < 0 {
+		return time.Time{}, 0, fmt.Errorf("log: missing first newline")
+	}
+	line1 := s[i : i+j]
+	if len(line1) > 0 && line1[len(line1)-1] == '\r' {
+		line1 = line1[:len(line1)-1]
+	}
+	if line1 != "" {
+		return time.Time{}, 0, fmt.Errorf("first line should be empty: %q", s[i:i+j])
+	}
+	i += j + 1
+	// line 2
+	j = strings.IndexByte(s[i:], '\n')
+	if j < 0 {
+		return time.Time{}, 0, fmt.Errorf("log: missing second newline")
+	}
+	line2 := s[i : i+j]
+	if len(line2) > 0 && line2[len(line2)-1] == '\r' {
+		line2 = line2[:len(line2)-1]
+	}
+	matches := firstLogLineRe.FindStringSubmatch(line2)
+	if len(matches) != firstLineReTotal {
+		return time.Time{}, 0, fmt.Errorf("%w: %q", ErrWrongLineFormat, line2)
+	}
+	logTime, err = time.Parse("2006-01-02", matches[firstLineReDate])
+	if err != nil {
+		return time.Time{}, 0, fmt.Errorf("parse time: %q: %w", line2, err)
+	}
+	bodyOffset = i + j + 1
+	return logTime, bodyOffset, nil
+}
+
+// ParseLogString scans a full log string, invoking sink for each line with byte offsets into s.
+func ParseLogString[T any](ctx context.Context, s string, lg logger.Factory, parseLine func(string) (T, error), sink func(LogLine[T]) error) (logTime time.Time, err error) {
+	startTime := time.Now()
+	lg.For(ctx).Debugw("start parse string")
+	defer func() {
+		lg.For(ctx).Debugw("end parse string", "total_time", time.Since(startTime))
+	}()
+
+	logTime, off, err := ParseLogHeader(s)
+	if err != nil {
+		return logTime, fmt.Errorf("ParseLogHeader: %w", err)
+	}
+
+	for counter := 3; off < len(s); counter++ {
+		if err := ctx.Err(); err != nil {
+			return logTime, err
+		}
+
+		lineStart := off
+		j := strings.IndexByte(s[off:], '\n')
+		var rawLine string
+		var lineEnd int
+		if j < 0 {
+			rest := s[off:]
+			if len(rest) > 0 && rest[len(rest)-1] == '\r' {
+				rawLine = rest[:len(rest)-1]
+			} else {
+				rawLine = rest
+			}
+			lineEnd = len(s)
+			off = len(s)
+		} else {
+			end := off + j
+			seg := s[off:end]
+			if len(seg) > 0 && seg[len(seg)-1] == '\r' {
+				rawLine = seg[:len(seg)-1]
+			} else {
+				rawLine = seg
+			}
+			lineEnd = end + 1
+			off = lineEnd
+		}
+
+		next := LogLine[T]{
+			Num:        counter,
+			ByteOffset: lineStart,
+			ByteEnd:    lineEnd,
+			Raw:        rawLine,
+		}
+
+		line, perr := parseLine(rawLine)
+		next.Data = line
+		if perr != nil {
+			next.Err = fmt.Errorf("gramma.Parse: %w", perr)
+		}
+
+		if sinkErr := sink(next); sinkErr != nil {
+			return logTime, sinkErr
+		}
+	}
+
+	return logTime, nil
 }
