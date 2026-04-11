@@ -62,12 +62,16 @@ func (s *Splitter) SplitLevels(ctx context.Context, fs fs.FS) ([]*Level, error) 
 						ge = gm.FinishGameplay.GetTime(logTime)
 					}
 				}
-				s.lg.For(ctx).Infow("game log time", "number", i, "start", gs, "end", ge)
+				s.lg.For(ctx).Infow("game log time", "number", i, "start", gs, "end", ge, "gameplay", gm.StartGameplay, "finish", gm.FinishGameplay)
 			}
 			if i < len(combatLevels) {
 				cm := combatLevels[i]
-				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.Time, "end", cm.Finished.Time)
+				s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.GetTime(logTime), "end", cm.Finished.GetTime(logTime), "cmbt_start", cm.Start, "cmbnt_finish", cm.Finished, "connect", cm.Connect)
 			}
+		}
+
+		for i, cm := range combatLevels {
+			s.lg.For(ctx).Infow("combat log time", "number", i, "start", cm.Start.GetTime(logTime), "end", cm.Finished.GetTime(logTime), "cmbt_start", cm.Start, "cmbnt_finish", cm.Finished, "connect", cm.Connect)
 		}
 		return nil, fmt.Errorf("%w: levels count mismatch: game logs: %d, combat logs: %d", ErrLogsCorrupted, len(gameLevels), len(combatLevels))
 	}
@@ -383,7 +387,7 @@ func (g *CombatLogLevel) String() string {
 	fmt.Fprintf(&sb, "time: %s ", g.LogLines[0].GetTime(g.logTime))
 	fmt.Fprintf(&sb, "lines: %d ", len(g.LogLines))
 	fmt.Fprintf(&sb, "connect(session_id): %d ", g.Connect.SessionID)
-	fmt.Fprintf(&sb, "game_mode: %s map_name: %s ", g.Start.GameMode, g.Start.MapName)
+	fmt.Fprintf(&sb, "game_mode: %s map_name: %s start_time: %s", g.Start.GameMode, g.Start.MapName, g.Start.GetTime(g.logTime))
 	fmt.Fprintf(&sb, "finished: %s reason: %s game_time: %f", g.Finished.FinishReason, g.Finished.WinReason, g.Finished.GameTime)
 
 	return sb.String()
@@ -482,18 +486,18 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 		return l
 	}
 	currLevel := newLevel()
-	for _, line := range lines {
+	for _, logLine := range lines {
 		var cutErr *common.LineIsNotFinishedError
-		if line.Err != nil && !errors.As(line.Err, &cutErr) {
-			errs = append(errs, line.Err)
+		if logLine.Err != nil && !errors.As(logLine.Err, &cutErr) {
+			errs = append(errs, logLine.Err)
 		}
-		if line.Data == nil {
+		if logLine.Data == nil {
 			continue
 		}
-		currLevel.LogLines = append(currLevel.LogLines, line.Data)
-		switch line := line.Data.(type) {
+		currLevel.LogLines = append(currLevel.LogLines, logLine.Data)
+		switch line := logLine.Data.(type) {
 		case *combat.ConnectToGameSession:
-			if !currLevel.Connect.IsEmpty() && currLevel.Connect.SessionID != line.SessionID {
+			if !currLevel.Connect.IsEmpty() && currLevel.Connect.SessionID != line.SessionID || !currLevel.Start.IsEmpty() {
 				res = append(res, currLevel)
 				currLevel = newLevel()
 			}
@@ -517,6 +521,13 @@ func (s *Splitter) GetCombatLogLevels(ctx context.Context, logTime time.Time, li
 		case *combat.Spell:
 			currLevel.Spell = append(currLevel.Spell, line)
 		case *combat.Finished:
+			fmt.Println(logLine.Raw)
+			s.lg.For(ctx).Debugw("finished", "line", line, "start", currLevel.Start, "connect", currLevel.Connect)
+			if !currLevel.Finished.IsEmpty() {
+				res = append(res, currLevel)
+				s.lg.For(ctx).Debugw("create new combat level by finish", "curr", currLevel)
+				currLevel = newLevel()
+			}
 			currLevel.Finished = *line
 		}
 	}

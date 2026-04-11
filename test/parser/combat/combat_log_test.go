@@ -130,6 +130,17 @@ func TestCombatStartGameplay(t *testing.T) {
 			},
 		},
 		{
+			name:  "pve",
+			input: `19:03:23.665  CMBT   | ======= Start PVE mission 'pve_raid' map 'pve_raid' =======`,
+			want: &combat.Start{
+				Time:              combat.Time{Time: "19:03:23.665"},
+				What:              "PVE mission",
+				GameMode:          "pve_raid",
+				MapName:           "pve_raid",
+				LocalClientTeamID: 0,
+			},
+		},
+		{
 			name:  "pvp",
 			input: `20:21:02.744  CMBT   | ======= Start gameplay 'CaptureTheBase' map 's1420_ceres3_asteroidcity', local client team 1 =======`,
 			want: &combat.Start{
@@ -395,6 +406,17 @@ func TestCombatGameFinished(t *testing.T) {
 				WinReason:    "PVE_MISSION_COMPLETE_ALT_2",
 				FinishReason: "Mission complete",
 				GameTime:     275.9,
+			},
+		},
+		{
+			name:  "ok2",
+			input: `19:07:51.678  CMBT   | Gameplay finished. Winner team: 1(PVE_MISSION_COMPLETE). Finish reason: 'Mission complete'. Actual game time 250.2 sec`,
+			want: &combat.Finished{
+				Time:         combat.Time{Time: "19:07:51.678"},
+				WinnerTeamID: 1,
+				WinReason:    "PVE_MISSION_COMPLETE",
+				FinishReason: "Mission complete",
+				GameTime:     250.2,
 			},
 		},
 		{
