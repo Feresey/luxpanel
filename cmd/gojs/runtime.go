@@ -3,10 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"runtime"
+	"time"
 
 	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/mytrace"
+	"github.com/Feresey/luxpanel/internal/prettyfmt"
 	"github.com/Feresey/luxpanel/internal/parser"
 	"github.com/Feresey/luxpanel/internal/splitter"
 	"go.uber.org/fx"
@@ -80,10 +83,17 @@ func (r *Runtime) Stop(ctx context.Context) error {
 }
 
 func (r *Runtime) LoadFiles(ctx context.Context, gameLog, combatLog string) error {
+	t0 := time.Now()
+	heap0 := heapAlloc()
 	disc, err := r.splitter.DiscoverLevels(ctx, gameLog, combatLog)
 	if err != nil {
 		return fmt.Errorf("splitter.DiscoverLevels: %w", err)
 	}
+	logPerfWasm(ctx, r.lg, "discover_levels", t0, heap0,
+		"level_count", len(disc.Spans),
+		"game_size", prettyfmt.FormatBytes(uint64(len(gameLog))),
+		"combat_size", prettyfmt.FormatBytes(uint64(len(combatLog))),
+	)
 	r.discover = disc
 	r.Data.Levels = make([]*splitter.Level, len(disc.Spans))
 	r.bumpWasmCache()
@@ -117,4 +127,23 @@ func (r *Runtime) wasmCacheSet(key, val string) {
 		r.wasmJSONCache = make(map[string]stringCacheEntry)
 	}
 	r.wasmJSONCache[key] = stringCacheEntry{gen: r.wasmCacheGen, s: val}
+}
+
+func heapAlloc() uint64 {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	return m.HeapAlloc
+}
+
+func logPerfWasm(ctx context.Context, lg logger.Factory, op string, t0 time.Time, heapBefore uint64, keysAndValues ...interface{}) {
+	heapAfter := heapAlloc()
+	delta := int64(heapAfter) - int64(heapBefore)
+	args := []interface{}{
+		"op", op,
+		"duration", prettyfmt.FormatDuration(time.Since(t0)),
+		"heap_delta", prettyfmt.FormatBytesDelta(delta),
+		"heap_alloc", prettyfmt.FormatBytes(heapAfter),
+	}
+	args = append(args, keysAndValues...)
+	lg.For(ctx).Infow("perf_wasm", args...)
 }

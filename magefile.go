@@ -95,6 +95,7 @@ func Start() error {
 
 // Site: webpack (src/js → docs/) + .nojekyll + docs/gojs.wasm для GitHub Pages.
 func Site() error {
+	mg.Deps(GOJS)
 	if _, err := os.Stat("src"); err != nil {
 		return fmt.Errorf("ожидается каталог src/: %w", err)
 	}

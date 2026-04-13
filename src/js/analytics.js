@@ -6,7 +6,9 @@
  * Тайминги (мс, округлённые):
  * - lux_logs_parsed: log_parse_ms, match_list_ms, parse_total_ms
  * - lux_charts_timing: get_charts_wasm_ms, charts_json_ms, get_matrices_wasm_ms, matrices_json_ms,
- *   charts_data_prep_ms (сумма wasm+json), pie_render_ms, matrix_dom_ms, charts_render_ms (пироги+таблицы)
+ *   charts_data_prep_ms (сумма wasm+json), pie_render_ms, matrix_dom_ms, charts_render_ms (пироги+таблицы),
+ *   js_heap_used_before_mb / js_heap_used_after_mb (если performance.memory — обычно Chrome; иначе 0)
+ * - lux_logs_parsed: опционально js_heap_used_after_mb после parseFiles
  * - lux_timeline_timing, lux_battle_charts_timing — аналогично по блокам
  */
 

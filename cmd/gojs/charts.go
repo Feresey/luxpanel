@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/exp/maps"
 
+	"github.com/Feresey/luxpanel/internal/prettyfmt"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
@@ -123,6 +124,9 @@ func buildDamageCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 
 	curves0 := newTeamCurves("Damage", pla)
 	curves1 := newTeamCurves("Damage", plb)
+	capHint := len(level.CombatLog.Damage)/2 + 16
+	preGrowCurveSlices(curves0, capHint)
+	preGrowCurveSlices(curves1, capHint)
 
 	var sum0, sum1 float64
 	pTot0 := make([]float64, len(pla))
@@ -157,20 +161,16 @@ func buildDamageCharts(level *splitter.Level, lo, hi float64) [][]chartCurve {
 			curves0[0].Data = append(curves0[0].Data, sum0)
 			idx := nameToIdx[srcName]
 			pTot0[idx] += amount
-			c := curves0[idx+1]
-			c.Step = append(c.Step, step)
-			c.Data = append(c.Data, pTot0[idx])
-			curves0[idx+1] = c
+			curves0[idx+1].Step = append(curves0[idx+1].Step, step)
+			curves0[idx+1].Data = append(curves0[idx+1].Data, pTot0[idx])
 		} else {
 			sum1 += amount / float64(len(plb))
 			curves1[0].Step = append(curves1[0].Step, step)
 			curves1[0].Data = append(curves1[0].Data, sum1)
 			idx := nameToIdx[srcName]
 			pTot1[idx] += amount
-			c := curves1[idx+1]
-			c.Step = append(c.Step, step)
-			c.Data = append(c.Data, pTot1[idx])
-			curves1[idx+1] = c
+			curves1[idx+1].Step = append(curves1[idx+1].Step, step)
+			curves1[idx+1].Data = append(curves1[idx+1].Data, pTot1[idx])
 		}
 	}
 
@@ -323,7 +323,34 @@ func newTeamCurves(prefix string, players []splitter.Player) []chartCurve {
 	return out
 }
 
-func (r *Runtime) marshalChartsJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON string) (string, error) {
+// preGrowCurveSlices reduces reallocations while appending damage time-series points.
+func preGrowCurveSlices(curves []chartCurve, capHint int) {
+	if capHint < 8 {
+		capHint = 8
+	}
+	if capHint > 16384 {
+		capHint = 16384
+	}
+	for i := range curves {
+		curves[i].Data = make([]float64, 0, capHint)
+		curves[i].Step = make([]float64, 0, capHint)
+	}
+}
+
+func (r *Runtime) marshalChartsJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON string) (s string, err error) {
+	t0 := time.Now()
+	heap0 := heapAlloc()
+	defer func() {
+		ob := 0
+		if err == nil {
+			ob = len(s)
+		}
+		logPerfWasm(ctx, r.lg, "marshal_charts_json", t0, heap0,
+			"mode", mode,
+			"out_size", prettyfmt.FormatBytes(uint64(ob)),
+			"has_err", err != nil,
+		)
+	}()
 	lo, hi := clampTimeRange(level, timeRangeJSON)
 	var ch [][]chartCurve
 	switch mode {
@@ -334,12 +361,13 @@ func (r *Runtime) marshalChartsJSON(ctx context.Context, level *splitter.Level, 
 	default:
 		ch = buildDamageCharts(level, lo, hi)
 	}
-	b, err := json.Marshal(ch)
+	var b []byte
+	b, err = json.Marshal(ch)
 	if err != nil {
 		r.lg.For(ctx).Errorw("marshalChartsJSON", "err", err, "mode", mode)
 		return "", fmt.Errorf("marshal charts: %w", err)
 	}
-	s := string(b)
+	s = string(b)
 	r.lg.For(ctx).Debugw("marshalChartsJSON", "mode", mode, "time_lo", lo, "time_hi", hi, "out_len", len(s))
 	return s, nil
 }

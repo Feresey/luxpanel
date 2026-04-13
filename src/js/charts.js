@@ -562,9 +562,10 @@ function applyTeamSwapState(levelIndex, swapped) {
     return true;
 }
 
-/** @returns {{ matrices_wasm_ms: number, matrices_json_ms: number, matrix_dom_ms: number }} */
+/** @returns {{ matrices_wasm_ms: number, matrices_json_ms: number, matrix_dom_ms: number, js_heap_used_before_mb?: number }} */
 function applyMatrixTables(levelIndex, mode) {
     const timing = { matrices_wasm_ms: 0, matrices_json_ms: 0, matrix_dom_ms: 0 };
+    timing.js_heap_used_before_mb = jsHeapUsedMb();
     const tw0 = performance.now();
     const raw = fetchMatricesJSON(levelIndex, mode);
     timing.matrices_wasm_ms = Math.round(performance.now() - tw0);
@@ -598,6 +599,8 @@ function applyMatrixTables(levelIndex, mode) {
     const td0 = performance.now();
     c0.innerHTML = renderMatrixTable(p0, metric, { focusName, focusPlace: 'row' });
     c1.innerHTML = renderMatrixTable(p1, metric, { focusName, focusPlace: 'col' });
+    // Снять ссылку на крупный JSON после построения DOM — упрощаем работу GC.
+    data = null;
     const t0 = document.getElementById('graph_total_0');
     const t1 = document.getElementById('graph_total_1');
     if (t0) {
@@ -631,11 +634,20 @@ function setPieTotalsFixed(values1, values2, mode) {
     }
 }
 
+function jsHeapUsedMb() {
+    if (typeof performance === 'undefined' || !performance.memory) {
+        return 0;
+    }
+    const u = Number(performance.memory.usedJSHeapSize) || 0;
+    return Math.round((u / (1024 * 1024)) * 10) / 10;
+}
+
 function emitChartsTiming(mode, viewMode, chartsWasmMs, chartsJsonMs, pieRenderMs, matrixTiming) {
     const m = matrixTiming || { matrices_wasm_ms: 0, matrices_json_ms: 0, matrix_dom_ms: 0 };
     const dataPrep =
         chartsWasmMs + chartsJsonMs + m.matrices_wasm_ms + m.matrices_json_ms;
     const renderMs = pieRenderMs + m.matrix_dom_ms;
+    const heapAfter = jsHeapUsedMb();
     gaEvent('lux_charts_timing', {
         metric: mode,
         view: viewMode,
@@ -647,6 +659,8 @@ function emitChartsTiming(mode, viewMode, chartsWasmMs, chartsJsonMs, pieRenderM
         pie_render_ms: Math.round(pieRenderMs),
         matrix_dom_ms: m.matrix_dom_ms,
         charts_render_ms: Math.round(renderMs),
+        js_heap_used_before_mb: typeof m.js_heap_used_before_mb === 'number' ? m.js_heap_used_before_mb : 0,
+        js_heap_used_after_mb: heapAfter,
     });
 }
 

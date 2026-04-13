@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Feresey/luxpanel/internal/parser/combat"
+	"github.com/Feresey/luxpanel/internal/prettyfmt"
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
 
@@ -68,27 +70,39 @@ func damageMatchesType(dmg *combat.Damage, damageType string) bool {
 	return false
 }
 
-func (r *Runtime) marshalChartMatricesJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON, optsJSON string) (string, error) {
+func (r *Runtime) marshalChartMatricesJSON(ctx context.Context, level *splitter.Level, mode string, timeRangeJSON, optsJSON string) (result string, err error) {
+	t0 := time.Now()
+	heap0 := heapAlloc()
+	defer func() {
+		logPerfWasm(ctx, r.lg, "marshal_chart_matrices", t0, heap0,
+			"mode", mode,
+			"out_size", prettyfmt.FormatBytes(uint64(len(result))),
+			"has_err", err != nil,
+			"opts_size", prettyfmt.FormatBytes(uint64(len(optsJSON))),
+		)
+	}()
 	if level == nil {
-		b, err := json.Marshal(chartMatricesResult{})
+		var b []byte
+		b, err = json.Marshal(chartMatricesResult{})
 		if err != nil {
 			r.lg.For(ctx).Errorw("marshalChartMatricesJSON", "err", err, "nil_level", true)
 			return "", err
 		}
-		s := string(b)
-		r.lg.For(ctx).Debugw("marshalChartMatricesJSON", "nil_level", true, "out_len", len(s))
-		return s, nil
+		result = string(b)
+		r.lg.For(ctx).Debugw("marshalChartMatricesJSON", "nil_level", true, "out_len", len(result))
+		return result, nil
 	}
 	lo, hi := clampTimeRange(level, timeRangeJSON)
 	opts := parseChartQueryOptions(optsJSON)
 	switch mode {
 	case "heal":
-		return r.marshalHealMatrices(ctx, level, lo, hi, opts)
+		result, err = r.marshalHealMatrices(ctx, level, lo, hi, opts)
 	case "kill":
-		return r.marshalKillMatrices(ctx, level, lo, hi, opts)
+		result, err = r.marshalKillMatrices(ctx, level, lo, hi, opts)
 	default:
-		return r.marshalDamageMatrices(ctx, level, lo, hi, opts)
+		result, err = r.marshalDamageMatrices(ctx, level, lo, hi, opts)
 	}
+	return result, err
 }
 
 func playerNameSlice(pl []splitter.Player) []string {

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall/js"
+	"time"
 
 	"github.com/Feresey/luxpanel/internal/splitter"
 )
@@ -318,11 +319,14 @@ func (r *Runtime) levelFromArgs(ctx context.Context, args []js.Value, minArgs in
 	if r.discover == nil {
 		return nil, false
 	}
+	t0 := time.Now()
+	heap0 := heapAlloc()
 	lvl, err := r.splitter.HydrateLevel(ctx, r.discover, idx)
 	if err != nil {
 		r.lg.For(ctx).Errorw("HydrateLevel failed", "idx", idx, "err", err)
 		return nil, false
 	}
+	logPerfWasm(ctx, r.lg, "hydrate_level", t0, heap0, "idx", idx)
 	r.Data.Levels[idx] = lvl
 	return lvl, true
 }

@@ -276,9 +276,14 @@ func ParseLogHeader(s string) (logTime time.Time, bodyOffset int, err error) {
 // ParseLogString scans a full log string, invoking sink for each line with byte offsets into s.
 func ParseLogString[T any](ctx context.Context, s string, lg logger.Factory, parseLine func(string) (T, error), sink func(LogLine[T]) error) (logTime time.Time, err error) {
 	startTime := time.Now()
-	lg.For(ctx).Debugw("start parse string")
+	var lineCount int
+	lg.For(ctx).Debugw("start parse string", "source_bytes", len(s))
 	defer func() {
-		lg.For(ctx).Debugw("end parse string", "total_time", time.Since(startTime))
+		lg.For(ctx).Debugw("end parse string",
+			"total_time", time.Since(startTime),
+			"source_bytes", len(s),
+			"body_lines", lineCount,
+		)
 	}()
 
 	logTime, off, err := ParseLogHeader(s)
@@ -290,6 +295,7 @@ func ParseLogString[T any](ctx context.Context, s string, lg logger.Factory, par
 		if err := ctx.Err(); err != nil {
 			return logTime, err
 		}
+		lineCount++
 
 		lineStart := off
 		j := strings.IndexByte(s[off:], '\n')

@@ -717,6 +717,10 @@ function runParseAndRenderLogs(data) {
     renderMatchOptions();
     const matchListMs = Math.round(performance.now() - tMatch);
     const n = matchSelect && matchSelect.options ? matchSelect.options.length : 0;
+    let jsHeapMb = 0;
+    if (typeof performance !== 'undefined' && performance.memory) {
+        jsHeapMb = Math.round((Number(performance.memory.usedJSHeapSize) || 0) / (1024 * 1024) * 10) / 10;
+    }
     gaEvent('lux_logs_parsed', {
         log_parse_ms: logParseMs,
         match_list_ms: matchListMs,
@@ -724,6 +728,7 @@ function runParseAndRenderLogs(data) {
         game_size_bucket: byteSizeBucket(data.rawGame && data.rawGame.length),
         combat_size_bucket: byteSizeBucket(data.rawCombat && data.rawCombat.length),
         match_count: n,
+        js_heap_used_after_mb: jsHeapMb,
     });
 }
 
