@@ -7,12 +7,25 @@
 
 import { getTimeRangeJSON } from './timeline.js';
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart_preloader.js';
+import { t, incomingSourceSuffixVariants } from './i18n.js';
 
 const emptyOptionValue = '';
 
 const MODIFIER_ORDER_LEFT = ['EMP', 'THERMAL', 'KINETIC'];
 const MODIFIER_ORDER_RIGHT = ['PRIMARY_WEAPON', 'EXPLOSION', 'CRIT'];
 const MODIFIER_ORDER_KNOWN = [...MODIFIER_ORDER_LEFT, ...MODIFIER_ORDER_RIGHT];
+
+function formatDamageSourceDisplay(s) {
+    let x = String(s || '');
+    const sufList = incomingSourceSuffixVariants();
+    for (let i = 0; i < sufList.length; i++) {
+        const suf = sufList[i];
+        if (suf && x.endsWith(suf)) {
+            return x.slice(0, -suf.length) + t('df_source_incoming_suffix');
+        }
+    }
+    return x;
+}
 
 function escapeHtml(s) {
     return String(s)
@@ -55,11 +68,12 @@ function getSingleRowFn() {
     return globalThis.getDamageTableJSON;
 }
 
-function fillSelect(select, values, emptyLabel = '— выберите —') {
+function fillSelect(select, values, emptyLabel = null) {
+    const empty = emptyLabel != null ? emptyLabel : t('df_select_placeholder');
     select.innerHTML = '';
     const oEmpty = document.createElement('option');
     oEmpty.value = emptyOptionValue;
-    oEmpty.textContent = emptyLabel;
+    oEmpty.textContent = empty;
     select.appendChild(oEmpty);
 
     if (Array.isArray(values)) {
@@ -130,7 +144,9 @@ function appendDetailBreakdown(tbody, events) {
     table.className = 'df-inner-table';
     const thead = document.createElement('thead');
     thead.innerHTML = '<tr>'
-        + '<th>Время</th><th>Источник</th><th>Цель</th><th>Оружие</th><th>Модификаторы</th><th>Урон</th>'
+        + `<th>${escapeHtml(t('df_inner_time'))}</th><th>${escapeHtml(t('df_inner_source'))}</th>`
+        + `<th>${escapeHtml(t('df_inner_target'))}</th><th>${escapeHtml(t('df_col_weapon'))}</th>`
+        + `<th>${escapeHtml(t('df_col_mods'))}</th><th>${escapeHtml(t('df_col_damage'))}</th>`
         + '</tr>';
     table.appendChild(thead);
     const itbody = document.createElement('tbody');
@@ -140,7 +156,7 @@ function appendDetailBreakdown(tbody, events) {
         const modsHtml = buildModifiersCell(e.modifiers || {});
         itr.innerHTML = `
             <td>${escapeHtml(formatTime(e.time_sec))}</td>
-            <td>${escapeHtml(e.initiator || '')}</td>
+            <td>${escapeHtml(formatDamageSourceDisplay(e.initiator || ''))}</td>
             <td>${escapeHtml(e.recipient || '')}</td>
             <td>${escapeHtml(e.weapon || '')}</td>
             <td class="df-cell-mods">${modsHtml}</td>
@@ -162,7 +178,7 @@ function renderTableBody(tbody, rows) {
         const td = document.createElement('td');
         td.colSpan = 8;
         td.className = 'df-empty';
-        td.textContent = 'Нет данных';
+        td.textContent = t('df_no_data');
         tr.appendChild(td);
         tbody.appendChild(tr);
         return;
@@ -193,7 +209,7 @@ function renderTableBody(tbody, rows) {
         if (!isEvent && expandable) {
             expandCell = '<td class="df-cell-expand">'
                 + '<button type="button" class="df-expand-btn" aria-expanded="false" '
-                + 'aria-label="Показать исходные строки урона">▶</button>'
+                + `aria-label="${escapeHtml(t('df_expand_aria'))}">▶</button>`
                 + '</td>';
         }
 
@@ -201,7 +217,7 @@ function renderTableBody(tbody, rows) {
         tr.className = 'df-row-main';
         tr.innerHTML = expandCell
             + `<td>${escapeHtml(time)}</td>`
-            + `<td>${escapeHtml(source || '')}</td>`
+            + `<td>${escapeHtml(formatDamageSourceDisplay(source || ''))}</td>`
             + `<td>${renderTargetsCell(targets)}</td>`
             + `<td>${escapeHtml(weapon)}</td>`
             + `<td>${buildModifiersCell(r.modifiers || {})}</td>`
@@ -371,7 +387,7 @@ function runDamageTableLoad(work) {
         return;
     }
     const myGen = ++damageTableLoadGen;
-    showChartPreloader(scroll, { label: 'Таблица урона…' });
+    showChartPreloader(scroll, { label: t('preload_damage_table') });
     deferAfterPaint(() => {
         try {
             if (myGen !== damageTableLoadGen) {
@@ -441,8 +457,8 @@ function refreshTableSync() {
     if (!initiator) {
         if (hint) {
             hint.textContent = perspective === 'recipient'
-                ? 'Выберите игрока (по которому получен урон)'
-                : 'Выберите игрока (источник урона)';
+                ? t('df_hint_pick_recipient')
+                : t('df_hint_pick_initiator');
         }
         renderTableBody(tbody, []);
         return;
@@ -473,7 +489,7 @@ function refreshTableSync() {
     }
 
     if (panelEls.foot) {
-        const modeText = mode === 'single' ? 'Фильтр' : 'Наборы';
+        const modeText = mode === 'single' ? t('df_foot_filter') : t('df_foot_presets');
         const n = panelEls.tbody.querySelectorAll('tr.df-row-main').length || 0;
         panelEls.foot.textContent = n ? `${modeText}: ${n}` : '';
     }
@@ -490,29 +506,29 @@ function refreshMetaSync(levelIndex) {
     const metaFn = getMetaFn();
     const hint = panelEls.hint;
     if (typeof metaFn !== 'function') {
-        if (hint) hint.textContent = 'WASM не загружен';
+        if (hint) hint.textContent = t('df_wasm_missing');
         return;
     }
 
     const tr0 = typeof getTimeRangeJSON === 'function' ? getTimeRangeJSON() : '{}';
     let raw = metaFn(levelIndex, '', tr0);
     if (!raw || raw === 'null') {
-        fillSelect(panelEls.initiator, [], '— нет данных —');
-        fillSelect(panelEls.recipient, [], 'Любая цель');
-        fillSelect(panelEls.weapon, [], 'Любое оружие');
+        fillSelect(panelEls.initiator, [], t('df_no_data_meta'));
+        fillSelect(panelEls.recipient, [], t('df_any_target'));
+        fillSelect(panelEls.weapon, [], t('df_any_weapon'));
         return;
     }
     let meta = {};
     try {
         meta = JSON.parse(raw);
     } catch (_) {
-        if (hint) hint.textContent = 'Ошибка метаданных';
+        if (hint) hint.textContent = t('df_meta_error');
         return;
     }
 
     const players = Array.isArray(meta.players) ? meta.players : [];
     const prevInitiator = panelEls.initiator.value.trim();
-    fillSelect(panelEls.initiator, players, '— выберите игрока —');
+    fillSelect(panelEls.initiator, players, t('df_select_player'));
 
     if (prevInitiator && players.includes(prevInitiator)) {
         panelEls.initiator.value = prevInitiator;
@@ -522,8 +538,8 @@ function refreshMetaSync(levelIndex) {
 
     const initiator = panelEls.initiator.value.trim();
     if (!initiator) {
-        fillSelect(panelEls.recipient, [], panelEls.perspective && panelEls.perspective.value === 'recipient' ? 'Любой источник' : 'Любая цель');
-        fillSelect(panelEls.weapon, [], 'Любое оружие');
+        fillSelect(panelEls.recipient, [], panelEls.perspective && panelEls.perspective.value === 'recipient' ? t('df_any_source') : t('df_any_target'));
+        fillSelect(panelEls.weapon, [], t('df_any_weapon'));
         populateCustomModifiers([]);
         refreshTableSync();
         return;
@@ -534,10 +550,10 @@ function refreshMetaSync(levelIndex) {
         : 'initiator';
     if (perspective === 'recipient') {
         const sources = players.filter((p) => p !== initiator);
-        fillSelect(panelEls.recipient, sources, 'Любой источник');
+        fillSelect(panelEls.recipient, sources, t('df_any_source'));
         raw = metaFn(levelIndex, '', tr0);
         if (!raw || raw === 'null') {
-            fillSelect(panelEls.weapon, [], 'Любое оружие');
+            fillSelect(panelEls.weapon, [], t('df_any_weapon'));
             populateCustomModifiers([]);
             return;
         }
@@ -545,17 +561,17 @@ function refreshMetaSync(levelIndex) {
     } else {
         raw = metaFn(levelIndex, initiator, tr0);
         if (!raw || raw === 'null') {
-            fillSelect(panelEls.recipient, [], 'Любая цель');
-            fillSelect(panelEls.weapon, [], 'Любое оружие');
+            fillSelect(panelEls.recipient, [], t('df_any_target'));
+            fillSelect(panelEls.weapon, [], t('df_any_weapon'));
             populateCustomModifiers([]);
             return;
         }
         meta = JSON.parse(raw);
         const recipients = Array.isArray(meta.recipients) ? meta.recipients : [];
-        fillSelect(panelEls.recipient, recipients, 'Любая цель');
+        fillSelect(panelEls.recipient, recipients, t('df_any_target'));
     }
     const weapons = Array.isArray(meta.weapons) ? meta.weapons : [];
-    fillSelect(panelEls.weapon, weapons, 'Любое оружие');
+    fillSelect(panelEls.weapon, weapons, t('df_any_weapon'));
     refreshModifiersMeta(levelIndex);
     refreshTableSync();
 }
@@ -567,7 +583,7 @@ function refreshMeta(levelIndex) {
     const metaFn = getMetaFn();
     const hint = panelEls.hint;
     if (typeof metaFn !== 'function') {
-        if (hint) hint.textContent = 'WASM не загружен';
+        if (hint) hint.textContent = t('df_wasm_missing');
         return;
     }
     runDamageTableLoad(() => refreshMetaSync(levelIndex));

@@ -85,7 +85,7 @@ func ShowGramma() error {
 
 func GOJS() error {
 	_ = sh.Run("mkdir", "-p", "src/dist")
-	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "src/dist/gojs.wasm", "./cmd/gojs")
+	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-tags", "js", "-o", "src/dist/gojs.wasm", "./cmd/gojs")
 }
 
 func Start() error {
@@ -108,7 +108,7 @@ func Site() error {
 	if err := os.WriteFile(filepath.Join("docs", ".nojekyll"), nil, 0o644); err != nil {
 		return err
 	}
-	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-o", "docs/gojs.wasm", "./cmd/gojs")
+	return sh.RunWith(map[string]string{"GOOS": "js", "GOARCH": "wasm"}, "go", "build", "-tags", "js", "-o", "docs/gojs.wasm", "./cmd/gojs")
 }
 
 type ragelConfig struct {

@@ -18,9 +18,28 @@ import {
 } from './client_wasm_cache.js'
 
 import './wasm_exec.js'
+import { bootstrapI18nAfterWasm, getBcp47Locale, subscribeLocale, t, tf } from './i18n.js'
 
 const demoGameLogURL = new URL('../assets/2026.04.03 22.23.53.889/game.log', import.meta.url);
 const demoCombatLogURL = new URL('../assets/2026.04.03 22.23.53.889/combat.log', import.meta.url);
+
+/** English fallback until WASM/i18n dict is ready (Bootstrap rejects null/empty title). */
+const BATTLE_INSIGHT_TIP_FALLBACK_EN = {
+    life_line_tooltip: 'How many players on each team are alive at each moment (from spawns and deaths in the log). The X axis is the current time window (timeline zoom or brush on the chart).',
+    battle_intensity_tooltip: 'Average damage per second over a rolling 10-second window (cross-team damage). Two lines: allies and enemies. Synced with the timeline window.',
+};
+
+function battleInsightHelpTooltipTitle(el) {
+    const id = el.getAttribute('data-lux-tip');
+    if (!id) {
+        return String(el.getAttribute('data-bs-title') || '').trim() || 'Help';
+    }
+    const tr = t(id);
+    if (tr && tr !== id) {
+        return tr;
+    }
+    return BATTLE_INSIGHT_TIP_FALLBACK_EN[id] || String(el.getAttribute('data-bs-title') || '').trim() || 'Help';
+}
 
 if (WebAssembly) {
     const wasmT0 = performance.now();
@@ -28,13 +47,14 @@ if (WebAssembly) {
     WebAssembly.instantiateStreaming(fetch("gojs.wasm"), go.importObject)
         .then((result) => {
             go.run(result.instance);
+            bootstrapI18nAfterWasm();
             gaEvent('lux_wasm_ready', {
                 wasm_load_ms: Math.round(performance.now() - wasmT0),
             });
+            refreshAll();
             if (timelineCtl && typeof timelineCtl.refresh === 'function') {
                 timelineCtl.refresh();
             }
-            refreshAll();
         })
         .catch((err) => {
             gaEvent('lux_wasm_error', {
@@ -58,7 +78,7 @@ const simpleUiCookieName = 'lux_simple_ui_mode';
 const timelineResetTopBtn = document.getElementById('timeline_reset_top_btn');
 
 let currentMetric = 'damage';
-const intFmt = new Intl.NumberFormat('ru-RU');
+let intFmt = new Intl.NumberFormat(getBcp47Locale());
 
 function getSelectedMatchIndex() {
     if (!matchSelect || matchSelect.disabled) {
@@ -121,14 +141,21 @@ function updateMatchSummary() {
     };
     const shortRole = (s) => {
         const v = String(s || '').toLowerCase();
-        if (v.includes('союз')) return 'Союзники';
-        if (v.includes('враг')) return 'Враги';
+        // team_label_* in RU uses "Союзники" / "Противники" (no substring "враг"); EN uses Allies/Enemies.
+        if (v.includes('союз') || v.includes('allies') || v.includes('ally')) return t('role_allies');
+        if (v.includes('враг')
+            || v.includes('против')
+            || v.includes('enemies')
+            || v.includes('enemy')
+            || v.includes('opponent')) {
+            return t('role_enemies');
+        }
         return '';
     };
     const shortSpawn = (s) => {
         const v = String(s || '').toLowerCase();
-        if (v.includes('левый спавн')) return 'левый спавн';
-        if (v.includes('правый спавн')) return 'правый спавн';
+        if (v.includes('левый спавн') || v.includes('left spawn')) return t('spawn_left');
+        if (v.includes('правый спавн') || v.includes('right spawn')) return t('spawn_right');
         return '';
     };
     const panelTitle = (team, fallback) => {
@@ -152,30 +179,33 @@ function updateMatchSummary() {
         const rows = teams.length ? teams : [
             {
                 name: String(data.team_left_name || 'Team 1'),
-                role: 'Союзники',
+                role: t('role_allies'),
                 damage: Number(data.damage_left) || 0,
                 heal: Number(data.heal_left) || 0,
                 kills: Number(data.kills_left) || 0,
             },
             {
                 name: String(data.team_right_name || 'Team 2'),
-                role: 'Враги',
+                role: t('role_enemies'),
                 damage: Number(data.damage_right) || 0,
                 heal: Number(data.heal_right) || 0,
                 kills: Number(data.kills_right) || 0,
             },
         ];
-        grid.innerHTML = rows.map((t) => `
+        grid.innerHTML = rows.map((tm) => `
             <div class="match-summary-team">
-                <div class="match-summary-team-name">${safe(t.name || 'Team')}</div>
-                <div>Урон: <b>${intFmt.format(Math.round(Number(t.damage) || 0))}</b></div>
-                <div>Лечение: <b>${intFmt.format(Math.round(Number(t.heal) || 0))}</b></div>
-                <div>Киллы: <b>${String(Math.round(Number(t.kills) || 0))}</b></div>
+                <div class="match-summary-team-name">${safe(tm.name || 'Team')}</div>
+                <div>${t('summary_damage')}: <b>${intFmt.format(Math.round(Number(tm.damage) || 0))}</b></div>
+                <div>${t('summary_heal')}: <b>${intFmt.format(Math.round(Number(tm.heal) || 0))}</b></div>
+                <div>${t('summary_kills')}: <b>${String(Math.round(Number(tm.kills) || 0))}</b></div>
             </div>
         `).join('');
         if (teams.length) {
-            const ally = teams.find((t) => String(t.role || '').toLowerCase().includes('союз')) || teams[0];
-            const enemy = teams.find((t) => t !== ally) || teams[1] || null;
+            const ally = teams.find((tm) => {
+                const r = String(tm.role || '').toLowerCase();
+                return r.includes('союз') || r.includes('allies') || r.includes('ally');
+            }) || teams[0];
+            const enemy = teams.find((tm) => tm !== ally) || teams[1] || null;
             setTeamPanelTitles(panelTitle(ally, 'Team 1'), panelTitle(enemy, 'Team 2'));
         } else {
             setTeamPanelTitles(String(data.team_left_name || 'Team 1'), String(data.team_right_name || 'Team 2'));
@@ -410,7 +440,7 @@ function loadWarriorOptions() {
             other.push(p);
         }
     });
-    warriorNickSelect.innerHTML = '<option value="">Не выбрано</option>';
+    warriorNickSelect.innerHTML = `<option value="">${escapeHtml(t('warrior_not_selected'))}</option>`;
     const appendGroup = (label, arr) => {
         if (!arr.length) {
             return;
@@ -425,11 +455,39 @@ function loadWarriorOptions() {
         });
         warriorNickSelect.appendChild(g);
     };
-    appendGroup('Союзники', allies);
-    appendGroup('Противники', enemies);
-    appendGroup('Прочие', other);
+    appendGroup(t('optgroup_allies'), allies);
+    appendGroup(t('optgroup_enemies'), enemies);
+    appendGroup(t('optgroup_other'), other);
     const saved = getWarriorNick();
     warriorNickSelect.value = allPlayers.includes(saved) ? saved : '';
+}
+
+function rosterPanelPlayerNames(matchIndex) {
+    const fn = globalThis.getTeamPanelsRosterJSON;
+    if (typeof fn !== 'function') {
+        return [];
+    }
+    try {
+        const raw = fn(matchIndex);
+        const p = JSON.parse(raw || 'null');
+        if (!p || typeof p !== 'object') {
+            return [];
+        }
+        const left = Array.isArray(p.left) ? p.left : [];
+        const right = Array.isArray(p.right) ? p.right : [];
+        const seen = new Set();
+        const out = [];
+        [...left, ...right].forEach((n) => {
+            const s = String(n || '').trim();
+            if (s && !seen.has(s)) {
+                seen.add(s);
+                out.push(s);
+            }
+        });
+        return out;
+    } catch (_) {
+        return [];
+    }
 }
 
 function loadPlayerFocusOptions() {
@@ -437,22 +495,33 @@ function loadPlayerFocusOptions() {
         return;
     }
     const idx = getSelectedMatchIndex();
-    let players = [];
+    const fromMeta = [];
     const fn = globalThis.getDamageFilterMetaJSON;
     if (typeof fn === 'function') {
         try {
             const raw = fn(idx, '', '{}');
             const meta = JSON.parse(raw || '{}');
             if (meta && Array.isArray(meta.players)) {
-                players = meta.players.slice().sort((a, b) => String(a).localeCompare(String(b)));
+                fromMeta.push(...meta.players);
             }
         } catch (_) {
-            players = [];
+            /* ignore */
         }
     }
+    const roster = rosterPanelPlayerNames(idx);
+    const seen = new Set();
+    const players = [];
+    [...fromMeta, ...roster].forEach((p) => {
+        const s = String(p || '').trim();
+        if (s && !seen.has(s)) {
+            seen.add(s);
+            players.push(s);
+        }
+    });
+    players.sort((a, b) => String(a).localeCompare(String(b)));
     const prev = getFocusedPlayer(idx);
-    const warrior = getWarriorNick();
-    const defaultPlayer = prev || (players.includes(warrior) ? warrior : '');
+    const warrior = getWarriorNick().trim();
+    const defaultPlayer = prev || (warrior && players.includes(warrior) ? warrior : '');
     const teamMeta = playerTeamsFromTimeline(idx);
     const selected = selectedTeamIDs(idx, teamMeta.allyTeamID, teamMeta.enemyTeamID);
     const allies = [];
@@ -468,7 +537,7 @@ function loadPlayerFocusOptions() {
             other.push(p);
         }
     });
-    playerFocusSelect.innerHTML = '<option value="">Игрок не выбран</option>';
+    playerFocusSelect.innerHTML = `<option value="">${escapeHtml(t('player_not_selected'))}</option>`;
     const appendGroup = (label, arr) => {
         if (!arr.length) {
             return;
@@ -483,9 +552,9 @@ function loadPlayerFocusOptions() {
         });
         playerFocusSelect.appendChild(g);
     };
-    appendGroup('Союзники', allies);
-    appendGroup('Противники', enemies);
-    appendGroup('Прочие', other);
+    appendGroup(t('optgroup_allies'), allies);
+    appendGroup(t('optgroup_enemies'), enemies);
+    appendGroup(t('optgroup_other'), other);
     playerFocusSelect.value = players.includes(defaultPlayer) ? defaultPlayer : '';
     if (playerFocusSelect.value !== prev) {
         setFocusedPlayer(idx, playerFocusSelect.value || '');
@@ -532,7 +601,7 @@ function updateWatcherBanner() {
     const names = Array.isArray(m.watcher_names) && m.watcher_names.length
         ? ` (${m.watcher_names.map(escapeHtml).join(', ')})`
         : '';
-    el.innerHTML = `<strong>Большой брат наблюдает за вами!</strong>${names}<br>Подключение наблюдателя: ${c} · Отключение: ${d}`;
+    el.innerHTML = `<strong>${escapeHtml(t('watcher_title'))}</strong>${names}<br>${escapeHtml(t('watcher_connect'))}: ${escapeHtml(c)} · ${escapeHtml(t('watcher_disconnect'))}: ${escapeHtml(d)}`;
 }
 
 function refreshAll() {
@@ -586,16 +655,24 @@ setupMetricButtons();
 
 function setupBattleInsightTooltips() {
     document.querySelectorAll('.battle-insight-help[data-bs-toggle="tooltip"]').forEach((el) => {
-        if (bootstrap.Tooltip.getInstance(el)) {
-            return;
+        const prev = bootstrap.Tooltip.getInstance(el);
+        if (prev) {
+            prev.dispose();
         }
         new bootstrap.Tooltip(el, {
             container: 'body',
             trigger: 'hover focus',
+            title: battleInsightHelpTooltipTitle(el),
         });
     });
 }
 setupBattleInsightTooltips();
+
+subscribeLocale(() => {
+    intFmt = new Intl.NumberFormat(getBcp47Locale());
+    setupBattleInsightTooltips();
+    refreshAll();
+});
 
 applySimpleUiMode(isSimpleUiMode());
 if (simpleUiModeCb) {
@@ -623,10 +700,10 @@ function renderMatchOptions() {
         opt.textContent = "Match 1";
         matchSelect.appendChild(opt);
         matchSelect.disabled = true;
+        refreshAll();
         if (timelineCtl && typeof timelineCtl.refresh === 'function') {
             timelineCtl.refresh();
         }
-        refreshAll();
         return;
     }
     for (let i = 0; i < levels; i++) {
@@ -658,10 +735,10 @@ function renderMatchOptions() {
     }
     matchSelect.disabled = false;
     matchSelect.value = "0";
+    refreshAll();
     if (timelineCtl && typeof timelineCtl.refresh === 'function') {
         timelineCtl.refresh();
     }
-    refreshAll();
 }
 
 if (matchSelect) {
@@ -669,10 +746,10 @@ if (matchSelect) {
         gaEvent('lux_match_change', {
             match_index: Number(matchSelect.value) || 0,
         });
+        refreshAll();
         if (timelineCtl && typeof timelineCtl.refresh === 'function') {
             timelineCtl.refresh();
         }
-        refreshAll();
     });
 }
 
@@ -681,6 +758,7 @@ if (playerFocusSelect) {
         const idx = getSelectedMatchIndex();
         const player = playerFocusSelect.value || '';
         setFocusedPlayer(idx, player);
+        setWarriorNick(player);
         gaEvent('lux_player_focus_change', { match_index: idx, has_player: player ? '1' : '0' });
         if (timelineCtl && typeof timelineCtl.refresh === 'function') {
             timelineCtl.refresh();
@@ -736,7 +814,7 @@ function prepareForNewLogs() {
     clearTeamSwapCookieState();
     clearFocusedPlayers();
     if (playerFocusSelect) {
-        playerFocusSelect.innerHTML = '<option value="">Игрок не выбран</option>';
+        playerFocusSelect.innerHTML = `<option value="">${escapeHtml(t('player_not_selected'))}</option>`;
     }
 }
 

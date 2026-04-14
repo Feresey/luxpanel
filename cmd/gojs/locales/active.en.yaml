@@ -1,0 +1,384 @@
+- id: page_title
+  translation: "LuX control panel (Guest access)"
+- id: pick_logs
+  translation: "Pick logs"
+- id: load_demo_logs
+  translation: "Load demo logs"
+- id: load_demo_logs_title
+  translation: "Load the built-in sample log bundle"
+- id: match_label
+  translation: "Match"
+- id: header_corner_link
+  translation: "Aimbot/WH"
+- id: lang_switch_aria
+  translation: "Interface language"
+
+- id: logs_where_hint
+  translation: "Where to find logs:"
+- id: logs_where_hint_alt
+  translation: "(typically:"
+
+- id: watcher_title
+  translation: "Big Brother is watching you!"
+- id: watcher_connect
+  translation: "Observer connected"
+- id: watcher_disconnect
+  translation: "Observer disconnected"
+
+- id: match_summary_aria
+  translation: "Match summary"
+- id: match_summary_title
+  translation: "Match summary"
+- id: summary_damage
+  translation: "Damage"
+- id: summary_heal
+  translation: "Heal"
+- id: summary_kills
+  translation: "Kills"
+- id: role_allies
+  translation: "Allies"
+- id: role_enemies
+  translation: "Enemies"
+- id: spawn_left
+  translation: "left spawn"
+- id: spawn_right
+  translation: "right spawn"
+
+- id: optgroup_allies
+  translation: "Allies"
+- id: optgroup_enemies
+  translation: "Opponents"
+- id: optgroup_other
+  translation: "Other"
+
+- id: warrior_not_selected
+  translation: "Not selected"
+- id: warrior_who
+  translation: "Who are you, warrior?"
+- id: player_not_selected
+  translation: "No player selected"
+
+- id: graph_view_toolbar_aria
+  translation: "Chart layout"
+- id: metric_aria
+  translation: "Metric"
+- id: simple_ui_title
+  translation: "Simpler layout with fewer complex tables"
+- id: simple_ui_label
+  translation: "Simple mode"
+- id: damage_type_label
+  translation: "Damage type"
+- id: dmg_all
+  translation: "All damage"
+- id: dmg_thermal
+  translation: "Thermal"
+- id: dmg_kinetic
+  translation: "Kinetic"
+- id: dmg_emp
+  translation: "EMP"
+- id: include_bots
+  translation: "Include bots"
+- id: swap_teams
+  translation: "↔ Swap teams left/right"
+- id: swap_teams_title_swapped
+  translation: "Team 2 is on the left. Click to put Team 1 on the left."
+- id: swap_teams_title_normal
+  translation: "Team 1 is on the left. Click to swap teams."
+
+- id: graph_total_title
+  translation: "Total for current view"
+
+- id: matrix_hint_heal
+  translation: "Data for the time range selected on the timeline.<br/>Rows — heal recipient, columns — who heals (within the team).<br/>Cell color: saturation by share of the row maximum (who gets the largest slice of that heal pool). Hover a cell for row and table totals."
+- id: matrix_hint_kill
+  translation: "Data for the time range selected on the timeline.<br/>Rows — players on this team (kill source), columns — enemy team (target).<br/>Cell color: saturation by share of the row maximum (main kill pairs). Hover a cell for row and table totals."
+- id: matrix_hint_damage
+  translation: "Data for the time range selected on the timeline.<br/>Rows — players on this team (damage source), columns — enemy team (target).<br/>Cell color: saturation by share of the row maximum (who this source focused most). Hover a cell for row and table totals."
+- id: matrix_empty
+  translation: "No data"
+- id: matrix_corner_damage
+  translation: "Src \\ Target"
+- id: matrix_corner_heal
+  translation: "Heal \\ Recv."
+- id: matrix_sum_row
+  translation: "Row sum (source)"
+- id: matrix_sum_row_short
+  translation: "Row sum"
+- id: matrix_sum_col
+  translation: "Column sum (target)"
+- id: matrix_sum_total
+  translation: "Table grand total"
+
+- id: preload_table_team1
+  translation: "Team 1 table…"
+- id: preload_table_team2
+  translation: "Team 2 table…"
+- id: preload_timeline
+  translation: "Timeline…"
+- id: preload_loading
+  translation: "Loading…"
+- id: preload_life_line
+  translation: "Life line…"
+- id: preload_battle_intensity
+  translation: "Battle intensity…"
+
+- id: timeline_title
+  translation: "Match timeline"
+- id: timeline_lead
+  translation: "Combat events appear on the “Life line” chart when you hover key points. The vertical line stays in sync across charts."
+- id: timeline_section_aria
+  translation: "Match time and battle situation"
+- id: battle_charts_aria
+  translation: "Battle situation charts"
+- id: timeline_track_aria
+  translation: "Match time range"
+- id: timeline_reset_scale
+  translation: "Reset zoom"
+- id: timeline_window_hint
+  translation: "Window: {from} — {to} · duration {dur}"
+- id: timeline_legend_spawn_allies
+  translation: "Spawn (allies)"
+- id: timeline_legend_spawn_enemies
+  translation: "Spawn (enemies)"
+- id: timeline_legend_kill_enemy
+  translation: "Kill (enemy)"
+- id: timeline_legend_kill_ally
+  translation: "Kill (ally)"
+- id: timeline_legend_death_enemy
+  translation: "Enemy death"
+- id: timeline_legend_death_ally
+  translation: "Ally death"
+
+- id: graph_player_label
+  translation: "Player:"
+- id: life_line_title
+  translation: "Life line"
+- id: battle_intensity_title
+  translation: "Battle intensity"
+- id: life_line_tooltip
+  translation: "How many players on each team are alive at each moment (from spawns and deaths in the log). The X axis is the current time window (timeline zoom or brush on the chart)."
+- id: battle_intensity_tooltip
+  translation: "Average damage per second over a rolling 10-second window (cross-team damage). Two lines: allies and enemies. Synced with the timeline window."
+- id: life_line_help_aria
+  translation: "Help: life line"
+- id: battle_intensity_help_aria
+  translation: "Help: battle intensity"
+
+- id: damage_table_section_aria
+  translation: "Damage breakdown"
+- id: damage_table_title
+  translation: "Damage breakdown"
+- id: damage_table_lead
+  translation: "Summary damage table for default modifier presets for the selected player (source). In the <b>Modifiers</b> column: <code>nil</code> — ignore, <code>true</code> — must be present, <code>false</code> — must be absent."
+
+- id: df_initiator
+  translation: "Player (source)"
+- id: df_perspective
+  translation: "Direction"
+- id: df_outgoing
+  translation: "Outgoing (player deals)"
+- id: df_incoming
+  translation: "Incoming (damage to player)"
+- id: df_source_incoming_suffix
+  translation: " (receives)"
+- id: df_recipient
+  translation: "Target"
+- id: df_weapon
+  translation: "Weapon"
+- id: df_table_mode
+  translation: "Table mode"
+- id: df_mode_defaults
+  translation: "Default modifier presets"
+- id: df_mode_single
+  translation: "Single precise filter"
+- id: df_modifiers
+  translation: "Modifiers"
+- id: df_clear_all
+  translation: "Clear all"
+- id: df_th_expand
+  translation: "Details"
+- id: df_col_time
+  translation: "Time"
+- id: df_col_source
+  translation: "Damage source"
+- id: df_col_targets
+  translation: "Target(s)"
+- id: df_col_weapon
+  translation: "Weapon"
+- id: df_col_mods
+  translation: "Modifiers"
+- id: df_col_events
+  translation: "Events"
+- id: df_col_damage
+  translation: "Damage"
+- id: df_inner_time
+  translation: "Time"
+- id: df_inner_source
+  translation: "Source"
+- id: df_inner_target
+  translation: "Target"
+- id: df_select_player
+  translation: "— select a player —"
+- id: df_select_placeholder
+  translation: "— select —"
+- id: df_any_target
+  translation: "Any target"
+- id: df_any_weapon
+  translation: "Any weapon"
+- id: df_any_source
+  translation: "Any source"
+- id: df_no_data_meta
+  translation: "— no data —"
+- id: df_no_data
+  translation: "No data"
+- id: df_expand_aria
+  translation: "Show raw damage lines"
+- id: df_hint_pick_recipient
+  translation: "Select the player (incoming damage)"
+- id: df_hint_pick_initiator
+  translation: "Select the player (damage source)"
+- id: df_foot_filter
+  translation: "Filter"
+- id: df_foot_presets
+  translation: "Presets"
+- id: df_wasm_missing
+  translation: "WASM not loaded"
+- id: df_meta_error
+  translation: "Metadata error"
+
+- id: combat_log_summary
+  translation: "Combat events (parsed, selected time range only)"
+- id: combat_col_num
+  translation: "#"
+- id: combat_col_time
+  translation: "Time"
+- id: combat_col_kind
+  translation: "Type"
+- id: combat_col_body
+  translation: "Content"
+
+- id: marker_line_time
+  translation: "Time: {time}\n"
+- id: marker_spawn
+  translation: "Spawn ({side}): {name}"
+- id: marker_spawn_only
+  translation: "Spawn ({side})"
+- id: marker_spawn_ship
+  translation: "Spawn ({side}): {name} · {ship}"
+- id: spawn_side_allies
+  translation: "allies"
+- id: spawn_side_enemies
+  translation: "enemies"
+- id: marker_kill
+  translation: "Kill: {k} → {v}"
+- id: marker_kill_single
+  translation: "Kill: {who}"
+- id: marker_ally_death
+  translation: "Ally death: {k} → {v}"
+- id: marker_ally_death_single
+  translation: "Ally death: {who}"
+- id: marker_kill_short
+  translation: "Kill"
+- id: marker_ally_death_short
+  translation: "Ally death"
+- id: tooltip_weapon
+  translation: "Weapon: {w}"
+- id: tooltip_assists
+  translation: "Assists: {list}"
+
+- id: battle_peaks_title
+  translation: "Battle peaks:"
+- id: chart_tooltip_time
+  translation: "Time {time}"
+- id: chart_axis_current_time
+  translation: "Current time"
+- id: chart_events_header
+  translation: "Events:"
+- id: chart_axis_players_alive
+  translation: "Players alive"
+- id: chart_axis_dps_window
+  translation: "Damage/s (10-second rolling window)"
+- id: battle_spawn_allies
+  translation: "Spawn (allies):"
+- id: battle_spawn_enemies
+  translation: "Spawn (enemies):"
+- id: battle_kill
+  translation: "Kill:"
+- id: battle_ally_death
+  translation: "Ally death:"
+- id: team_label_allies
+  translation: "Allies"
+- id: team_label_enemies
+  translation: "Enemies"
+- id: life_focus_dataset
+  translation: "{name} (alive/dead)"
+- id: intensity_ally_dps
+  translation: "{label}, damage/s (10-second window)"
+- id: intensity_enemy_dps
+  translation: "{label}, damage/s (10-second window)"
+- id: intensity_player_out
+  translation: "{name}, outgoing damage/s"
+- id: intensity_player_in
+  translation: "{name}, incoming damage/s"
+
+- id: preload_damage_table
+  translation: "Damage table…"
+- id: newbie_bonus_hint
+  translation: "Newbie bonus (Normalizer): match max = x{bonus}"
+- id: simple_col_heal
+  translation: "Heal"
+- id: simple_col_kill
+  translation: "Kills"
+- id: simple_col_damage
+  translation: "Damage"
+- id: simple_th_player
+  translation: "Player"
+- id: simple_team_foot
+  translation: "Simple mode: player totals without the full relation matrix."
+- id: matrix_cell_metric_heal
+  translation: "heal"
+- id: matrix_cell_metric_kill
+  translation: "kills"
+- id: matrix_cell_metric_damage
+  translation: "damage"
+- id: matrix_cell_line
+  translation: "{src} → {tgt}: {val} ({metric})"
+- id: matrix_pct_row
+  translation: "{pct}% of row (this source across targets)"
+- id: matrix_pct_table
+  translation: "{pct}% of team table total"
+- id: matrix_insight_heal
+  translation: "Top heal volume: {src} ({rowPct}% of table total). Most healed target: {tgt} ({colPct}% of target-side total)."
+- id: matrix_insight_kill
+  translation: "Most kills from: {src} ({rowPct}% of table total). Most killed target: {tgt} ({colPct}% of target-side total)."
+- id: matrix_insight_damage
+  translation: "Top damage from: {src} ({rowPct}% of team total). Most damaged target: {tgt} ({colPct}% of target-side total)."
+
+- id: go_match_role_enemies_team
+  translation: "Enemies (Team {{.Team}})"
+- id: go_match_spawn_left
+  translation: " · left spawn"
+- id: go_match_spawn_right
+  translation: " · right spawn"
+- id: go_godgift_allies
+  translation: "GodGift (allies)"
+- id: go_godgift_enemies
+  translation: "GodGift (enemies)"
+- id: go_chart_metric_damage
+  translation: "Damage"
+- id: go_chart_metric_heal
+  translation: "Heal"
+- id: go_chart_metric_kill
+  translation: "Kill"
+- id: go_chart_curve_avg
+  translation: "Average {{.Metric}}"
+- id: go_level_match_fallback
+  translation: "Match {{.N}}"
+- id: go_level_label
+  translation: "Match {{.N}}: {{.Mode}} — {{.Map}}"
+- id: go_duration_min
+  translation: "{{.Min}} min"
+- id: go_duration_sec
+  translation: "{{.Sec}} s"
+- id: go_team_name
+  translation: "Team {{.N}}"

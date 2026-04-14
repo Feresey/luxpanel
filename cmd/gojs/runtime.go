@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"runtime"
+	"strings"
 	"time"
 
 	"github.com/Feresey/luxpanel/config"
 	"github.com/Feresey/luxpanel/internal/logger"
 	"github.com/Feresey/luxpanel/internal/mytrace"
-	"github.com/Feresey/luxpanel/internal/prettyfmt"
 	"github.com/Feresey/luxpanel/internal/parser"
+	"github.com/Feresey/luxpanel/internal/prettyfmt"
 	"github.com/Feresey/luxpanel/internal/splitter"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -35,6 +36,61 @@ type Runtime struct {
 	// Ответы WASM для одинаковых аргументов; сброс при LoadFiles (wasmCacheGen++).
 	wasmCacheGen  uint64
 	wasmJSONCache map[string]stringCacheEntry
+
+	// UI strings (YAML via embed, WASM only).
+	i18nBundle   *i18n.Bundle
+	uiMessageIDs []string
+	// Язык UI ("ru" | "en"), синхронизирован с кнопкой в браузере через setUILanguage.
+	uiLang string
+}
+
+// normalizeUILangTag приводит тег к "ru" или "en".
+func normalizeUILangTag(tag string) string {
+	s := strings.TrimSpace(strings.ToLower(tag))
+	if s == "" {
+		return "en"
+	}
+	if strings.HasPrefix(s, "ru") {
+		return "ru"
+	}
+	return "en"
+}
+
+// SetUILang задаёт язык ответов JSON и сбрасывает кеш WASM.
+func (r *Runtime) SetUILang(tag string) {
+	r.uiLang = normalizeUILangTag(tag)
+	r.bumpWasmCache()
+}
+
+// UILang текущий язык UI ("ru" | "en").
+func (r *Runtime) UILang() string {
+	return normalizeUILangTag(r.uiLang)
+}
+
+// Tr возвращает локализованную строку по id сообщения (go-i18n + r.UILang()).
+func (r *Runtime) Tr(messageID string) string {
+	if r == nil || r.i18nBundle == nil || messageID == "" {
+		return messageID
+	}
+	loc := i18n.NewLocalizer(r.i18nBundle, r.UILang())
+	s, err := loc.Localize(&i18n.LocalizeConfig{MessageID: messageID})
+	if err != nil || s == "" {
+		return messageID
+	}
+	return s
+}
+
+// Trf — как Tr, с подстановкой полей шаблона go-i18n (TemplateData).
+func (r *Runtime) Trf(messageID string, data map[string]interface{}) string {
+	if r == nil || r.i18nBundle == nil || messageID == "" {
+		return messageID
+	}
+	loc := i18n.NewLocalizer(r.i18nBundle, r.UILang())
+	s, err := loc.Localize(&i18n.LocalizeConfig{MessageID: messageID, TemplateData: data})
+	if err != nil || s == "" {
+		return messageID
+	}
+	return s
 }
 
 func NewRuntime(ctx context.Context) *Runtime {
@@ -89,7 +145,7 @@ func (r *Runtime) LoadFiles(ctx context.Context, gameLog, combatLog string) erro
 	if err != nil {
 		return fmt.Errorf("splitter.DiscoverLevels: %w", err)
 	}
-	logPerfWasm(ctx, r.lg, "discover_levels", t0, heap0,
+	logWasmPerf(ctx, r.lg, "discover_levels", t0, heap0,
 		"level_count", len(disc.Spans),
 		"game_size", prettyfmt.FormatBytes(uint64(len(gameLog))),
 		"combat_size", prettyfmt.FormatBytes(uint64(len(combatLog))),
@@ -127,23 +183,4 @@ func (r *Runtime) wasmCacheSet(key, val string) {
 		r.wasmJSONCache = make(map[string]stringCacheEntry)
 	}
 	r.wasmJSONCache[key] = stringCacheEntry{gen: r.wasmCacheGen, s: val}
-}
-
-func heapAlloc() uint64 {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	return m.HeapAlloc
-}
-
-func logPerfWasm(ctx context.Context, lg logger.Factory, op string, t0 time.Time, heapBefore uint64, keysAndValues ...interface{}) {
-	heapAfter := heapAlloc()
-	delta := int64(heapAfter) - int64(heapBefore)
-	args := []interface{}{
-		"op", op,
-		"duration", prettyfmt.FormatDuration(time.Since(t0)),
-		"heap_delta", prettyfmt.FormatBytesDelta(delta),
-		"heap_alloc", prettyfmt.FormatBytes(heapAfter),
-	}
-	args = append(args, keysAndValues...)
-	lg.For(ctx).Infow("perf_wasm", args...)
 }

@@ -58,6 +58,37 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     text-decoration: underline;
 }
 
+.lang-switch {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.lang-switch-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(30, 41, 59, 0.85);
+    color: #e2e8f0;
+    cursor: pointer;
+    min-width: 40px;
+    line-height: 1.2;
+}
+
+.lang-switch-btn:hover {
+    border-color: rgba(125, 211, 252, 0.65);
+    color: #fff;
+}
+
+.lang-switch-btn.is-active {
+    border-color: rgba(125, 211, 252, 0.95);
+    background: rgba(14, 83, 151, 0.45);
+    color: #f0f9ff;
+}
+
 .warrior-picker {
     display: inline-flex;
     align-items: center;
@@ -106,7 +137,8 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     align-items: center;
     flex-wrap: wrap;
     text-align: center;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .logs-path-hint {
@@ -1280,64 +1312,6 @@ body.simple-ui-mode .graph-matrix-hint {
 
 .timeline-hint-inline {
     margin: 0;
-}
-
-.timeline-combat-loglines {
-    margin-top: 12px;
-    border: 1px solid #3f3f46;
-    border-radius: 8px;
-    padding: 8px 12px;
-    background: #18181c;
-}
-
-.timeline-combat-loglines > summary {
-    cursor: pointer;
-    font-size: 0.88rem;
-    color: #e4e4e7;
-    list-style: none;
-}
-
-.timeline-combat-loglines > summary::-webkit-details-marker {
-    display: none;
-}
-
-.combat-loglines-scroll {
-    margin-top: 8px;
-    max-height: 280px;
-    overflow: auto;
-    border-radius: 6px;
-    border: 1px solid #27272f;
-}
-
-.combat-loglines-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.75rem;
-    color: #d4d4d8;
-}
-
-.combat-loglines-table th,
-.combat-loglines-table td {
-    padding: 4px 8px;
-    border-bottom: 1px solid #27272f;
-    text-align: left;
-    vertical-align: top;
-}
-
-.combat-loglines-table th {
-    position: sticky;
-    top: 0;
-    background: #1e1e24;
-    color: #a1a1aa;
-    font-weight: 600;
-}
-
-.combat-loglines-table tr:last-child td {
-    border-bottom: none;
-}
-
-.combat-loglines-summary {
-    word-break: break-word;
 }
 
 .damage-table-section {

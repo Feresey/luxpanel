@@ -2,6 +2,8 @@
  * Прелоадеры поверх тяжёлых графиков: даём браузеру отрисовать спиннер до WASM/рендера.
  */
 
+import { t } from './i18n.js';
+
 const LOADER_CLASS = 'chart-preloader';
 const SPINNER_CLASS = 'chart-preloader-spinner';
 
@@ -20,7 +22,7 @@ export function showChartPreloader(host, options = {}) {
     if (!host) {
         return null;
     }
-    const label = options.label || 'Загрузка…';
+    const label = options.label || t('preload_loading');
     host.querySelectorAll(`:scope > .${LOADER_CLASS}`).forEach((el) => el.remove());
     const wrap = document.createElement('div');
     wrap.className = LOADER_CLASS;

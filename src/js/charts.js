@@ -3,6 +3,7 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 import { getTimeRangeJSON } from "./timeline.js";
 import { deferAfterPaint, hideChartPreloader, showChartPreloader } from "./chart_preloader.js";
 import { gaEvent } from "./analytics.js";
+import { getBcp47Locale, subscribeLocale, t, tf } from "./i18n.js";
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -34,7 +35,10 @@ let currentLevelIndex = 0;
 const swapCookieName = 'lux_team_swap_by_match';
 let swapByMatch = readSwapCookieMap();
 let swapBtnEl = null;
-const intFmt = new Intl.NumberFormat('ru-RU');
+let intFmt = new Intl.NumberFormat(getBcp47Locale());
+subscribeLocale(() => {
+    intFmt = new Intl.NumberFormat(getBcp47Locale());
+});
 
 function readSwapCookieMap() {
     if (typeof document === 'undefined') {
@@ -94,8 +98,8 @@ function syncSwapButtonUi() {
     swapBtnEl.classList.toggle('is-swapped', teamsSwapped);
     swapBtnEl.setAttribute('aria-pressed', teamsSwapped ? 'true' : 'false');
     swapBtnEl.title = teamsSwapped
-        ? 'Сейчас слева Team 2. Нажмите, чтобы вернуть Team 1 слева.'
-        : 'Сейчас слева Team 1. Нажмите, чтобы поменять местами.';
+        ? t('swap_teams_title_swapped')
+        : t('swap_teams_title_normal');
 }
 
 function formatWholeNumber(v) {
@@ -262,7 +266,7 @@ function renderPlayerLabelWithNewbieBonus(name, newbieBonusMax) {
     if (bonus <= 0) {
         return safeName;
     }
-    const hint = `Бонус новичка (Normalizer): максимум за матч = x${bonus}`;
+    const hint = tf('newbie_bonus_hint', { bonus: String(bonus) });
     return `${safeName} <span class="newbie-bonus-badge" title="${escapeHtml(hint)}">NB x${bonus}</span>`;
 }
 
@@ -285,9 +289,9 @@ function renderSimplePanelTable(panel, mode, newbieBonusMax) {
         return { name, total };
     });
     sums.sort((a, b) => b.total - a.total || String(a.name).localeCompare(String(b.name)));
-    const label = mode === 'heal' ? 'Лечение' : mode === 'kill' ? 'Киллы' : 'Урон';
+    const label = mode === 'heal' ? t('simple_col_heal') : mode === 'kill' ? t('simple_col_kill') : t('simple_col_damage');
     let html = '<table class="simple-team-table"><thead><tr>';
-    html += '<th>Игрок</th>';
+    html += `<th>${escapeHtml(t('simple_th_player'))}</th>`;
     html += `<th>${escapeHtml(label)}</th>`;
     html += '</tr></thead><tbody>';
     sums.forEach((x) => {
@@ -298,7 +302,7 @@ function renderSimplePanelTable(panel, mode, newbieBonusMax) {
         html += '</tr>';
     });
     html += '</tbody></table>';
-    html += '<p class="simple-team-foot">Простой режим: вклад игроков без матрицы связей.</p>';
+    html += `<p class="simple-team-foot">${escapeHtml(t('simple_team_foot'))}</p>`;
     return html;
 }
 
@@ -326,8 +330,8 @@ function matrixCellHeatStyle(v, maxInTable, mode) {
     if (typeof v !== 'number' || Number.isNaN(v) || v <= 0 || maxInTable <= 0) {
         return '';
     }
-    const t = Math.min(1, v / maxInTable);
-    const a = 0.07 + t * 0.42;
+    const heat = Math.min(1, v / maxInTable);
+    const a = 0.07 + heat * 0.42;
     if (mode === 'heal') {
         return `background-color:rgba(52,211,153,${a})`;
     }
@@ -339,13 +343,18 @@ function matrixCellHeatStyle(v, maxInTable, mode) {
 
 function matrixCellTooltip(sourceName, targetName, v, rowTotal, grandTotal, mode) {
     const parts = [];
-    const label = mode === 'heal' ? 'лечение' : mode === 'kill' ? 'киллы' : 'урон';
-    parts.push(`${sourceName} → ${targetName}: ${formatMatrixCell(v, mode)} (${label})`);
+    const metric = mode === 'heal' ? t('matrix_cell_metric_heal') : mode === 'kill' ? t('matrix_cell_metric_kill') : t('matrix_cell_metric_damage');
+    parts.push(tf('matrix_cell_line', {
+        src: sourceName,
+        tgt: targetName,
+        val: formatMatrixCell(v, mode),
+        metric,
+    }));
     if (typeof rowTotal === 'number' && rowTotal > 1e-9 && typeof v === 'number' && Number.isFinite(v)) {
-        parts.push(`${((v / rowTotal) * 100).toFixed(1)}% от строки (вклад этого источника по целям)`);
+        parts.push(tf('matrix_pct_row', { pct: ((v / rowTotal) * 100).toFixed(1) }));
     }
     if (typeof grandTotal === 'number' && grandTotal > 1e-9 && typeof v === 'number' && Number.isFinite(v)) {
-        parts.push(`${((v / grandTotal) * 100).toFixed(1)}% от суммы таблицы команды`);
+        parts.push(tf('matrix_pct_table', { pct: ((v / grandTotal) * 100).toFixed(1) }));
     }
     return parts.join('\n');
 }
@@ -378,11 +387,26 @@ function renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, g
     const colPct = (colTotals[ci] / grandTotal) * 100;
     let line = '';
     if (mode === 'heal') {
-        line = `Главный вклад по объёму лечения: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы таблицы). Больше всего получено: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по получателям).`;
+        line = tf('matrix_insight_heal', {
+            src: escapeHtml(src),
+            rowPct: rowPct.toFixed(1),
+            tgt: escapeHtml(tgt),
+            colPct: colPct.toFixed(1),
+        });
     } else if (mode === 'kill') {
-        line = `Больше всего киллов: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы таблицы). Чаще всего убивали: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по целям).`;
+        line = tf('matrix_insight_kill', {
+            src: escapeHtml(src),
+            rowPct: rowPct.toFixed(1),
+            tgt: escapeHtml(tgt),
+            colPct: colPct.toFixed(1),
+        });
     } else {
-        line = `Главный вклад по урону: ${escapeHtml(src)} (${rowPct.toFixed(1)}% от суммы команды). Больше всего урона получил: ${escapeHtml(tgt)} (${colPct.toFixed(1)}% от суммы по целям).`;
+        line = tf('matrix_insight_damage', {
+            src: escapeHtml(src),
+            rowPct: rowPct.toFixed(1),
+            tgt: escapeHtml(tgt),
+            colPct: colPct.toFixed(1),
+        });
     }
     return `<p class="graph-matrix-insight" role="status">${line}</p>`;
 }
@@ -410,7 +434,7 @@ function renderMatrixTable(panel, mode, opts = {}) {
             headerCols = moveNameFirst(headerCols, focus);
         }
     }
-    const corner = mode === 'heal' ? 'Леч. \\ Получ.' : 'Источн. \\ Цель';
+    const corner = mode === 'heal' ? t('matrix_corner_heal') : t('matrix_corner_damage');
     const rowIdxByName = new Map(colPlayers.map((n, i) => [String(n), i]));
     const colIdxByName = new Map(rowPlayers.map((n, i) => [String(n), i]));
 
@@ -457,7 +481,7 @@ function renderMatrixTable(panel, mode, opts = {}) {
     for (let c = 0; c < headerCols.length; c++) {
         html += `<th title="${escapeHtml(headerCols[c])}">${renderPlayerLabelWithNewbieBonus(headerCols[c], newbieBonusMax)}</th>`;
     }
-    html += '<th class="matrix-total-head" title="Сумма по строке (источник)">Total</th>';
+    html += `<th class="matrix-total-head" title="${escapeHtml(t('matrix_sum_row'))}">Total</th>`;
     html += '</tr></thead><tbody>';
     for (let r = 0; r < bodyRows.length; r++) {
         html += '<tr>';
@@ -473,15 +497,15 @@ function renderMatrixTable(panel, mode, opts = {}) {
             const styleAttr = heat ? ` style="${heat}"` : '';
             html += `<td class="${cls}" title="${escapeHtml(tip)}"${styleAttr}>${escapeHtml(formatMatrixCell(v, mode))}</td>`;
         }
-        html += `<td class="matrix-total" title="Сумма по строке">${escapeHtml(formatMatrixCell(rowTotals[r], mode))}</td>`;
+        html += `<td class="matrix-total" title="${escapeHtml(t('matrix_sum_row_short'))}">${escapeHtml(formatMatrixCell(rowTotals[r], mode))}</td>`;
         html += '</tr>';
     }
     html += '<tr class="matrix-total-row">';
     html += '<th class="row-head matrix-total-label" scope="row">Total</th>';
     for (let c = 0; c < headerCols.length; c++) {
-        html += `<td class="matrix-total" title="Сумма по столбцу (цель)">${escapeHtml(formatMatrixCell(colTotals[c], mode))}</td>`;
+        html += `<td class="matrix-total" title="${escapeHtml(t('matrix_sum_col'))}">${escapeHtml(formatMatrixCell(colTotals[c], mode))}</td>`;
     }
-    html += `<td class="matrix-total matrix-grand" title="Общая сумма таблицы">${escapeHtml(formatMatrixCell(grandTotal, mode))}</td>`;
+    html += `<td class="matrix-total matrix-grand" title="${escapeHtml(t('matrix_sum_total'))}">${escapeHtml(formatMatrixCell(grandTotal, mode))}</td>`;
     html += '</tr>';
     html += '</tbody></table>';
     html += renderMatrixInsight(mode, headerCols, bodyRows, rowTotals, colTotals, grandTotal);
@@ -502,17 +526,11 @@ function updateMatrixHints(metric) {
     const h1 = document.getElementById('graph_matrix_hint_1');
     let html = '';
     if (metric === 'heal') {
-        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
-            + 'Строки — получатель лечения, столбцы — кто лечит (внутри команды).<br/>'
-            + 'Цвет ячейки: насыщенность по доле от максимума в этой строке (на кого/чей пул лечения приходится больше всего). Наведите на ячейку — доли от строки и от суммы таблицы.';
+        html = t('matrix_hint_heal');
     } else if (metric === 'kill') {
-        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
-            + 'Строки — игроки этой команды (источник килла), столбцы — вражеская команда (цель).<br/>'
-            + 'Цвет ячейки: насыщенность по доле от максимума в строке (главные «пары» киллов). Наведите на ячейку — доли от строки и от суммы таблицы.';
+        html = t('matrix_hint_kill');
     } else {
-        html = 'Данные за выбранный на таймлайне интервал времени.<br/>'
-            + 'Строки — игроки этой команды (источник урона), столбцы — вражеская команда (цель).<br/>'
-            + 'Цвет ячейки: насыщенность по доле от максимума в строке (на кого этот источник тратил урон сильнее всего). Наведите на ячейку — доли от строки и от суммы таблицы.';
+        html = t('matrix_hint_damage');
     }
     if (h0) {
         h0.innerHTML = html;
@@ -576,8 +594,8 @@ function applyMatrixTables(levelIndex, mode) {
     }
     if (!raw || raw === 'null') {
         const td0 = performance.now();
-        c0.innerHTML = '<p class="graph-matrix-empty">Нет данных</p>';
-        c1.innerHTML = '<p class="graph-matrix-empty">Нет данных</p>';
+        c0.innerHTML = `<p class="graph-matrix-empty">${escapeHtml(t('matrix_empty'))}</p>`;
+        c1.innerHTML = `<p class="graph-matrix-empty">${escapeHtml(t('matrix_empty'))}</p>`;
         timing.matrix_dom_ms = Math.round(performance.now() - td0);
         return timing;
     }
@@ -674,8 +692,8 @@ function ApplyParsedCharts(levelIndex = 0, mode = 'damage') {
     const c0 = document.getElementById('chart_matrix_0');
     const c1 = document.getElementById('chart_matrix_1');
     const myGen = ++matrixLoadGen;
-    showChartPreloader(c0, { label: 'Таблица Team 1…' });
-    showChartPreloader(c1, { label: 'Таблица Team 2…' });
+    showChartPreloader(c0, { label: t('preload_table_team1') });
+    showChartPreloader(c1, { label: t('preload_table_team2') });
     deferAfterPaint(() => {
         try {
             if (myGen !== matrixLoadGen) {

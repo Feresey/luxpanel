@@ -6,6 +6,7 @@ import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart
 import { gaEvent } from './analytics.js';
 import { getFocusedPlayer } from './player_focus.js';
 import { getTimelineEmptyFocusParsed } from './client_wasm_cache.js';
+import { getBcp47Locale, subscribeLocale, t, tf } from './i18n.js';
 
 const MIN_VIEW_SPAN_SEC = 0.4;
 
@@ -32,8 +33,6 @@ let dragMode = null; // 'left' | 'right' | 'move' | 'brush' | null
 let brushAnchorSec = 0;
 let lastMarkers = [];
 let rangeChangeCb = null;
-/** Обновление таблицы combat-логов под выбранный интервал (ставится в setupTimeline). */
-let combatLogRefresh = null;
 let getMatchIndexRef = null;
 const swapCookieName = 'lux_team_swap_by_match';
 let teamsSwapped = false;
@@ -79,10 +78,10 @@ function updateLegend() {
     if (!legendEl) {
         return;
     }
-    const spawnLabel = teamsSwapped ? 'Спавн (враги)' : 'Спавн (союзники)';
-    const enemySpawnLabel = teamsSwapped ? 'Спавн (союзники)' : 'Спавн (враги)';
-    const killLabel = teamsSwapped ? 'Убийство (союзник)' : 'Убийство (враг)';
-    const deathLabel = teamsSwapped ? 'Смерть союзника' : 'Смерть противника';
+    const spawnLabel = teamsSwapped ? t('timeline_legend_spawn_enemies') : t('timeline_legend_spawn_allies');
+    const enemySpawnLabel = teamsSwapped ? t('timeline_legend_spawn_allies') : t('timeline_legend_spawn_enemies');
+    const killLabel = teamsSwapped ? t('timeline_legend_kill_ally') : t('timeline_legend_kill_enemy');
+    const deathLabel = teamsSwapped ? t('timeline_legend_death_ally') : t('timeline_legend_death_enemy');
     legendEl.innerHTML = ''
         + `<span class="timeline-legend-item"><i class="timeline-dot spawn"></i> ${spawnLabel}</span>`
         + `<span class="timeline-legend-item"><i class="timeline-dot enemy-spawn"></i> ${enemySpawnLabel}</span>`
@@ -109,7 +108,7 @@ function formatClockSec(sec) {
         return formatSec(sec);
     }
     const d = new Date(matchStartUnixMs + sec * 1000);
-    return d.toLocaleTimeString('ru-RU', {
+    return d.toLocaleTimeString(getBcp47Locale(), {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -233,10 +232,10 @@ function killDeathTooltipExtra(m) {
         : [];
     const parts = [];
     if (w) {
-        parts.push(`Оружие: ${w}`);
+        parts.push(tf('tooltip_weapon', { w }));
     }
     if (assists.length) {
-        parts.push(`Помогали: ${assists.join(', ')}`);
+        parts.push(tf('tooltip_assists', { list: assists.join(', ') }));
     }
     return parts.join(' · ');
 }
@@ -246,32 +245,32 @@ function formatMarkerTooltip(m) {
         return '';
     }
     const tsec = typeof m.time_sec === 'number' ? m.time_sec : null;
-    const tline = tsec === null ? '' : `Время: ${formatClockSec(tsec)}\n`;
+    const tline = tsec === null ? '' : tf('marker_line_time', { time: formatClockSec(tsec) });
     if (m.kind === 'spawn') {
         const dKind = displayKind(m.kind);
         const n = (m.player || '').trim();
         const sh = (m.player_ship || '').trim();
-        const side = dKind === 'spawn' ? 'союзники' : 'враги';
+        const side = dKind === 'spawn' ? t('spawn_side_allies') : t('spawn_side_enemies');
         if (n && sh) {
-            return `${tline}Спавн (${side}): ${n} · ${sh}`;
+            return `${tline}${tf('marker_spawn_ship', { side, name: n, ship: sh })}`;
         }
         if (n) {
-            return `${tline}Спавн (${side}): ${n}`;
+            return `${tline}${tf('marker_spawn', { side, name: n })}`;
         }
-        return `${tline}Спавн (${side})`;
+        return `${tline}${tf('marker_spawn_only', { side })}`;
     }
     if (m.kind === 'enemy_spawn') {
         const dKind = displayKind(m.kind);
         const n = (m.player || '').trim();
         const sh = (m.player_ship || '').trim();
-        const side = dKind === 'spawn' ? 'союзники' : 'враги';
+        const side = dKind === 'spawn' ? t('spawn_side_allies') : t('spawn_side_enemies');
         if (n && sh) {
-            return `${tline}Спавн (${side}): ${n} · ${sh}`;
+            return `${tline}${tf('marker_spawn_ship', { side, name: n, ship: sh })}`;
         }
         if (n) {
-            return `${tline}Спавн (${side}): ${n}`;
+            return `${tline}${tf('marker_spawn', { side, name: n })}`;
         }
-        return `${tline}Спавн (${side})`;
+        return `${tline}${tf('marker_spawn_only', { side })}`;
     }
     if (m.kind === 'kill') {
         const dKind = displayKind(m.kind);
@@ -286,12 +285,13 @@ function formatMarkerTooltip(m) {
         let line1 = '';
         if (kPart && vPart) {
             line1 = dKind === 'kill'
-                ? `Убийство: ${kPart} → ${vPart}`
-                : `Смерть союзника: ${kPart} → ${vPart}`;
+                ? tf('marker_kill', { k: kPart, v: vPart })
+                : tf('marker_ally_death', { k: kPart, v: vPart });
         } else {
+            const who = kPart || vPart;
             line1 = dKind === 'kill'
-                ? `Убийство: ${kPart || vPart}`
-                : `Смерть союзника: ${kPart || vPart}`;
+                ? tf('marker_kill_single', { who })
+                : tf('marker_ally_death_single', { who });
         }
         const extra = killDeathTooltipExtra(m);
         const body = extra ? `${line1}\n${extra}` : line1;
@@ -311,12 +311,14 @@ function formatMarkerTooltip(m) {
         let line1 = '';
         if (kPart && vPart) {
             line1 = dKind === 'death'
-                ? `Смерть союзника: ${kPart} → ${vPart}`
-                : `Убийство: ${kPart} → ${vPart}`;
+                ? tf('marker_ally_death', { k: kPart, v: vPart })
+                : tf('marker_kill', { k: kPart, v: vPart });
         } else if (vPart) {
-            line1 = dKind === 'death' ? `Смерть союзника: ${vPart}` : `Убийство: ${vPart}`;
+            line1 = dKind === 'death'
+                ? tf('marker_ally_death_single', { who: vPart })
+                : tf('marker_kill_single', { who: vPart });
         } else {
-            line1 = dKind === 'death' ? 'Смерть союзника' : 'Убийство';
+            line1 = dKind === 'death' ? t('marker_ally_death_short') : t('marker_kill_short');
         }
         const extra = killDeathTooltipExtra(m);
         const body = extra ? `${line1}\n${extra}` : line1;
@@ -507,7 +509,11 @@ function setHint() {
         hintEl.textContent = '';
         return;
     }
-    hintEl.textContent = `Окно: ${formatClockSec(viewStart)} — ${formatClockSec(viewEnd)} · длительность ${formatSec(matchDurationSec)}`;
+    hintEl.textContent = tf('timeline_window_hint', {
+        from: formatClockSec(viewStart),
+        to: formatClockSec(viewEnd),
+        dur: formatSec(matchDurationSec),
+    });
 }
 
 function layoutBrushPreview(fromSec, toSec) {
@@ -683,9 +689,6 @@ export function commitZoomFromBrush(a, b) {
     if (typeof rangeChangeCb === 'function') {
         rangeChangeCb();
     }
-    if (typeof combatLogRefresh === 'function') {
-        combatLogRefresh();
-    }
 }
 
 function resetTimelineView() {
@@ -701,9 +704,6 @@ function resetTimelineView() {
     gaEvent('lux_timeline_zoom_reset', {});
     if (typeof rangeChangeCb === 'function') {
         rangeChangeCb();
-    }
-    if (typeof combatLogRefresh === 'function') {
-        combatLogRefresh();
     }
 }
 
@@ -745,9 +745,6 @@ function endDrag(ev) {
     if (was && typeof rangeChangeCb === 'function') {
         rangeChangeCb();
     }
-    if (was && typeof combatLogRefresh === 'function') {
-        combatLogRefresh();
-    }
 }
 
 export function setupTimeline(getMatchIndex, onRangeChange) {
@@ -756,7 +753,6 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     rootEl = document.getElementById('timeline_root');
     hintEl = document.getElementById('timeline_hint');
     if (!rootEl) {
-        combatLogRefresh = null;
         return { refresh: () => {}, reset: () => {} };
     }
 
@@ -777,7 +773,7 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     trackEl = document.createElement('div');
     trackEl.className = 'timeline-track';
     trackEl.setAttribute('role', 'slider');
-    trackEl.setAttribute('aria-label', 'Интервал времени матча');
+    trackEl.setAttribute('aria-label', t('timeline_track_aria'));
 
     brushSurfaceEl = document.createElement('div');
     brushSurfaceEl.className = 'timeline-brush-surface';
@@ -828,78 +824,13 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
     resetBtnEl = document.createElement('button');
     resetBtnEl.type = 'button';
     resetBtnEl.className = 'timeline-reset-btn';
-    resetBtnEl.textContent = 'Сбросить масштаб';
+    resetBtnEl.textContent = t('timeline_reset_scale');
     resetBtnEl.addEventListener('click', () => resetTimelineView());
     actionsRow.appendChild(resetBtnEl);
-
-    const combatLogDetails = document.createElement('details');
-    combatLogDetails.className = 'timeline-combat-loglines';
-    const combatLogSummary = document.createElement('summary');
-    combatLogSummary.textContent = 'События combat (распарсенные, только выбранный интервал времени)';
-    combatLogDetails.appendChild(combatLogSummary);
-    const combatLogScroll = document.createElement('div');
-    combatLogScroll.className = 'combat-loglines-scroll';
-    const combatLogTable = document.createElement('table');
-    combatLogTable.className = 'combat-loglines-table';
-    const combatThead = document.createElement('thead');
-    const hrow = document.createElement('tr');
-    ['#', 'Время', 'Тип', 'Содержимое'].forEach((label) => {
-        const th = document.createElement('th');
-        th.textContent = label;
-        hrow.appendChild(th);
-    });
-    combatThead.appendChild(hrow);
-    combatLogTable.appendChild(combatThead);
-    const combatLogTbody = document.createElement('tbody');
-    combatLogTable.appendChild(combatLogTbody);
-    combatLogScroll.appendChild(combatLogTable);
-    combatLogDetails.appendChild(combatLogScroll);
-
-    function renderCombatLogLines(matchIdx) {
-        combatLogTbody.innerHTML = '';
-        const fn = globalThis.getCombatLogLinesJSON;
-        if (typeof fn !== 'function') {
-            return;
-        }
-        const tr = typeof getTimeRangeJSON === 'function' ? getTimeRangeJSON() : '{}';
-        const raw = fn(matchIdx, tr);
-        let rows = [];
-        try {
-            rows = JSON.parse(raw);
-            if (!Array.isArray(rows)) {
-                rows = [];
-            }
-        } catch (_) {
-            rows = [];
-        }
-        rows.forEach((r, i) => {
-            const tr = document.createElement('tr');
-            const tdN = document.createElement('td');
-            tdN.textContent = String(i + 1);
-            const tdT = document.createElement('td');
-            tdT.textContent = r && r.time != null ? String(r.time) : '';
-            const tdK = document.createElement('td');
-            tdK.textContent = r && r.kind != null ? String(r.kind) : '';
-            const tdS = document.createElement('td');
-            tdS.className = 'combat-loglines-summary';
-            tdS.textContent = r && r.summary != null ? String(r.summary) : '';
-            tr.appendChild(tdN);
-            tr.appendChild(tdT);
-            tr.appendChild(tdK);
-            tr.appendChild(tdS);
-            combatLogTbody.appendChild(tr);
-        });
-    }
-
-    combatLogRefresh = () => {
-        const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
-        renderCombatLogLines(idx);
-    };
 
     wrap.appendChild(legendEl);
     wrap.appendChild(trackWrap);
     wrap.appendChild(actionsRow);
-    wrap.appendChild(combatLogDetails);
     rootEl.appendChild(wrap);
 
     brushSurfaceEl.addEventListener('pointerdown', (e) => {
@@ -933,10 +864,21 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
         renderMarkers();
     });
 
+    subscribeLocale(() => {
+        updateLegend();
+        setHint();
+        if (resetBtnEl) {
+            resetBtnEl.textContent = t('timeline_reset_scale');
+        }
+        if (trackEl) {
+            trackEl.setAttribute('aria-label', t('timeline_track_aria'));
+        }
+    });
+
     function loadMatch() {
         hideTooltip();
         const myGen = ++timelineLoadGen;
-        showChartPreloader(plotSurfaceEl, { label: 'Таймлайн…' });
+        showChartPreloader(plotSurfaceEl, { label: t('preload_timeline') });
         deferAfterPaint(() => {
             try {
                 if (myGen !== timelineLoadGen) {
@@ -1039,7 +981,6 @@ export function setupTimeline(getMatchIndex, onRangeChange) {
                 renderMarkers();
                 layoutSyncCursorLine();
                 setHint();
-                renderCombatLogLines(idx);
                 const timelineRenderMs = performance.now() - td0;
                 console.debug('[timeline] rendered', {
                     match_index: idx,

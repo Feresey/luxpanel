@@ -16,6 +16,7 @@ import { deferAfterPaint, hideChartPreloader, showChartPreloader } from './chart
 import { gaEvent } from './analytics.js';
 import { getFocusedPlayer } from './player_focus.js';
 import { getTimelineEmptyFocusParsed } from './client_wasm_cache.js';
+import { getBcp47Locale, subscribeLocale, t, tf } from './i18n.js';
 
 Chart.register(...registerables);
 
@@ -174,7 +175,10 @@ let battleInsightLoadGen = 0;
 let chartPointerUnsubs = [];
 let cursorUnsub = null;
 const swapCookieName = 'lux_team_swap_by_match';
-const intFmt = new Intl.NumberFormat('ru-RU');
+let intFmt = new Intl.NumberFormat(getBcp47Locale());
+subscribeLocale(() => {
+    intFmt = new Intl.NumberFormat(getBcp47Locale());
+});
 
 /** Пока тянем кисть на любом графике боя — не сбрасывать курсор по pointerleave. */
 let battleChartBrushActive = false;
@@ -390,7 +394,7 @@ function formatAxisClock(sec) {
         return formatAxisSec(sec);
     }
     const d = new Date(startMs + sec * 1000);
-    return d.toLocaleTimeString('ru-RU', {
+    return d.toLocaleTimeString(getBcp47Locale(), {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -638,7 +642,7 @@ function renderPeakRangesControls(peaks) {
     host.hidden = false;
     const title = document.createElement('span');
     title.className = 'battle-peak-label';
-    title.textContent = 'Пики боя:';
+    title.textContent = t('battle_peaks_title');
     host.appendChild(title);
     peaks.forEach((p, i) => {
         const b = document.createElement('button');
@@ -667,7 +671,8 @@ const axisStyle = {
     border: { color: 'rgba(63, 63, 70, 0.6)' },
 };
 
-const commonLineOptions = {
+function makeCommonLineOptions() {
+    return {
     responsive: true,
     maintainAspectRatio: false,
     devicePixelRatio: chartDpr(),
@@ -701,7 +706,7 @@ const commonLineOptions = {
                         return '';
                     }
                     const x = items[0].parsed.x;
-                    return typeof x === 'number' ? `Время ${formatAxisClock(x)}` : '';
+                    return typeof x === 'number' ? tf('chart_tooltip_time', { time: formatAxisClock(x) }) : '';
                 },
                 label(ctx) {
                     const ds = ctx.dataset.label || '';
@@ -717,7 +722,7 @@ const commonLineOptions = {
             type: 'linear',
             title: {
                 display: true,
-                text: 'Текущее время',
+                text: t('chart_axis_current_time'),
                 color: '#9ca3af',
                 font: { size: 11 },
             },
@@ -745,6 +750,7 @@ const commonLineOptions = {
         },
     },
 };
+}
 
 function fetchBattleInsightJSON(levelIndex) {
     const tr = typeof getTimeRangeJSON === 'function' ? getTimeRangeJSON() : '{}';
@@ -864,22 +870,24 @@ function formatMarkerTooltipLine(m, allyTeamID, enemyTeamID, focusedPlayer) {
     const weapon = String(m.weapon || '').trim();
     const assists = Array.isArray(m.assists) ? m.assists.filter(Boolean).map(String) : [];
     if (kind === 'spawn') {
-        return `${mark}Спавн (союзники): ${player}${ship ? ` · ${ship}` : ''}`;
+        return `${mark}${t('battle_spawn_allies')} ${player}${ship ? ` · ${ship}` : ''}`;
     }
     if (kind === 'enemy_spawn') {
-        return `${mark}Спавн (враги): ${player}${ship ? ` · ${ship}` : ''}`;
+        return `${mark}${t('battle_spawn_enemies')} ${player}${ship ? ` · ${ship}` : ''}`;
     }
     if (kind === 'kill') {
         const k = killerShip ? `${killer} (${killerShip})` : killer;
         const v = victimShip ? `${victim} (${victimShip})` : victim;
-        const extra = [weapon ? `Оружие: ${weapon}` : '', assists.length ? `Помогали: ${assists.join(', ')}` : ''].filter(Boolean).join(' · ');
-        return extra ? `${mark}Убийство: ${k} → ${v} · ${extra}` : `${mark}Убийство: ${k} → ${v}`;
+        const extra = [weapon ? tf('tooltip_weapon', { w: weapon }) : '', assists.length ? tf('tooltip_assists', { list: assists.join(', ') }) : ''].filter(Boolean).join(' · ');
+        const core = `${mark}${tf('marker_kill', { k, v })}`;
+        return extra ? `${core} · ${extra}` : core;
     }
     if (kind === 'death') {
         const k = killerShip ? `${killer} (${killerShip})` : killer;
         const v = victimShip ? `${victim} (${victimShip})` : victim;
-        const extra = [weapon ? `Оружие: ${weapon}` : '', assists.length ? `Помогали: ${assists.join(', ')}` : ''].filter(Boolean).join(' · ');
-        return extra ? `${mark}Смерть союзника: ${k} → ${v} · ${extra}` : `${mark}Смерть союзника: ${k} → ${v}`;
+        const extra = [weapon ? tf('tooltip_weapon', { w: weapon }) : '', assists.length ? tf('tooltip_assists', { list: assists.join(', ') }) : ''].filter(Boolean).join(' · ');
+        const core = `${mark}${tf('marker_ally_death', { k, v })}`;
+        return extra ? `${core} · ${extra}` : core;
     }
     return `${mark}${String(m.label || '').trim()}`;
 }
@@ -965,8 +973,8 @@ export function setupBattleInsightCharts(getMatchIndex) {
     function refresh() {
         const idx = typeof getMatchIndex === 'function' ? getMatchIndex() : 0;
         const myGen = ++battleInsightLoadGen;
-        showChartPreloader(lifeWrap, { label: 'Линия жизни…' });
-        showChartPreloader(intWrap, { label: 'Интенсивность боя…' });
+        showChartPreloader(lifeWrap, { label: t('preload_life_line') });
+        showChartPreloader(intWrap, { label: t('preload_battle_intensity') });
         deferAfterPaint(() => {
             try {
                 if (myGen !== battleInsightLoadGen) {
@@ -990,8 +998,8 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 const tSeries0 = performance.now();
                 const life = Array.isArray(data.life) ? data.life : [];
                 const intensity = Array.isArray(data.intensity) ? data.intensity : [];
-                const allyLabel = data.ally_team_label || 'Союзники';
-                const enemyLabel = data.enemy_team_label || 'Противники';
+                const allyLabel = data.ally_team_label || t('team_label_allies');
+                const enemyLabel = data.enemy_team_label || t('team_label_enemies');
                 const focusedPlayer = String(data.focused_player || '').trim();
                 const godGiftSec = Number(data.godgift_sec);
                 const godGiftLabel = String(data.godgift_label || 'GodGift').trim() || 'GodGift';
@@ -1039,8 +1047,12 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             enemyColorIdx++;
                         }
                         const pts = Array.isArray(ts && ts.points) ? ts.points : [];
+                        const tid = Number(ts && ts.team_id) || 0;
+                        const rawLab = ts && ts.label && String(ts.label).trim();
+                        const sideLab = ts && ts.ally ? t('team_label_allies') : t('team_label_enemies');
+                        const label = rawLab || `${sideLab} · Team ${tid || i + 1}`;
                         return {
-                            label: String((ts && ts.label) || `Team ${Number(ts && ts.team_id) || i + 1}`),
+                            label,
                             data: pts.map((p) => ({ x: p && p.t, y: p && p.v })),
                             borderColor: c,
                             backgroundColor: c.replace('0.95', '0.12'),
@@ -1054,7 +1066,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                     });
                     if (focusedPlayer) {
                         lifeDatasets.push({
-                            label: `${focusedPlayer} (жив/мертв)`,
+                            label: tf('life_focus_dataset', { name: focusedPlayer }),
                             data: lifeFocused.map((y, i) => ({ x: lifeT[i], y })),
                             borderColor: 'rgba(250, 204, 21, 0.95)',
                             backgroundColor: 'rgba(250, 204, 21, 0.08)',
@@ -1085,18 +1097,18 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             datasets: lifeDatasets,
                         },
                         options: {
-                            ...commonLineOptions,
+                            ...makeCommonLineOptions(),
                             parsing: false,
                             plugins: {
-                                ...commonLineOptions.plugins,
+                                ...makeCommonLineOptions().plugins,
                                 legend: {
                                     display: true,
                                     labels: { color: '#cbd5e1', boxWidth: 14, usePointStyle: false },
                                 },
                                 tooltip: {
-                                    ...commonLineOptions.plugins.tooltip,
+                                    ...makeCommonLineOptions().plugins.tooltip,
                                     callbacks: {
-                                        ...commonLineOptions.plugins.tooltip.callbacks,
+                                        ...makeCommonLineOptions().plugins.tooltip.callbacks,
                                         afterBody(items) {
                                             if (!items.length) {
                                                 return [];
@@ -1112,24 +1124,24 @@ export function setupBattleInsightCharts(getMatchIndex) {
                                                 0,
                                                 focusedPlayer,
                                             );
-                                            return lines.length ? ['События:'].concat(lines) : [];
+                                            return lines.length ? [t('chart_events_header')].concat(lines) : [];
                                         },
                                     },
                                 },
                             },
                             scales: {
-                                ...commonLineOptions.scales,
+                                ...makeCommonLineOptions().scales,
                                 x: {
-                                    ...commonLineOptions.scales.x,
+                                    ...makeCommonLineOptions().scales.x,
                                     type: 'linear',
                                     min: lifeX.min,
                                     max: lifeX.max,
                                 },
                                 y: {
-                                    ...commonLineOptions.scales.y,
+                                    ...makeCommonLineOptions().scales.y,
                                     title: {
                                         display: true,
-                                        text: 'Игроков в живых',
+                                        text: t('chart_axis_players_alive'),
                                         color: '#9ca3af',
                                         font: { size: 11 },
                                     },
@@ -1149,7 +1161,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                 if (intT.length > 0) {
                     const intDatasets = [
                         {
-                            label: `${allyLabel}, урон/с (окно 10 с: текущая + 9 с)`,
+                            label: tf('intensity_ally_dps', { label: allyLabel }),
                             data: intAllySeries.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(56, 189, 248, 0.95)',
                             backgroundColor: 'rgba(56, 189, 248, 0.08)',
@@ -1160,7 +1172,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             pointHoverRadius: 3,
                         },
                         {
-                            label: `${enemyLabel}, урон/с (окно 10 с: текущая + 9 с)`,
+                            label: tf('intensity_enemy_dps', { label: enemyLabel }),
                             data: intEnemySeries.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(251, 146, 60, 0.95)',
                             backgroundColor: 'rgba(251, 146, 60, 0.08)',
@@ -1173,7 +1185,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                     ];
                     if (focusedPlayer) {
                         intDatasets.push({
-                            label: `${focusedPlayer}, исходящий урон/с`,
+                            label: tf('intensity_player_out', { name: focusedPlayer }),
                             data: intFocusedOut.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(250, 204, 21, 0.95)',
                             backgroundColor: 'rgba(250, 204, 21, 0.08)',
@@ -1185,7 +1197,7 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             borderDash: [7, 5],
                         });
                         intDatasets.push({
-                            label: `${focusedPlayer}, входящий урон/с`,
+                            label: tf('intensity_player_in', { name: focusedPlayer }),
                             data: intFocusedIn.map((y, i) => ({ x: intT[i], y })),
                             borderColor: 'rgba(244, 114, 182, 0.95)',
                             backgroundColor: 'rgba(244, 114, 182, 0.08)',
@@ -1203,21 +1215,21 @@ export function setupBattleInsightCharts(getMatchIndex) {
                             datasets: intDatasets,
                         },
                         options: {
-                            ...commonLineOptions,
+                            ...makeCommonLineOptions(),
                             parsing: false,
                             scales: {
-                                ...commonLineOptions.scales,
+                                ...makeCommonLineOptions().scales,
                                 x: {
-                                    ...commonLineOptions.scales.x,
+                                    ...makeCommonLineOptions().scales.x,
                                     type: 'linear',
                                     min: intX.min,
                                     max: intX.max,
                                 },
                                 y: {
-                                    ...commonLineOptions.scales.y,
+                                    ...makeCommonLineOptions().scales.y,
                                     title: {
                                         display: true,
-                                        text: 'Урон/с (плавающее окно 10 с)',
+                                        text: t('chart_axis_dps_window'),
                                         color: '#9ca3af',
                                         font: { size: 11 },
                                     },

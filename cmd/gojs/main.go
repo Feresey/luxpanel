@@ -15,6 +15,9 @@ func main() {
 		panic(err)
 
 	}
+	if err := r.InitI18n(ctx); err != nil {
+		panic(err)
+	}
 	r.RegisterJSBindings(ctx)
 
 	select {}

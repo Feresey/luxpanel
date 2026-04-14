@@ -1,0 +1,384 @@
+- id: page_title
+  translation: "LuX control panel (Guest access)"
+- id: pick_logs
+  translation: "Выбрать логи"
+- id: load_demo_logs
+  translation: "Демо-логи"
+- id: load_demo_logs_title
+  translation: "Загрузить встроенный набор логов"
+- id: match_label
+  translation: "Матч"
+- id: header_corner_link
+  translation: "Aimbot/WH"
+- id: lang_switch_aria
+  translation: "Язык интерфейса"
+
+- id: logs_where_hint
+  translation: "Где искать логи:"
+- id: logs_where_hint_alt
+  translation: "(обычно:"
+
+- id: watcher_title
+  translation: "Большой брат наблюдает за вами!"
+- id: watcher_connect
+  translation: "Подключение наблюдателя"
+- id: watcher_disconnect
+  translation: "Отключение"
+
+- id: match_summary_aria
+  translation: "Сводка матча"
+- id: match_summary_title
+  translation: "Сводка матча"
+- id: summary_damage
+  translation: "Урон"
+- id: summary_heal
+  translation: "Лечение"
+- id: summary_kills
+  translation: "Киллы"
+- id: role_allies
+  translation: "Союзники"
+- id: role_enemies
+  translation: "Враги"
+- id: spawn_left
+  translation: "левый спавн"
+- id: spawn_right
+  translation: "правый спавн"
+
+- id: optgroup_allies
+  translation: "Союзники"
+- id: optgroup_enemies
+  translation: "Противники"
+- id: optgroup_other
+  translation: "Прочие"
+
+- id: warrior_not_selected
+  translation: "Не выбрано"
+- id: warrior_who
+  translation: "Кто ты, воин?"
+- id: player_not_selected
+  translation: "Игрок не выбран"
+
+- id: graph_view_toolbar_aria
+  translation: "Вид графиков"
+- id: metric_aria
+  translation: "Метрика"
+- id: simple_ui_title
+  translation: "Понятный режим с минимумом сложных таблиц"
+- id: simple_ui_label
+  translation: "Простой режим"
+- id: damage_type_label
+  translation: "Тип урона"
+- id: dmg_all
+  translation: "Весь урон"
+- id: dmg_thermal
+  translation: "Термальный"
+- id: dmg_kinetic
+  translation: "Кинетический"
+- id: dmg_emp
+  translation: "EMP"
+- id: include_bots
+  translation: "Учитывать ботов"
+- id: swap_teams
+  translation: "↔ Поменять команды местами"
+- id: swap_teams_title_swapped
+  translation: "Сейчас слева Team 2. Нажмите, чтобы вернуть Team 1 слева."
+- id: swap_teams_title_normal
+  translation: "Сейчас слева Team 1. Нажмите, чтобы поменять местами."
+
+- id: graph_total_title
+  translation: "Сумма по текущему виду"
+
+- id: matrix_hint_heal
+  translation: "Данные за выбранный на таймлайне интервал времени.<br/>Строки — получатель лечения, столбцы — кто лечит (внутри команды).<br/>Цвет ячейки: насыщенность по доле от максимума в этой строке (на кого/чей пул лечения приходится больше всего). Наведите на ячейку — доли от строки и от суммы таблицы."
+- id: matrix_hint_kill
+  translation: "Данные за выбранный на таймлайне интервал времени.<br/>Строки — игроки этой команды (источник килла), столбцы — вражеская команда (цель).<br/>Цвет ячейки: насыщенность по доле от максимума в строке (главные «пары» киллов). Наведите на ячейку — доли от строки и от суммы таблицы."
+- id: matrix_hint_damage
+  translation: "Данные за выбранный на таймлайне интервал времени.<br/>Строки — игроки этой команды (источник урона), столбцы — вражеская команда (цель).<br/>Цвет ячейки: насыщенность по доле от максимума в строке (на кого этот источник тратил урон сильнее всего). Наведите на ячейку — доли от строки и от суммы таблицы."
+- id: matrix_empty
+  translation: "Нет данных"
+- id: matrix_corner_damage
+  translation: "Источн. \\ Цель"
+- id: matrix_corner_heal
+  translation: "Леч. \\ Получ."
+- id: matrix_sum_row
+  translation: "Сумма по строке (источник)"
+- id: matrix_sum_row_short
+  translation: "Сумма по строке"
+- id: matrix_sum_col
+  translation: "Сумма по столбцу (цель)"
+- id: matrix_sum_total
+  translation: "Общая сумма таблицы"
+
+- id: preload_table_team1
+  translation: "Таблица Team 1…"
+- id: preload_table_team2
+  translation: "Таблица Team 2…"
+- id: preload_timeline
+  translation: "Таймлайн…"
+- id: preload_loading
+  translation: "Загрузка…"
+- id: preload_life_line
+  translation: "Линия жизни…"
+- id: preload_battle_intensity
+  translation: "Интенсивность боя…"
+
+- id: timeline_title
+  translation: "Таймлайн матча"
+- id: timeline_lead
+  translation: "События боя отображаются прямо на графике «Линия жизни» при наведении на ключевые точки. Вертикальная линия синхронизирована между графиками."
+- id: timeline_section_aria
+  translation: "Время матча и ситуация в бою"
+- id: battle_charts_aria
+  translation: "Графики ситуации в бою"
+- id: timeline_track_aria
+  translation: "Интервал времени матча"
+- id: timeline_reset_scale
+  translation: "Сбросить масштаб"
+- id: timeline_window_hint
+  translation: "Окно: {from} — {to} · длительность {dur}"
+- id: timeline_legend_spawn_allies
+  translation: "Спавн (союзники)"
+- id: timeline_legend_spawn_enemies
+  translation: "Спавн (враги)"
+- id: timeline_legend_kill_enemy
+  translation: "Убийство (враг)"
+- id: timeline_legend_kill_ally
+  translation: "Убийство (союзник)"
+- id: timeline_legend_death_enemy
+  translation: "Смерть противника"
+- id: timeline_legend_death_ally
+  translation: "Смерть союзника"
+
+- id: graph_player_label
+  translation: "Игрок:"
+- id: life_line_title
+  translation: "Линия жизни"
+- id: battle_intensity_title
+  translation: "Интенсивность боя"
+- id: life_line_tooltip
+  translation: "Сколько игроков каждой команды в живых в каждый момент (по спавнам и смертям в логе). Ось X — текущее окно времени (масштаб на таймлайне или кисть на графике)."
+- id: battle_intensity_tooltip
+  translation: "Средний урон/с по скользящему окну 10 с (кросс-командный урон). Две линии: союзники и противники. Синхронизировано с окном времени на таймлайне."
+- id: life_line_help_aria
+  translation: "Справка: линия жизни"
+- id: battle_intensity_help_aria
+  translation: "Справка: интенсивность боя"
+
+- id: damage_table_section_aria
+  translation: "Детализация урона"
+- id: damage_table_title
+  translation: "Детализация урона"
+- id: damage_table_lead
+  translation: "Сводная таблица урона по дефолтным наборам модификаторов для выбранного игрока (источник). В колонке <b>«Модификаторы»</b>: <code>nil</code> — не учитывать, <code>true</code> — должен присутствовать, <code>false</code> — должен отсутствовать."
+
+- id: df_initiator
+  translation: "Игрок (источник)"
+- id: df_perspective
+  translation: "Направление"
+- id: df_outgoing
+  translation: "Исходящий (игрок наносит)"
+- id: df_incoming
+  translation: "Входящий (урон по игроку)"
+- id: df_source_incoming_suffix
+  translation: " (получает)"
+- id: df_recipient
+  translation: "Цель"
+- id: df_weapon
+  translation: "Оружие"
+- id: df_table_mode
+  translation: "Режим таблицы"
+- id: df_mode_defaults
+  translation: "Дефолтные наборы модификаторов"
+- id: df_mode_single
+  translation: "Один точечный фильтр"
+- id: df_modifiers
+  translation: "Модификаторы"
+- id: df_clear_all
+  translation: "Снять все"
+- id: df_th_expand
+  translation: "Детализация"
+- id: df_col_time
+  translation: "Время"
+- id: df_col_source
+  translation: "Источник урона"
+- id: df_col_targets
+  translation: "Цель(и)"
+- id: df_col_weapon
+  translation: "Оружие"
+- id: df_col_mods
+  translation: "Модификаторы"
+- id: df_col_events
+  translation: "Событий"
+- id: df_col_damage
+  translation: "Урон"
+- id: df_inner_time
+  translation: "Время"
+- id: df_inner_source
+  translation: "Источник"
+- id: df_inner_target
+  translation: "Цель"
+- id: df_select_player
+  translation: "— выберите игрока —"
+- id: df_select_placeholder
+  translation: "— выберите —"
+- id: df_any_target
+  translation: "Любая цель"
+- id: df_any_weapon
+  translation: "Любое оружие"
+- id: df_any_source
+  translation: "Любой источник"
+- id: df_no_data_meta
+  translation: "— нет данных —"
+- id: df_no_data
+  translation: "Нет данных"
+- id: df_expand_aria
+  translation: "Показать исходные строки урона"
+- id: df_hint_pick_recipient
+  translation: "Выберите игрока (по которому получен урон)"
+- id: df_hint_pick_initiator
+  translation: "Выберите игрока (источник урона)"
+- id: df_foot_filter
+  translation: "Фильтр"
+- id: df_foot_presets
+  translation: "Наборы"
+- id: df_wasm_missing
+  translation: "WASM не загружен"
+- id: df_meta_error
+  translation: "Ошибка метаданных"
+
+- id: combat_log_summary
+  translation: "События combat (распарсенные, только выбранный интервал времени)"
+- id: combat_col_num
+  translation: "#"
+- id: combat_col_time
+  translation: "Время"
+- id: combat_col_kind
+  translation: "Тип"
+- id: combat_col_body
+  translation: "Содержимое"
+
+- id: marker_line_time
+  translation: "Время: {time}\n"
+- id: marker_spawn
+  translation: "Спавн ({side}): {name}"
+- id: marker_spawn_only
+  translation: "Спавн ({side})"
+- id: marker_spawn_ship
+  translation: "Спавн ({side}): {name} · {ship}"
+- id: spawn_side_allies
+  translation: "союзники"
+- id: spawn_side_enemies
+  translation: "враги"
+- id: marker_kill
+  translation: "Убийство: {k} → {v}"
+- id: marker_kill_single
+  translation: "Убийство: {who}"
+- id: marker_ally_death
+  translation: "Смерть союзника: {k} → {v}"
+- id: marker_ally_death_single
+  translation: "Смерть союзника: {who}"
+- id: marker_kill_short
+  translation: "Убийство"
+- id: marker_ally_death_short
+  translation: "Смерть союзника"
+- id: tooltip_weapon
+  translation: "Оружие: {w}"
+- id: tooltip_assists
+  translation: "Помогали: {list}"
+
+- id: battle_peaks_title
+  translation: "Пики боя:"
+- id: chart_tooltip_time
+  translation: "Время {time}"
+- id: chart_axis_current_time
+  translation: "Текущее время"
+- id: chart_events_header
+  translation: "События:"
+- id: chart_axis_players_alive
+  translation: "Игроков в живых"
+- id: chart_axis_dps_window
+  translation: "Урон/с (плавающее окно 10 с)"
+- id: battle_spawn_allies
+  translation: "Спавн (союзники):"
+- id: battle_spawn_enemies
+  translation: "Спавн (враги):"
+- id: battle_kill
+  translation: "Убийство:"
+- id: battle_ally_death
+  translation: "Смерть союзника:"
+- id: team_label_allies
+  translation: "Союзники"
+- id: team_label_enemies
+  translation: "Противники"
+- id: life_focus_dataset
+  translation: "{name} (жив/мертв)"
+- id: intensity_ally_dps
+  translation: "{label}, урон/с (окно 10 с)"
+- id: intensity_enemy_dps
+  translation: "{label}, урон/с (окно 10 с)"
+- id: intensity_player_out
+  translation: "{name}, исходящий урон/с"
+- id: intensity_player_in
+  translation: "{name}, входящий урон/с"
+
+- id: preload_damage_table
+  translation: "Таблица урона…"
+- id: newbie_bonus_hint
+  translation: "Бонус новичка (Normalizer): максимум за матч = x{bonus}"
+- id: simple_col_heal
+  translation: "Лечение"
+- id: simple_col_kill
+  translation: "Киллы"
+- id: simple_col_damage
+  translation: "Урон"
+- id: simple_th_player
+  translation: "Игрок"
+- id: simple_team_foot
+  translation: "Простой режим: вклад игроков без матрицы связей."
+- id: matrix_cell_metric_heal
+  translation: "лечение"
+- id: matrix_cell_metric_kill
+  translation: "киллы"
+- id: matrix_cell_metric_damage
+  translation: "урон"
+- id: matrix_cell_line
+  translation: "{src} → {tgt}: {val} ({metric})"
+- id: matrix_pct_row
+  translation: "{pct}% от строки (вклад этого источника по целям)"
+- id: matrix_pct_table
+  translation: "{pct}% от суммы таблицы команды"
+- id: matrix_insight_heal
+  translation: "Главный вклад по объёму лечения: {src} ({rowPct}% от суммы таблицы). Больше всего получено: {tgt} ({colPct}% от суммы по получателям)."
+- id: matrix_insight_kill
+  translation: "Больше всего киллов: {src} ({rowPct}% от суммы таблицы). Чаще всего убивали: {tgt} ({colPct}% от суммы по целям)."
+- id: matrix_insight_damage
+  translation: "Главный вклад по урону: {src} ({rowPct}% от суммы команды). Больше всего урона получил: {tgt} ({colPct}% от суммы по целям)."
+
+- id: go_match_role_enemies_team
+  translation: "Враги (Team {{.Team}})"
+- id: go_match_spawn_left
+  translation: " · левый спавн"
+- id: go_match_spawn_right
+  translation: " · правый спавн"
+- id: go_godgift_allies
+  translation: "GodGift (союзники)"
+- id: go_godgift_enemies
+  translation: "GodGift (противники)"
+- id: go_chart_metric_damage
+  translation: "Урон"
+- id: go_chart_metric_heal
+  translation: "Лечение"
+- id: go_chart_metric_kill
+  translation: "Киллы"
+- id: go_chart_curve_avg
+  translation: "Среднее {{.Metric}}"
+- id: go_level_match_fallback
+  translation: "Матч {{.N}}"
+- id: go_level_label
+  translation: "Матч {{.N}}: {{.Mode}} — {{.Map}}"
+- id: go_duration_min
+  translation: "{{.Min}} мин"
+- id: go_duration_sec
+  translation: "{{.Sec}} с"
+- id: go_team_name
+  translation: "Team {{.N}}"
