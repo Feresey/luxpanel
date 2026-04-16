@@ -46,6 +46,44 @@ body :where(button, [role="button"], a.header-corner-link, select, input:not([ty
     width: 100%;
 }
 
+.sc-shutdown-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
+    padding: 0.45rem 1rem;
+    background: linear-gradient(180deg, #1a1f28 0%, #151922 100%);
+    border-bottom: 1px solid #2a3140;
+    font-size: 0.92rem;
+    color: #cbd5e1;
+    letter-spacing: 0.01em;
+}
+
+.sc-shutdown-label {
+    color: #94a3b8;
+}
+
+.sc-shutdown-countdown-wrap {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.55rem;
+}
+
+.sc-shutdown-days {
+    font-weight: 700;
+    color: #7dd3fc;
+    letter-spacing: 0.02em;
+}
+
+.sc-shutdown-time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #f0f9ff;
+    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+}
+
 .header-corner-link {
     font-size: 0.85rem;
     color: #94a3b8;

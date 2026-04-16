@@ -13,6 +13,20 @@
 - id: lang_switch_aria
   translation: "Interface language"
 
+- id: sc_shutdown_countdown_label
+  translation: "Until SC closes:"
+- id: sc_shutdown_countdown_aria
+  translation: "Countdown until Star Conflict shutdown"
+
+- id: sc_shutdown_days_unit_one
+  translation: "day"
+- id: sc_shutdown_days_unit_few
+  translation: "days"
+- id: sc_shutdown_days_unit_many
+  translation: "days"
+- id: sc_shutdown_days_unit_other
+  translation: "days"
+
 - id: logs_where_hint
   translation: "Where to find logs:"
 - id: logs_where_hint_alt

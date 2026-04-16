@@ -13,6 +13,20 @@
 - id: lang_switch_aria
   translation: "Язык интерфейса"
 
+- id: sc_shutdown_countdown_label
+  translation: "До закрытия СК:"
+- id: sc_shutdown_countdown_aria
+  translation: "Обратный отсчёт до закрытия Star Conflict"
+
+- id: sc_shutdown_days_unit_one
+  translation: "день"
+- id: sc_shutdown_days_unit_few
+  translation: "дня"
+- id: sc_shutdown_days_unit_many
+  translation: "дней"
+- id: sc_shutdown_days_unit_other
+  translation: "дней"
+
 - id: logs_where_hint
   translation: "Где искать логи:"
 - id: logs_where_hint_alt

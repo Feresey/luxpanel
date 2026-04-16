@@ -18,7 +18,10 @@ import {
 } from './client_wasm_cache.js'
 
 import './wasm_exec.js'
-import { bootstrapI18nAfterWasm, getBcp47Locale, subscribeLocale, t, tf } from './i18n.js'
+import { bootstrapI18nAfterWasm, getBcp47Locale, getLocaleTag, subscribeLocale, t, tf } from './i18n.js'
+
+/** 10 Oct, 03:00 local (browser) — same calendar date in the user's timezone. */
+const SC_SHUTDOWN_DEADLINE_MS = new Date(2026, 9, 10, 3, 0, 0, 0).getTime();
 
 const demoGameLogURL = new URL('../assets/2026.04.03 22.23.53.889/game.log', import.meta.url);
 const demoCombatLogURL = new URL('../assets/2026.04.03 22.23.53.889/combat.log', import.meta.url);
@@ -28,6 +31,67 @@ const BATTLE_INSIGHT_TIP_FALLBACK_EN = {
     life_line_tooltip: 'How many players on each team are alive at each moment (from spawns and deaths in the log). The X axis is the current time window (timeline zoom or brush on the chart).',
     battle_intensity_tooltip: 'Average damage per second over a rolling 10-second window (cross-team damage). Two lines: allies and enemies. Synced with the timeline window.',
 };
+
+function pad2(n) {
+    return String(n).padStart(2, '0');
+}
+
+/** Until WASM dict: plural unit after day count (Intl.PluralRules category). */
+const SC_SHUTDOWN_DAY_UNIT_FALLBACK = {
+    en: { one: 'day', few: 'days', many: 'days', other: 'days' },
+    ru: { one: 'день', few: 'дня', many: 'дней', other: 'дней' },
+};
+
+function scShutdownDayUnitWord(rule) {
+    const key = `sc_shutdown_days_unit_${rule}`;
+    const tr = t(key);
+    if (tr !== key) {
+        return tr;
+    }
+    const fb = SC_SHUTDOWN_DAY_UNIT_FALLBACK[getLocaleTag() === 'ru' ? 'ru' : 'en'];
+    return fb[rule] || fb.other;
+}
+
+/** Whole calendar days + remainder as HH:MM:SS (remainder < 24 h). */
+function formatScShutdownCountdownParts(msRemaining) {
+    if (msRemaining <= 0) {
+        return { days: 0, hms: '00:00:00', showDays: false };
+    }
+    const totalSec = Math.floor(msRemaining / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const rem = totalSec % 86400;
+    const h = Math.floor(rem / 3600);
+    const m = Math.floor((rem % 3600) / 60);
+    const s = rem % 60;
+    const hms = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+    return { days, hms, showDays: days > 0 };
+}
+
+function updateScShutdownCountdown() {
+    const daysEl = document.getElementById('sc_shutdown_countdown_days');
+    const timeEl = document.getElementById('sc_shutdown_countdown');
+    if (!timeEl) {
+        return;
+    }
+    const { days, hms, showDays } = formatScShutdownCountdownParts(SC_SHUTDOWN_DEADLINE_MS - Date.now());
+    timeEl.textContent = hms;
+    if (daysEl) {
+        if (showDays) {
+            const rule = new Intl.PluralRules(getBcp47Locale()).select(days);
+            daysEl.textContent = `${days}\u00A0${scShutdownDayUnitWord(rule)}`;
+            daysEl.hidden = false;
+        } else {
+            daysEl.textContent = '';
+            daysEl.hidden = true;
+        }
+    }
+}
+
+function initScShutdownCountdown() {
+    updateScShutdownCountdown();
+    setInterval(updateScShutdownCountdown, 1000);
+    subscribeLocale(() => updateScShutdownCountdown());
+}
 
 function battleInsightHelpTooltipTitle(el) {
     const id = el.getAttribute('data-lux-tip');
@@ -906,3 +970,5 @@ pickLogs.addEventListener('change', function () {
     // На некоторых браузерах повторный выбор той же папки не триггерит change без явного сброса.
     this.value = '';
 });
+
+initScShutdownCountdown();
